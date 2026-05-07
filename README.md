@@ -1,2 +1,0 @@
-# GTM
-Gestión taller mecánico 

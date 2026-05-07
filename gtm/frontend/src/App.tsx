@@ -1,122 +1,101 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const stats = [
+    { title: 'Vehículos en Taller', value: "", color: '#3b82f6' },
+    { title: 'Órdenes Pendientes', value: "", color: '#f59e0b' },
+    { title: 'Trabajos Terminados (Hoy)', value: "", color: '#10b981' },
+    { title: 'Ingresos del Día', value: '$', color: '#8b5cf6' },
+  ];
+
+  const recentOrders = [
+    { id: 'ORD-001', client: 'Juan Pérez', vehicle: 'Toyota Corolla 2018', status: 'En progreso' },
+    { id: 'ORD-002', client: 'María Gómez', vehicle: 'Honda Civic 2020', status: 'Esperando repuestos' },
+    { id: 'ORD-003', client: 'Carlos Ruiz', vehicle: 'Ford Ranger 2015', status: 'Ingresado' },
+    { id: 'ORD-004', client: 'Ana Silva', vehicle: 'Chevrolet Spark 2019', status: 'Ingresado' },
+  ];
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="dashboard-container">
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h2>MTG</h2>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <nav className="sidebar-nav">
+          <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+             Panel de Control
+          </button>
+          <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>
+             Órdenes de Trabajo
+          </button>
+          <button className={activeTab === 'clients' ? 'active' : ''} onClick={() => setActiveTab('clients')}>
+             Clientes
+          </button>
+          <button className={activeTab === 'vehicles' ? 'active' : ''} onClick={() => setActiveTab('vehicles')}>
+             Vehículos
+          </button>
+          <button className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>
+             Inventario
+          </button>
+        </nav>
+      </aside>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      
+      <main className="main-content">
+        <header className="topbar">
+          <h1>Bienvenido</h1>
+          <div className="user-profile"> Configuración</div>
+        </header>
+
+        <section className="dashboard-content">
+          <div className="stats-grid">
+            {stats.map((stat, index) => (
+              <div key={index} className="stat-card" style={{ borderTop: `4px solid ${stat.color}` }}>
+                <h3>{stat.title}</h3>
+                <p className="stat-value">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="recent-orders">
+            <h2>Órdenes Recientes</h2>
+            <table className="orders-table">
+              <thead>
+                <tr>
+                  <th>ID Orden</th>
+                  <th>Cliente</th>
+                  <th>Vehículo</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order, index) => (
+                  <tr key={index}>
+                    <td>{order.id}</td>
+                    <td>{order.client}</td>
+                    <td>{order.vehicle}</td>
+                    <td>
+                      <span className={`status-badge ${order.status.replace(/\s+/g, '-').toLowerCase()}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="btn-view">Ver Detalles</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

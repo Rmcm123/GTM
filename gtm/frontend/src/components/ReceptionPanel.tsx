@@ -1,14 +1,16 @@
-import type { Customer } from '../types';
+import type { Cliente } from '../types';
 import { Panel } from './Panel';
 
 type ReceptionPanelProps = {
-  customers: Customer[];
+  clientes: Cliente[];
+  cargandoClientes: boolean;
+  errorClientes: string | null;
 };
 
 const inputClass =
   'min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[14px] text-[#111827] outline-none focus:border-[#0f6b52]';
 
-export function ReceptionPanel({ customers }: ReceptionPanelProps) {
+export function ReceptionPanel({ clientes, cargandoClientes, errorClientes }: ReceptionPanelProps) {
   return (
     <Panel>
       <div className="mb-4">
@@ -47,7 +49,7 @@ export function ReceptionPanel({ customers }: ReceptionPanelProps) {
             <input className={inputClass} placeholder="Toyota Corolla" type="text" />
           </label>
           <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-            Año
+            Ano
             <input className={inputClass} placeholder="2018" type="number" />
           </label>
         </div>
@@ -63,17 +65,22 @@ export function ReceptionPanel({ customers }: ReceptionPanelProps) {
       </form>
 
       <div className="mt-5 border-t border-[#e5eaf0] pt-4">
-        <h3 className="m-0 text-[16px] font-extrabold text-[#111827]">Clientes recientes</h3>
+        <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+          <h3 className="m-0 text-[16px] font-extrabold text-[#111827]">Clientes recientes</h3>
+          {cargandoClientes && <span className="text-[13px] font-bold text-[#64748b]">Cargando desde backend...</span>}
+          {errorClientes && <span className="text-[13px] font-bold text-[#9a4b00]">{errorClientes}</span>}
+        </div>
+
         <div className="mt-2 grid">
-          {customers.map((customer, index) => (
-            <div className={`flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between ${index === 0 ? '' : 'border-t border-[#e5eaf0]'}`} key={customer.rut}>
+          {clientes.map((cliente, index) => (
+            <div className={`flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between ${index === 0 ? '' : 'border-t border-[#e5eaf0]'}`} key={cliente.rut}>
               <div>
-                <strong className="block text-[14px] text-[#111827]">{customer.name}</strong>
-                <span className="text-[13px] text-[#64748b]">{customer.rut} · {customer.phone}</span>
+                <strong className="block text-[14px] text-[#111827]">{cliente.nombre}</strong>
+                <span className="text-[13px] text-[#64748b]">{cliente.rut} - {cliente.telefono}</span>
               </div>
               <div className="text-left md:text-right">
-                <strong className="block text-[14px] text-[#111827]">{customer.vehiclePlate}</strong>
-                <span className="text-[13px] text-[#64748b]">{customer.vehicle}</span>
+                <strong className="block text-[14px] text-[#111827]">{cliente.patenteVehiculo}</strong>
+                <span className="text-[13px] text-[#64748b]">{cliente.vehiculo}</span>
               </div>
             </div>
           ))}

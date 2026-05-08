@@ -4,10 +4,12 @@ import { AppLayout } from './components/AppLayout';
 import { CapacityPanel } from './components/CapacityPanel';
 import { InventoryPanel } from './components/InventoryPanel';
 import { OrdersTable } from './components/OrdersTable';
+import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
 import { WorkflowPanel } from './components/WorkflowPanel';
 import {
   adminSummary,
+  customers,
   inventoryItems,
   inventorySummary,
   mechanicSummary,
@@ -24,11 +26,15 @@ function Header({
   description,
   secondaryAction,
   primaryAction,
+  onPrimaryAction,
+  onSecondaryAction,
 }: {
   title: string;
   description: string;
   secondaryAction: string;
   primaryAction: string;
+  onPrimaryAction?: () => void;
+  onSecondaryAction?: () => void;
 }) {
   return (
     <header className="mb-[22px] flex flex-col items-start justify-between gap-5 md:flex-row">
@@ -38,10 +44,10 @@ function Header({
         <p className="m-[8px_0_0] text-[14px] text-[#64748b]">{description}</p>
       </div>
       <div className="flex w-full flex-col items-center justify-end gap-2.5 md:w-auto md:flex-row">
-        <button className="min-h-10 w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50 md:w-auto" type="button">
+        <button className="min-h-10 w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50 md:w-auto" onClick={onSecondaryAction} type="button">
           {secondaryAction}
         </button>
-        <button className="min-h-10 w-full rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] md:w-auto" type="button">
+        <button className="min-h-10 w-full rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] md:w-auto" onClick={onPrimaryAction} type="button">
           {primaryAction}
         </button>
       </div>
@@ -68,7 +74,7 @@ function AdminView() {
   );
 }
 
-function ReceptionView() {
+function ReceptionDashboard() {
   const receptionOrders = workOrders.filter((order) => order.status === 'Pendiente' || order.status === 'En revision');
 
   return (
@@ -83,6 +89,14 @@ function ReceptionView() {
       </section>
     </>
   );
+}
+
+function ReceptionView({ activeSection }: { activeSection: string }) {
+  if (activeSection === 'Clientes') {
+    return <ReceptionPanel customers={customers} />;
+  }
+
+  return <ReceptionDashboard />;
 }
 
 function MechanicView() {
@@ -111,9 +125,9 @@ function InventoryView() {
   );
 }
 
-function RoleDashboard({ role }: { role: UserRole }) {
+function RoleDashboard({ activeSection, role }: { activeSection: string; role: UserRole }) {
   if (role === 'Recepcionista') {
-    return <ReceptionView />;
+    return <ReceptionView activeSection={activeSection} />;
   }
 
   if (role === 'Mecanico') {
@@ -130,16 +144,42 @@ function RoleDashboard({ role }: { role: UserRole }) {
 function App() {
   const [activeRole, setActiveRole] = useState<UserRole>('Administrador');
   const currentRole = roleConfig[activeRole];
+  const [activeSection, setActiveSection] = useState(currentRole.navItems[0]);
+
+  function handleRoleChange(role: UserRole) {
+    setActiveRole(role);
+    setActiveSection(roleConfig[role].navItems[0]);
+  }
+
+  function handlePrimaryAction() {
+    if (activeRole === 'Recepcionista') {
+      setActiveSection('Ordenes');
+    }
+  }
+
+  function handleSecondaryAction() {
+    if (activeRole === 'Recepcionista') {
+      setActiveSection('Clientes');
+    }
+  }
 
   return (
-    <AppLayout activeRole={activeRole} navItems={currentRole.navItems} onRoleChange={setActiveRole}>
+    <AppLayout
+      activeRole={activeRole}
+      activeNavItem={activeSection}
+      navItems={currentRole.navItems}
+      onNavChange={setActiveSection}
+      onRoleChange={handleRoleChange}
+    >
       <Header
         title={currentRole.title}
         description={currentRole.description}
         secondaryAction={currentRole.secondaryAction}
         primaryAction={currentRole.primaryAction}
+        onPrimaryAction={handlePrimaryAction}
+        onSecondaryAction={handleSecondaryAction}
       />
-      <RoleDashboard role={activeRole} />
+      <RoleDashboard activeSection={activeSection} role={activeRole} />
     </AppLayout>
   );
 }

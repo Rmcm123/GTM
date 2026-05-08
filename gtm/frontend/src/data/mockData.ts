@@ -1,4 +1,4 @@
-import type { InventoryItem, StockMovement, SummaryCardData, UserRole, WorkOrder } from '../types';
+import type { Customer, InventoryItem, StockMovement, SummaryCardData, UserRole, WorkOrder } from '../types';
 
 export const roleOptions: { role: UserRole; description: string }[] = [
   { role: 'Administrador', description: 'Vista general del taller' },
@@ -174,6 +174,33 @@ export const workOrders: WorkOrder[] = [
     mechanic: 'Camila Torres',
     status: 'Finalizada',
     checkIn: '05/05/2026',
+  },
+];
+
+export const customers: Customer[] = [
+  {
+    rut: '12.345.678-9',
+    name: 'Juan Perez',
+    phone: '+56 9 6123 4567',
+    email: 'juan.perez@correo.cl',
+    vehiclePlate: 'ABCD-12',
+    vehicle: 'Toyota Corolla 2018',
+  },
+  {
+    rut: '18.765.432-1',
+    name: 'Maria Gomez',
+    phone: '+56 9 7345 2211',
+    email: 'maria.gomez@correo.cl',
+    vehiclePlate: 'L200-21',
+    vehicle: 'Mitsubishi L200 2021',
+  },
+  {
+    rut: '15.222.111-4',
+    name: 'Carlos Ruiz',
+    phone: '+56 9 8451 8832',
+    email: 'carlos.ruiz@correo.cl',
+    vehiclePlate: 'FRNG-15',
+    vehicle: 'Ford Ranger 2015',
   },
 ];
 

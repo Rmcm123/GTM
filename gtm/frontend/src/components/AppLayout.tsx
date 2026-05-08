@@ -4,12 +4,14 @@ import { roleOptions } from '../data/mockData';
 
 type AppLayoutProps = {
   activeRole: UserRole;
+  activeNavItem: string;
   navItems: string[];
   children: ReactNode;
+  onNavChange: (item: string) => void;
   onRoleChange: (role: UserRole) => void;
 };
 
-export function AppLayout({ activeRole, navItems, children, onRoleChange }: AppLayoutProps) {
+export function AppLayout({ activeRole, activeNavItem, navItems, children, onNavChange, onRoleChange }: AppLayoutProps) {
   return (
     <div className="grid min-h-screen grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="sticky top-0 z-10 flex flex-col gap-3.5 bg-[#17211f] px-[18px] py-3.5 text-[#f7faf8] xl:min-h-screen xl:gap-[26px] xl:p-[24px_18px]" aria-label="Navegacion principal">
@@ -45,12 +47,13 @@ export function AppLayout({ activeRole, navItems, children, onRoleChange }: AppL
         </div>
 
         <nav className="flex overflow-x-auto pb-0.5 xl:grid xl:gap-1.5">
-          {navItems.map((item, index) => (
+          {navItems.map((item) => (
             <button
               className={`w-auto min-w-[104px] flex-none rounded-[7px] border-0 bg-transparent px-3 py-2.5 text-center text-[14px] text-[#d9e3de] transition-colors hover:bg-white/10 hover:text-white xl:min-h-[42px] xl:w-full xl:text-left ${
-                index === 0 ? 'bg-white/10 text-white shadow-[inset_0_-4px_0_#f4c95d] xl:shadow-[inset_4px_0_0_#f4c95d]' : ''
+                item === activeNavItem ? 'bg-white/10 text-white shadow-[inset_0_-4px_0_#f4c95d] xl:shadow-[inset_4px_0_0_#f4c95d]' : ''
               }`}
               key={item}
+              onClick={() => onNavChange(item)}
               type="button"
             >
               {item}

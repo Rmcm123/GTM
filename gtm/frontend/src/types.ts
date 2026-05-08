@@ -11,6 +11,15 @@ export type WorkOrder = {
   checkIn: string;
 };
 
+export type Customer = {
+  rut: string;
+  name: string;
+  phone: string;
+  email: string;
+  vehiclePlate: string;
+  vehicle: string;
+};
+
 export type InventoryItem = {
   name: string;
   stock: number;

@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada';
+type UserRole = 'Administrador' | 'Recepcionista' | 'Mecanico' | 'Inventario';
 
 type WorkOrder = {
   id: string;
@@ -7,6 +10,68 @@ type WorkOrder = {
   mechanic: string;
   status: OrderStatus;
   checkIn: string;
+};
+
+const roleOptions: { role: UserRole; description: string }[] = [
+  { role: 'Administrador', description: 'Vista general del taller' },
+  { role: 'Recepcionista', description: 'Clientes, vehiculos y ordenes' },
+  { role: 'Mecanico', description: 'Ordenes asignadas y estados' },
+  { role: 'Inventario', description: 'Stock y repuestos' },
+];
+
+const roleConfig: Record<
+  UserRole,
+  {
+    navItems: string[];
+    title: string;
+    description: string;
+    primaryAction: string;
+    secondaryAction: string;
+    ordersTitle: string;
+    ordersHelper: string;
+    actions: string[];
+  }
+> = {
+  Administrador: {
+    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Vehiculos', 'Inventario'],
+    title: 'Dashboard administrador',
+    description: 'Vista general para revisar cupos, ordenes activas y stock basico.',
+    primaryAction: 'Nueva orden',
+    secondaryAction: 'Registrar cliente',
+    ordersTitle: 'Ordenes activas',
+    ordersHelper: 'Todas las ordenes visibles para control general.',
+    actions: ['Registrar cliente', 'Abrir OT', 'Cambiar estado', 'Actualizar stock'],
+  },
+  Recepcionista: {
+    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes'],
+    title: 'Panel de recepcion',
+    description: 'Ingreso rapido de clientes, vehiculos y nuevas ordenes de trabajo.',
+    primaryAction: 'Abrir OT',
+    secondaryAction: 'Registrar cliente',
+    ordersTitle: 'Ordenes ingresadas',
+    ordersHelper: 'Ordenes que recepcion debe coordinar con el taller.',
+    actions: ['Registrar cliente', 'Registrar vehiculo', 'Abrir OT', 'Consultar cupos'],
+  },
+  Mecanico: {
+    navItems: ['Mis ordenes', 'Estados', 'Vehiculos'],
+    title: 'Panel mecanico',
+    description: 'Ordenes asignadas para revisar, avanzar y finalizar trabajos.',
+    primaryAction: 'Cambiar estado',
+    secondaryAction: 'Ver detalle OT',
+    ordersTitle: 'Mis ordenes asignadas',
+    ordersHelper: 'Vista filtrada para el mecanico en turno.',
+    actions: ['Iniciar revision', 'Pasar a proceso', 'Finalizar OT', 'Ver repuestos'],
+  },
+  Inventario: {
+    navItems: ['Inventario', 'Stock bajo', 'Movimientos'],
+    title: 'Panel de inventario',
+    description: 'Control simple de repuestos disponibles y articulos bajo minimo.',
+    primaryAction: 'Actualizar stock',
+    secondaryAction: 'Ver inventario',
+    ordersTitle: 'Ordenes que usan repuestos',
+    ordersHelper: 'Ordenes relacionadas con consumo o revision de stock.',
+    actions: ['Registrar entrada', 'Registrar salida', 'Revisar stock bajo', 'Ver proveedores'],
+  },
 };
 
 const summaryCards = [
@@ -92,8 +157,15 @@ const statusClass: Record<OrderStatus, string> = {
 };
 
 function App() {
-  const navItems = ['Dashboard', 'Ordenes', 'Clientes', 'Vehiculos', 'Inventario'];
+  const [activeRole, setActiveRole] = useState<UserRole>('Administrador');
+
+  const currentRole = roleConfig[activeRole];
+  const navItems = currentRole.navItems;
   const occupiedSlots = 3;
+  const visibleOrders =
+    activeRole === 'Mecanico'
+      ? workOrders.filter((order) => order.mechanic === 'Camila Torres')
+      : workOrders;
 
   return (
     <div className="min-h-screen grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)]">
@@ -103,6 +175,29 @@ function App() {
           <div>
             <strong className="block text-[16px] leading-[1.2]">Taller Mecanico</strong>
             <span className="block text-[#b8c6c0] text-[13px]">Gestion de taller</span>
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <span className="text-[#b8c6c0] text-[13px]">Cambiar vista</span>
+          <div className="grid grid-cols-2 xl:grid-cols-1 gap-2">
+            {roleOptions.map((option) => (
+              <button
+                className={`min-h-10 rounded-[7px] border px-2.5 py-2 text-left text-[13px] transition-colors ${
+                  activeRole === option.role
+                    ? 'border-[#f4c95d] bg-[#f4c95d] text-[#17211f]'
+                    : 'border-white/10 bg-white/5 text-[#d9e3de] hover:bg-white/10'
+                }`}
+                key={option.role}
+                onClick={() => setActiveRole(option.role)}
+                type="button"
+              >
+                <strong className="block text-[13px] leading-tight">{option.role}</strong>
+                <span className={activeRole === option.role ? 'text-[#3d3520] text-[12px]' : 'text-[#b8c6c0] text-[12px]'}>
+                  {option.description}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -119,9 +214,9 @@ function App() {
         </nav>
 
         <div className="hidden xl:block mt-auto border border-white/10 rounded-lg[8px] p-3.5 bg-white/5">
-          <span className="block text-[#b8c6c0] text-[13px]">Vista actual</span>
-          <strong className="block my-1 text-[15px]">Entrega 1</strong>
-          <small className="block text-[#b8c6c0] text-[13px]">Dashboard MVP</small>
+          <span className="block text-[#b8c6c0] text-[13px]">Rol activo</span>
+          <strong className="block my-1 text-[15px]">{activeRole}</strong>
+          <small className="block text-[#b8c6c0] text-[13px]">Separacion inicial por rol</small>
         </div>
       </aside>
 
@@ -129,15 +224,15 @@ function App() {
         <header className="flex flex-col md:flex-row justify-between items-start gap-5 mb-5.5">
           <div>
             <span className="inline-block mb-1.5 text-[#64748b] text-[12px] font-bold tracking-wide uppercase">Panel principal</span>
-            <h1 className="m-0 text-[#111827] leading-[1.15] text-[26px] md:text-[32px] font-extrabold">Dashboard GTM</h1>
-            <p className="m-[8px_0_0] text-[#64748b] text-[14px]">Vista inicial para controlar cupos, ordenes activas y stock basico.</p>
+            <h1 className="m-0 text-[#111827] leading-[1.15] text-[26px] md:text-[32px] font-extrabold">{currentRole.title}</h1>
+            <p className="m-[8px_0_0] text-[#64748b] text-[14px]">{currentRole.description}</p>
           </div>
           <div className="flex flex-col max-[430px]:grid max-[430px]:w-full md:flex-row items-center justify-end gap-2.5 flex-wrap w-full md:w-auto">
             <button className="min-h-10 rounded-[7px] cursor-pointer text-[14px] font-bold px-3.5 border border-[#cbd5e1] bg-white text-[#1f2937] hover:bg-slate-50 w-full md:w-auto flex-1 md:flex-none justify-center" type="button">
-              Registrar cliente
+              {currentRole.secondaryAction}
             </button>
             <button className="min-h-10 rounded-[7px] cursor-pointer text-[14px] font-bold px-3.5 border border-[#0f5b46] bg-[#0f6b52] text-white hover:bg-[#0c5943] w-full md:w-auto flex-1 md:flex-none justify-center" type="button">
-              Nueva orden
+              {currentRole.primaryAction}
             </button>
           </div>
         </header>
@@ -157,7 +252,8 @@ function App() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5 mb-4.5">
               <div>
                 <span className="inline-block mb-1.5 text-[#64748b] text-[12px] font-bold uppercase">Ordenes de trabajo</span>
-                <h2 className="m-0 text-[#111827] leading-[1.15] text-[20px] font-extrabold">Ordenes activas</h2>
+                <h2 className="m-0 text-[#111827] leading-[1.15] text-[20px] font-extrabold">{currentRole.ordersTitle}</h2>
+                <p className="m-[6px_0_0] text-[#64748b] text-[14px]">{currentRole.ordersHelper}</p>
               </div>
               <button className="min-h-9 rounded-[7px] cursor-pointer text-[14px] font-bold px-3.5 border border-[#cbd5e1] bg-white text-[#1f2937] hover:bg-slate-50" type="button">
                 Ver ordenes
@@ -176,7 +272,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {workOrders.map((order) => (
+                  {visibleOrders.map((order) => (
                     <tr key={order.id}>
                       <td className="border-b border-[#e5eaf0] p-[13px_10px] text-left align-middle text-[14px]">
                         <strong className="text-[#111827]">{order.id}</strong>
@@ -268,7 +364,7 @@ function App() {
               <h2 className="m-0 text-[#111827] leading-[1.15] text-[20px] font-extrabold">Operaciones principales</h2>
             </div>
             <div className="grid grid-cols-1 max-[430px]:grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-2.5">
-              {['Registrar cliente', 'Abrir OT', 'Cambiar estado', 'Actualizar stock'].map(action => (
+              {currentRole.actions.map(action => (
                 <button key={action} className="min-h-11 border border-[#cbd5e1] rounded-[7px] bg-[#f8fafc] text-[#1f2937] cursor-pointer font-inherit text-[14px] font-bold hover:bg-[#eef4f2] transition-colors" type="button">
                   {action}
                 </button>

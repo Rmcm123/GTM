@@ -4,6 +4,4 @@ export type ClienteRespuestaDto = {
   nombre: string;
   telefono: string;
   correo: string;
-  patenteVehiculo: string;
-  vehiculo: string;
 };

@@ -3,6 +3,4 @@ export type CrearClienteDto = {
   nombre: string;
   telefono: string;
   correo: string;
-  patenteVehiculo: string;
-  vehiculo: string;
 };

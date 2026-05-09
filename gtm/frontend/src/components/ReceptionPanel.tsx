@@ -9,21 +9,14 @@ type ReceptionPanelProps = {
   errorClientes: string | null;
   guardandoCliente: boolean;
   mensajeFormulario: string | null;
-  onCrearCliente: (cliente: CrearClientePayload) => Promise<void>;
+  onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
 };
 
-type FormularioCliente = CrearClientePayload & {
-  año: string;
-};
-
-const formularioInicial: FormularioCliente = {
+const formularioInicial: CrearClientePayload = {
   rut: '',
   nombre: '',
   telefono: '',
   correo: '',
-  patenteVehiculo: '',
-  vehiculo: '',
-  año: '',
 };
 
 const inputClass =
@@ -37,9 +30,9 @@ export function ReceptionPanel({
   mensajeFormulario,
   onCrearCliente,
 }: ReceptionPanelProps) {
-  const [formulario, setFormulario] = useState<FormularioCliente>(formularioInicial);
+  const [formulario, setFormulario] = useState<CrearClientePayload>(formularioInicial);
 
-  function actualizarCampo(campo: keyof FormularioCliente, valor: string) {
+  function actualizarCampo(campo: keyof CrearClientePayload, valor: string) {
     setFormulario((actual) => ({
       ...actual,
       [campo]: valor,
@@ -49,27 +42,24 @@ export function ReceptionPanel({
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
-    const vehiculoCompleto = [formulario.vehiculo.trim(), formulario.año.trim()].filter(Boolean).join(' ');
-
-    // El backend espera un vehiculo completo en texto; por ahora unimos modelo y ano desde el formulario.
-    await onCrearCliente({
+    const clienteGuardado = await onCrearCliente({
       rut: formulario.rut,
       nombre: formulario.nombre,
       telefono: formulario.telefono,
       correo: formulario.correo,
-      patenteVehiculo: formulario.patenteVehiculo,
-      vehiculo: vehiculoCompleto,
     });
 
-    setFormulario(formularioInicial);
+    if (clienteGuardado) {
+      setFormulario(formularioInicial);
+    }
   }
 
   return (
     <Panel>
       <div className="mb-4">
         <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Recepcion</span>
-        <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Registrar cliente y vehiculo</h2>
-        <p className="m-[6px_0_0] text-[14px] text-[#64748b]">Primer paso antes de abrir una orden de trabajo.</p>
+        <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Registrar cliente</h2>
+        <p className="m-[6px_0_0] text-[14px] text-[#64748b]">El vehiculo se registra aparte y luego se usa al abrir una orden de trabajo.</p>
       </div>
 
       <form className="grid gap-4" onSubmit={enviarFormulario}>
@@ -92,21 +82,6 @@ export function ReceptionPanel({
           </label>
         </div>
 
-        <div className="grid gap-3 border-t border-[#e5eaf0] pt-4 md:grid-cols-3">
-          <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-            Patente
-            <input className={inputClass} onChange={(evento) => actualizarCampo('patenteVehiculo', evento.target.value)} placeholder="ABCD-12" type="text" value={formulario.patenteVehiculo} />
-          </label>
-          <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-            Marca y modelo
-            <input className={inputClass} onChange={(evento) => actualizarCampo('vehiculo', evento.target.value)} placeholder="Toyota Corolla" type="text" value={formulario.vehiculo} />
-          </label>
-          <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-            Año
-            <input className={inputClass} onChange={(evento) => actualizarCampo('año', evento.target.value)} placeholder="2018" type="number" value={formulario.año} />
-          </label>
-        </div>
-
         {mensajeFormulario && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">{mensajeFormulario}</p>}
 
         <div className="flex flex-col gap-2 md:flex-row md:justify-end">
@@ -114,7 +89,7 @@ export function ReceptionPanel({
             Limpiar
           </button>
           <button className="min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] disabled:cursor-not-allowed disabled:opacity-60" disabled={guardandoCliente} type="submit">
-            {guardandoCliente ? 'Registrando...' : 'Registrar y abrir OT'}
+            {guardandoCliente ? 'Registrando...' : 'Registrar cliente'}
           </button>
         </div>
       </form>
@@ -133,10 +108,7 @@ export function ReceptionPanel({
                 <strong className="block text-[14px] text-[#111827]">{cliente.nombre}</strong>
                 <span className="text-[13px] text-[#64748b]">{cliente.rut} - {cliente.telefono}</span>
               </div>
-              <div className="text-left md:text-right">
-                <strong className="block text-[14px] text-[#111827]">{cliente.patenteVehiculo}</strong>
-                <span className="text-[13px] text-[#64748b]">{cliente.vehiculo}</span>
-              </div>
+              <span className="text-left text-[13px] font-bold text-[#64748b] md:text-right">{cliente.correo}</span>
             </div>
           ))}
         </div>

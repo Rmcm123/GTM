@@ -17,8 +17,6 @@ export type Cliente = {
   nombre: string;
   telefono: string;
   correo: string;
-  patenteVehiculo: string;
-  vehiculo: string;
 };
 
 export type InventoryItem = {

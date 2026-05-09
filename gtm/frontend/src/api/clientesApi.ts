@@ -2,6 +2,8 @@ import type { Cliente } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+export type CrearClientePayload = Omit<Cliente, 'id'>;
+
 export async function obtenerClientes(): Promise<Cliente[]> {
   // Punto unico para pedir clientes al backend. Si cambia la URL de la API,
   // se actualiza aqui y no en cada componente.
@@ -9,6 +11,23 @@ export async function obtenerClientes(): Promise<Cliente[]> {
 
   if (!respuesta.ok) {
     throw new Error('No se pudo cargar la lista de clientes');
+  }
+
+  return respuesta.json();
+}
+
+export async function crearCliente(cliente: CrearClientePayload): Promise<Cliente> {
+  const respuesta = await fetch(`${API_URL}/clientes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(cliente),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo registrar el cliente');
   }
 
   return respuesta.json();

@@ -6,28 +6,31 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'clientes' })
-export class Cliente {
+@Entity({ name: 'vehiculos' })
+export class Vehiculo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  rut: string;
+  @Column()
+  patente: string;
 
   @Column()
-  nombre: string;
+  marca: string;
 
   @Column()
-  telefono: string;
+  modelo: string;
 
-  @Column()
-  correo: string;
+  @Column('integer')
+  ano: number;
 
-  @Column({ name: 'patente_vehiculo' })
-  patenteVehiculo: string;
+  @Column({ nullable: true })
+  color?: string;
 
-  @Column()
-  vehiculo: string;
+  @Column({ nullable: true })
+  kilometraje?: number;
+
+  @Column({ name: 'cliente_id', type: 'uuid' })
+  cliente_id: string;
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

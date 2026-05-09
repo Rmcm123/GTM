@@ -4,3 +4,7 @@ VALUES
   ('18.765.432-1', 'Maria Gomez', '+56 9 7345 2211', 'maria.gomez@correo.cl', 'L200-21', 'Mitsubishi L200 2021'),
   ('15.222.111-4', 'Carlos Ruiz', '+56 9 8451 8832', 'carlos.ruiz@correo.cl', 'FRNG-15', 'Ford Ranger 2015')
 ON CONFLICT (rut) DO NOTHING;
+
+INSERT INTO vehiculos (patente, marca, modelo, ano, color, kilometraje, cliente_id)
+VALUES
+  ('ABCD-12', 'Toyota', 'Corolla', 2018, 'Blanco', 45000, (SELECT id FROM clientes WHERE rut = '12.345.678-9'))

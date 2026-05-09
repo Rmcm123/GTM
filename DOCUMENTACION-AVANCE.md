@@ -81,15 +81,21 @@ Por ahora tiene:
 
 ```text
 GET /clientes
+POST /clientes
 ```
 
-Sirve para que el frontend pueda pedir la lista de clientes guardados en PostgreSQL.
+Sirve para que el frontend pueda pedir la lista de clientes guardados en PostgreSQL y registrar nuevos clientes desde recepcion.
 
 ### `gtm/src/clientes/clientes.service.ts`
 
-Servicio que contiene la logica para consultar clientes desde la base de datos.
+Servicio que contiene la logica para consultar y crear clientes desde la base de datos.
 
-Actualmente obtiene todos los clientes y los transforma a un formato de respuesta para no devolver directamente la entidad completa.
+Actualmente:
+
+- obtiene todos los clientes;
+- valida datos obligatorios al crear;
+- evita registrar dos clientes con el mismo RUT;
+- transforma las entidades a un formato de respuesta para no devolver directamente la entidad completa.
 
 ### `gtm/src/clientes/dto/cliente-respuesta.dto.ts`
 
@@ -97,11 +103,24 @@ Tipo que define la forma de los datos enviados al frontend cuando se consulta `G
 
 Ayuda a mantener claro que datos salen desde el backend.
 
+### `gtm/src/clientes/dto/crear-cliente.dto.ts`
+
+Tipo que define los datos que el backend espera recibir cuando el frontend registra un cliente con `POST /clientes`.
+
+Incluye:
+
+- `rut`
+- `nombre`
+- `telefono`
+- `correo`
+- `patenteVehiculo`
+- `vehiculo`
+
 ### `gtm/database/semilla-clientes.sql`
 
 Script SQL para insertar clientes iniciales en PostgreSQL.
 
-Sirve para probar el sistema con datos reales sin tener todavia un formulario conectado a `POST /clientes`.
+Sirve para probar el sistema con datos reales y tener clientes iniciales en la base de datos.
 
 ## Frontend
 
@@ -113,13 +132,14 @@ Contiene la funcion:
 
 ```ts
 obtenerClientes()
+crearCliente()
 ```
 
 Esta funcion hace un `fetch` a:
 
-```text
-http://localhost:3000/clientes
-```
+`obtenerClientes()` hace un `GET /clientes` para listar clientes.
+
+`crearCliente()` hace un `POST /clientes` para guardar un nuevo cliente desde el formulario de recepcion.
 
 Asi el frontend deja de depender solamente de datos escritos en `mockData.ts`.
 
@@ -127,7 +147,14 @@ Asi el frontend deja de depender solamente de datos escritos en `mockData.ts`.
 
 Panel visual de recepcion para registrar cliente y vehiculo.
 
-Tambien muestra la lista de clientes recientes. Esa lista ahora puede venir desde el backend, y si la API falla se usan datos locales como respaldo.
+Actualmente:
+
+- muestra el formulario de cliente y vehiculo;
+- controla los valores escritos por el usuario;
+- envia el formulario al backend;
+- muestra si se esta guardando;
+- muestra mensajes de exito o error;
+- muestra la lista de clientes recientes.
 
 ### `gtm/frontend/src/components/AppLayout.tsx`
 
@@ -149,6 +176,8 @@ Actualmente se encarga de:
 - mantener el rol activo
 - mantener la seccion activa
 - cargar clientes desde la API
+- crear clientes usando la API
+- recargar la lista despues de registrar un cliente
 - decidir que vista mostrar segun el rol
 
 ### `gtm/frontend/src/types.ts`
@@ -176,13 +205,13 @@ El flujo implementado por ahora es:
 
 ```text
 PostgreSQL -> NestJS GET /clientes -> React obtenerClientes() -> ReceptionPanel
+ReceptionPanel -> React crearCliente() -> NestJS POST /clientes -> PostgreSQL
 ```
 
 Esto permite demostrar una API propia conectada a base de datos.
 
 ## Pendientes sugeridos
 
-- Crear `POST /clientes` para registrar clientes reales desde el formulario.
 - Separar vehiculos en una tabla propia.
 - Crear ordenes de trabajo en backend.
 - Conectar recepcion con ordenes reales.

@@ -7,7 +7,7 @@ import { OrdersTable } from './components/OrdersTable';
 import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
 import { WorkflowPanel } from './components/WorkflowPanel';
-import { obtenerClientes } from './api/clientesApi';
+import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
 import {
   adminSummary,
   clientes as clientesMock,
@@ -97,14 +97,29 @@ function ReceptionView({
   cargandoClientes,
   clientes,
   errorClientes,
+  guardandoCliente,
+  mensajeFormulario,
+  onCrearCliente,
 }: {
   activeSection: string;
   cargandoClientes: boolean;
   clientes: Cliente[];
   errorClientes: string | null;
+  guardandoCliente: boolean;
+  mensajeFormulario: string | null;
+  onCrearCliente: (cliente: CrearClientePayload) => Promise<void>;
 }) {
   if (activeSection === 'Clientes') {
-    return <ReceptionPanel cargandoClientes={cargandoClientes} clientes={clientes} errorClientes={errorClientes} />;
+    return (
+      <ReceptionPanel
+        cargandoClientes={cargandoClientes}
+        clientes={clientes}
+        errorClientes={errorClientes}
+        guardandoCliente={guardandoCliente}
+        mensajeFormulario={mensajeFormulario}
+        onCrearCliente={onCrearCliente}
+      />
+    );
   }
 
   return <ReceptionDashboard />;
@@ -141,12 +156,18 @@ function RoleDashboard({
   cargandoClientes,
   clientes,
   errorClientes,
+  guardandoCliente,
+  mensajeFormulario,
+  onCrearCliente,
   role,
 }: {
   activeSection: string;
   cargandoClientes: boolean;
   clientes: Cliente[];
   errorClientes: string | null;
+  guardandoCliente: boolean;
+  mensajeFormulario: string | null;
+  onCrearCliente: (cliente: CrearClientePayload) => Promise<void>;
   role: UserRole;
 }) {
   if (role === 'Recepcionista') {
@@ -156,6 +177,9 @@ function RoleDashboard({
         cargandoClientes={cargandoClientes}
         clientes={clientes}
         errorClientes={errorClientes}
+        guardandoCliente={guardandoCliente}
+        mensajeFormulario={mensajeFormulario}
+        onCrearCliente={onCrearCliente}
       />
     );
   }
@@ -178,6 +202,8 @@ function App() {
   const [clientes, setClientes] = useState<Cliente[]>(clientesMock);
   const [cargandoClientes, setCargandoClientes] = useState(false);
   const [errorClientes, setErrorClientes] = useState<string | null>(null);
+  const [guardandoCliente, setGuardandoCliente] = useState(false);
+  const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(null);
 
   useEffect(() => {
     async function cargarClientes() {
@@ -198,6 +224,28 @@ function App() {
 
     void cargarClientes();
   }, []);
+
+  async function recargarClientes() {
+    const clientesDesdeApi = await obtenerClientes();
+    setClientes(clientesDesdeApi);
+    setErrorClientes(null);
+  }
+
+  async function handleCrearCliente(cliente: CrearClientePayload) {
+    setGuardandoCliente(true);
+    setMensajeFormulario(null);
+
+    try {
+      await crearCliente(cliente);
+      // Se vuelve a consultar la API para que la lista refleje exactamente lo guardado en PostgreSQL.
+      await recargarClientes();
+      setMensajeFormulario('Cliente registrado correctamente');
+    } catch (error) {
+      setMensajeFormulario(error instanceof Error ? error.message : 'No se pudo registrar el cliente');
+    } finally {
+      setGuardandoCliente(false);
+    }
+  }
 
   function handleRoleChange(role: UserRole) {
     setActiveRole(role);
@@ -237,6 +285,9 @@ function App() {
         cargandoClientes={cargandoClientes}
         clientes={clientes}
         errorClientes={errorClientes}
+        guardandoCliente={guardandoCliente}
+        mensajeFormulario={mensajeFormulario}
+        onCrearCliente={handleCrearCliente}
         role={activeRole}
       />
     </AppLayout>

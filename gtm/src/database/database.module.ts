@@ -12,7 +12,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         host: configService.get<string>('DB_HOST', 'localhost'),
         port: Number(configService.get<string>('DB_PORT', '5432')),
         username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres'),
+        password: configService.get<string>('DB_PASSWORD', 'admin1234'),
         database: configService.get<string>('DB_DATABASE', 'gtm'),
         autoLoadEntities: true,
         synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'true',

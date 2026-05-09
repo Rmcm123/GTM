@@ -188,6 +188,7 @@ function App() {
         const clientesDesdeApi = await obtenerClientes();
         setClientes(clientesDesdeApi);
       } catch {
+        // Si el backend no esta levantado, la pantalla sigue siendo usable con datos locales.
         setClientes(clientesMock);
         setErrorClientes('Mostrando datos locales');
       } finally {

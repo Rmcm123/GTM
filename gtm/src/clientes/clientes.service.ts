@@ -16,6 +16,7 @@ export class ClientesService {
       order: { creadoEn: 'DESC' },
     });
 
+    // La respuesta se separa de la entidad para controlar que datos salen por la API.
     return clientes.map((cliente) => this.convertirARespuesta(cliente));
   }
 

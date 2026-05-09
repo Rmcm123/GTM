@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActionPanel } from './components/ActionPanel';
 import { AppLayout } from './components/AppLayout';
 import { CapacityPanel } from './components/CapacityPanel';
@@ -7,9 +7,10 @@ import { OrdersTable } from './components/OrdersTable';
 import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
 import { WorkflowPanel } from './components/WorkflowPanel';
+import { obtenerClientes } from './api/clientesApi';
 import {
   adminSummary,
-  customers,
+  clientes as clientesMock,
   inventoryItems,
   inventorySummary,
   mechanicSummary,
@@ -19,7 +20,7 @@ import {
   workOrders,
   workflow,
 } from './data/mockData';
-import type { UserRole } from './types';
+import type { Cliente, UserRole } from './types';
 
 function Header({
   title,
@@ -91,9 +92,19 @@ function ReceptionDashboard() {
   );
 }
 
-function ReceptionView({ activeSection }: { activeSection: string }) {
+function ReceptionView({
+  activeSection,
+  cargandoClientes,
+  clientes,
+  errorClientes,
+}: {
+  activeSection: string;
+  cargandoClientes: boolean;
+  clientes: Cliente[];
+  errorClientes: string | null;
+}) {
   if (activeSection === 'Clientes') {
-    return <ReceptionPanel customers={customers} />;
+    return <ReceptionPanel cargandoClientes={cargandoClientes} clientes={clientes} errorClientes={errorClientes} />;
   }
 
   return <ReceptionDashboard />;
@@ -125,9 +136,28 @@ function InventoryView() {
   );
 }
 
-function RoleDashboard({ activeSection, role }: { activeSection: string; role: UserRole }) {
+function RoleDashboard({
+  activeSection,
+  cargandoClientes,
+  clientes,
+  errorClientes,
+  role,
+}: {
+  activeSection: string;
+  cargandoClientes: boolean;
+  clientes: Cliente[];
+  errorClientes: string | null;
+  role: UserRole;
+}) {
   if (role === 'Recepcionista') {
-    return <ReceptionView activeSection={activeSection} />;
+    return (
+      <ReceptionView
+        activeSection={activeSection}
+        cargandoClientes={cargandoClientes}
+        clientes={clientes}
+        errorClientes={errorClientes}
+      />
+    );
   }
 
   if (role === 'Mecanico') {
@@ -145,6 +175,29 @@ function App() {
   const [activeRole, setActiveRole] = useState<UserRole>('Administrador');
   const currentRole = roleConfig[activeRole];
   const [activeSection, setActiveSection] = useState(currentRole.navItems[0]);
+  const [clientes, setClientes] = useState<Cliente[]>(clientesMock);
+  const [cargandoClientes, setCargandoClientes] = useState(false);
+  const [errorClientes, setErrorClientes] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function cargarClientes() {
+      setCargandoClientes(true);
+      setErrorClientes(null);
+
+      try {
+        const clientesDesdeApi = await obtenerClientes();
+        setClientes(clientesDesdeApi);
+      } catch {
+        // Si el backend no esta levantado, la pantalla sigue siendo usable con datos locales.
+        setClientes(clientesMock);
+        setErrorClientes('Mostrando datos locales');
+      } finally {
+        setCargandoClientes(false);
+      }
+    }
+
+    void cargarClientes();
+  }, []);
 
   function handleRoleChange(role: UserRole) {
     setActiveRole(role);
@@ -179,7 +232,13 @@ function App() {
         onPrimaryAction={handlePrimaryAction}
         onSecondaryAction={handleSecondaryAction}
       />
-      <RoleDashboard activeSection={activeSection} role={activeRole} />
+      <RoleDashboard
+        activeSection={activeSection}
+        cargandoClientes={cargandoClientes}
+        clientes={clientes}
+        errorClientes={errorClientes}
+        role={activeRole}
+      />
     </AppLayout>
   );
 }

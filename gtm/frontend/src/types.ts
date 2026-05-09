@@ -11,13 +11,14 @@ export type WorkOrder = {
   checkIn: string;
 };
 
-export type Customer = {
+export type Cliente = {
+  id?: string;
   rut: string;
-  name: string;
-  phone: string;
-  email: string;
-  vehiclePlate: string;
-  vehicle: string;
+  nombre: string;
+  telefono: string;
+  correo: string;
+  patenteVehiculo: string;
+  vehiculo: string;
 };
 
 export type InventoryItem = {

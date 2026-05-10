@@ -1,4 +1,4 @@
-export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada';
+export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada' | 'Entregada' | 'Cancelada';
 
 export type UserRole = 'Administrador' | 'Recepcionista' | 'Mecanico' | 'Inventario';
 
@@ -31,6 +31,7 @@ export type Vehiculo = {
 };
 
 export type InventoryItem = {
+  id?: string;
   name: string;
   stock: number;
   minimum: number;
@@ -39,7 +40,7 @@ export type InventoryItem = {
 
 export type StockMovement = {
   item: string;
-  type: 'Entrada' | 'Salida';
+  type: 'Entrada' | 'Salida' | 'Actualizacion';
   quantity: number;
   date: string;
 };

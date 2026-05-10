@@ -183,24 +183,18 @@ export const clientes: Cliente[] = [
     nombre: 'Juan Perez',
     telefono: '+56 9 6123 4567',
     correo: 'juan.perez@correo.cl',
-    patenteVehiculo: 'ABCD-12',
-    vehiculo: 'Toyota Corolla 2018',
   },
   {
     rut: '18.765.432-1',
     nombre: 'Maria Gomez',
     telefono: '+56 9 7345 2211',
     correo: 'maria.gomez@correo.cl',
-    patenteVehiculo: 'L200-21',
-    vehiculo: 'Mitsubishi L200 2021',
   },
   {
     rut: '15.222.111-4',
     nombre: 'Carlos Ruiz',
     telefono: '+56 9 8451 8832',
     correo: 'carlos.ruiz@correo.cl',
-    patenteVehiculo: 'FRNG-15',
-    vehiculo: 'Ford Ranger 2015',
   },
 ];
 

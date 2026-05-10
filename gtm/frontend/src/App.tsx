@@ -107,7 +107,7 @@ function ReceptionView({
   errorClientes: string | null;
   guardandoCliente: boolean;
   mensajeFormulario: string | null;
-  onCrearCliente: (cliente: CrearClientePayload) => Promise<void>;
+  onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
 }) {
   if (activeSection === 'Clientes') {
     return (
@@ -167,7 +167,7 @@ function RoleDashboard({
   errorClientes: string | null;
   guardandoCliente: boolean;
   mensajeFormulario: string | null;
-  onCrearCliente: (cliente: CrearClientePayload) => Promise<void>;
+  onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   role: UserRole;
 }) {
   if (role === 'Recepcionista') {
@@ -240,8 +240,10 @@ function App() {
       // Se vuelve a consultar la API para que la lista refleje exactamente lo guardado en PostgreSQL.
       await recargarClientes();
       setMensajeFormulario('Cliente registrado correctamente');
+      return true;
     } catch (error) {
       setMensajeFormulario(error instanceof Error ? error.message : 'No se pudo registrar el cliente');
+      return false;
     } finally {
       setGuardandoCliente(false);
     }

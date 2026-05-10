@@ -18,7 +18,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: configService.get<string>('DB_DATABASE', 'gtm'),
         autoLoadEntities: true,
         // Solo se recomienda true en desarrollo; mas adelante conviene usar migraciones.
-        synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'true',
+        synchronize:
+          configService.get<string>('DB_SYNCHRONIZE', 'false') === 'true',
       }),
     }),
   ],

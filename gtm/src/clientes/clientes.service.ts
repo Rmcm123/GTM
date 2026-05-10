@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cliente } from './cliente.entity';
@@ -29,7 +33,9 @@ export class ClientesService {
     });
 
     if (clienteExistente) {
-      throw new ConflictException('Ya existe un cliente registrado con ese RUT');
+      throw new ConflictException(
+        'Ya existe un cliente registrado con ese RUT',
+      );
     }
 
     const cliente = this.repositorioClientes.create({
@@ -37,8 +43,6 @@ export class ClientesService {
       nombre: datosCliente.nombre.trim(),
       telefono: datosCliente.telefono.trim(),
       correo: datosCliente.correo.trim(),
-      patenteVehiculo: datosCliente.patenteVehiculo.trim().toUpperCase(),
-      vehiculo: datosCliente.vehiculo.trim(),
     });
 
     const clienteGuardado = await this.repositorioClientes.save(cliente);
@@ -53,12 +57,14 @@ export class ClientesService {
       datosCliente.nombre,
       datosCliente.telefono,
       datosCliente.correo,
-      datosCliente.patenteVehiculo,
-      datosCliente.vehiculo,
     ];
 
-    if (camposObligatorios.some((campo) => !campo || campo.trim().length === 0)) {
-      throw new BadRequestException('Todos los datos del cliente y vehiculo son obligatorios');
+    if (
+      camposObligatorios.some((campo) => !campo || campo.trim().length === 0)
+    ) {
+      throw new BadRequestException(
+        'Todos los datos del cliente son obligatorios',
+      );
     }
   }
 
@@ -69,8 +75,6 @@ export class ClientesService {
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       correo: cliente.correo,
-      patenteVehiculo: cliente.patenteVehiculo,
-      vehiculo: cliente.vehiculo,
     };
   }
 }

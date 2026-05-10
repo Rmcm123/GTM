@@ -29,6 +29,10 @@ Hace lo siguiente:
 
 ## Backend
 
+### `gtm/src/main.ts`
+
+Archivo de entrada del backend NestJS. Inicia la aplicacion, activa CORS para que el frontend pueda llamar a la API local y levanta el servidor en el puerto configurado.
+
 ### `gtm/.env.example`
 
 Plantilla de variables de entorno para conectar el backend con PostgreSQL. No contiene contrasenas reales obligatorias; cada PC debe crear su propio `.env`.
@@ -52,16 +56,14 @@ Usa `ConfigService` para leer los valores desde `.env`, asi no se dejan credenci
 
 Entidad TypeORM que representa la tabla `clientes` en PostgreSQL.
 
-Define los campos principales del cliente y su vehiculo:
+Define los campos principales del cliente:
 
 - `rut`
 - `nombre`
 - `telefono`
 - `correo`
-- `patenteVehiculo`
-- `vehiculo`
 
-TypeORM usa esta clase para crear la tabla y consultar datos.
+Tambien declara la relacion con `Vehiculo`, porque un cliente puede tener varios vehiculos. TypeORM usa esta clase para crear la tabla y consultar datos.
 
 ### `gtm/src/clientes/clientes.module.ts`
 
@@ -113,8 +115,62 @@ Incluye:
 - `nombre`
 - `telefono`
 - `correo`
-- `patenteVehiculo`
-- `vehiculo`
+
+No incluye vehiculo, porque el vehiculo se registra en su propio modulo y se vincula al cliente por RUT.
+
+### `gtm/src/vehiculos/vehiculo.entity.ts`
+
+Entidad TypeORM que representa la tabla `vehiculos`.
+
+Define:
+
+- `patente`
+- `marca`
+- `modelo`
+- `año`
+- `color`
+- `kilometraje`
+- `clienteId`
+
+Tiene una relacion `ManyToOne` con `Cliente`, ya que varios vehiculos pueden pertenecer al mismo cliente.
+
+### `gtm/src/vehiculos/vehiculos.controller.ts`
+
+Controlador que expone la API de vehiculos.
+
+Por ahora tiene:
+
+```text
+GET /vehiculos/cliente/:clienteId
+GET /vehiculos/cliente-rut/:rutCliente
+GET /vehiculos/patente/:patente
+POST /vehiculos
+```
+
+Sirve para consultar vehiculos por cliente o patente, y registrar un vehiculo vinculado a un cliente existente usando su RUT.
+
+### `gtm/src/vehiculos/vehiculos.service.ts`
+
+Servicio que contiene la logica de vehiculos.
+
+Actualmente:
+
+- busca vehiculos por `clienteId`;
+- busca vehiculos por RUT del cliente;
+- busca vehiculos por patente;
+- valida datos obligatorios al crear;
+- evita registrar dos vehiculos con la misma patente;
+- verifica que el cliente exista antes de registrar el vehiculo.
+
+### `gtm/src/vehiculos/dto/crear-vehiculo.dto.ts`
+
+Tipo que define los datos que el backend espera recibir cuando se registra un vehiculo con `POST /vehiculos`.
+
+Incluye `rutCliente` para vincular el vehiculo con un cliente ya registrado.
+
+### `gtm/src/vehiculos/dto/vehiculo-respuesta.dto.ts`
+
+Tipo que define la forma de los datos enviados al frontend cuando se consultan vehiculos.
 
 ### `gtm/database/semilla-clientes.sql`
 
@@ -145,16 +201,18 @@ Asi el frontend deja de depender solamente de datos escritos en `mockData.ts`.
 
 ### `gtm/frontend/src/components/ReceptionPanel.tsx`
 
-Panel visual de recepcion para registrar cliente y vehiculo.
+Panel visual de recepcion para registrar clientes.
 
 Actualmente:
 
-- muestra el formulario de cliente y vehiculo;
+- muestra el formulario de cliente;
 - controla los valores escritos por el usuario;
 - envia el formulario al backend;
 - muestra si se esta guardando;
 - muestra mensajes de exito o error;
 - muestra la lista de clientes recientes.
+
+El formulario ya no se limpia si el backend rechaza el registro, por ejemplo cuando el RUT ya existe. Esto evita que el usuario pierda lo que escribio.
 
 ### `gtm/frontend/src/components/AppLayout.tsx`
 
@@ -206,13 +264,14 @@ El flujo implementado por ahora es:
 ```text
 PostgreSQL -> NestJS GET /clientes -> React obtenerClientes() -> ReceptionPanel
 ReceptionPanel -> React crearCliente() -> NestJS POST /clientes -> PostgreSQL
+NestJS POST /vehiculos -> PostgreSQL, vinculando el vehiculo al cliente por RUT
 ```
 
 Esto permite demostrar una API propia conectada a base de datos.
 
 ## Pendientes sugeridos
 
-- Separar vehiculos en una tabla propia.
 - Crear ordenes de trabajo en backend.
+- Crear la pantalla de recepcion para registrar o seleccionar vehiculos antes de abrir una orden.
 - Conectar recepcion con ordenes reales.
 - Cambiar `DB_SYNCHRONIZE=true` por migraciones cuando el modelo se estabilice.

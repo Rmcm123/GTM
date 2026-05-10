@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Vehiculo } from '../vehiculos/vehiculo.entity';
 
 @Entity({ name: 'clientes' })
 export class Cliente {
@@ -23,11 +25,8 @@ export class Cliente {
   @Column()
   correo: string;
 
-  @Column({ name: 'patente_vehiculo' })
-  patenteVehiculo: string;
-
-  @Column()
-  vehiculo: string;
+  @OneToMany(() => Vehiculo, (vehiculo) => vehiculo.cliente)
+  vehiculos: Vehiculo[];
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

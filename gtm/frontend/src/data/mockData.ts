@@ -22,9 +22,9 @@ export const roleConfig: Record<
     navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario'],
     title: 'Dashboard administrador',
     description: 'Vista general para supervisar el funcionamiento del taller.',
-    primaryAction: 'Nueva orden',
-    secondaryAction: 'Registrar cliente',
-    actions: ['Ver ordenes','Ver inventario', 'Gestionar usuarios', 'Revisar cupos'],
+    primaryAction: '',
+    secondaryAction: '',
+    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios'],
   },
   Recepcionista: {
     navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes'],

@@ -354,6 +354,14 @@ Actualmente se encarga de:
 - recargar la lista despues de registrar un cliente
 - decidir que vista mostrar segun el rol
 
+Tambien incluye la vista **AdminView**, la cual ha sido mejorada significativamente para:
+- Mostrar tarjetas de resumen dinamicas basadas en datos reales de ordenes e inventario.
+- Incluir un panel de flujo de trabajo visual para ver las ordenes activas agrupadas por estado en el Dashboard.
+- Separar la informacion estructurada en pestañas dedicadas respondiendo a la navegacion:
+  - **Ordenes**: Lista de ordenes con vista de detalle avanzado al hacer clic (informacion general, diagnostico, repuestos solicitados).
+  - **Clientes**: Directorio completo en formato tabla con la informacion de contacto.
+  - **Inventario**: Vista de tabla del stock actual mas un panel de repuestos solicitados recientemente por los mecanicos.
+
 ### `gtm/frontend/src/types.ts`
 
 Archivo con tipos compartidos del frontend.

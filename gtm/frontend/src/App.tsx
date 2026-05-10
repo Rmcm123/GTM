@@ -95,7 +95,6 @@ function AdminView({ ordenes }: { ordenes: WorkOrder[] }) {
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <OrdersTable title="Ordenes activas" helper="Todas las ordenes visibles para control general." orders={ordenes} />
         <div className="grid gap-[18px]">
-          <CapacityPanel occupiedSlots={3} totalSlots={5} />
           <WorkflowPanel items={workflow} />
         </div>
       </section>

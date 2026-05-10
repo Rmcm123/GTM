@@ -52,6 +52,7 @@ export async function obtenerOrdenesTrabajo(): Promise<WorkOrder[]> {
 }
 
 export async function crearOrdenTrabajo(orden: CrearOrdenTrabajoPayload): Promise<WorkOrder> {
+  // ✅ Usa el Facade en el backend (orquestación simplificada)
   const respuesta = await fetch(`${API_URL}/ordenes-trabajo`, {
     method: 'POST',
     headers: {

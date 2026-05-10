@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
+import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { EstadoOrdenTrabajo, OrdenTrabajo } from './orden-trabajo.entity';
@@ -91,6 +92,34 @@ export class OrdenesTrabajoService {
     const ordenGuardada = await this.repositorioOrdenesTrabajo.save(orden);
 
     return this.convertirARespuesta(ordenGuardada);
+  }
+
+  async actualizarEstado(
+    id: number,
+    datosActualizacion: ActualizarEstadoOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id },
+      relations: ['cliente', 'vehiculo'],
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    if (!datosActualizacion?.estado) {
+      throw new BadRequestException('El estado es obligatorio');
+    }
+
+    const estadosValidos = Object.values(EstadoOrdenTrabajo);
+    if (!estadosValidos.includes(datosActualizacion.estado)) {
+      throw new BadRequestException('El estado indicado no es valido');
+    }
+
+    orden.estado = datosActualizacion.estado;
+    const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
+
+    return this.convertirARespuesta(ordenActualizada);
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {

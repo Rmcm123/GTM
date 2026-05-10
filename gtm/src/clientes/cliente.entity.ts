@@ -9,29 +9,29 @@ import {
 @Entity({ name: 'clientes' })
 export class Cliente {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  rut: string;
+  rut!: string;
 
   @Column()
-  nombre: string;
+  nombre!: string;
 
   @Column()
-  telefono: string;
+  telefono!: string;
 
   @Column()
-  correo: string;
+  correo!: string;
 
   @Column({ name: 'patente_vehiculo' })
-  patenteVehiculo: string;
+  patenteVehiculo!: string;
 
   @Column()
-  vehiculo: string;
+  vehiculo!: string;
 
   @CreateDateColumn({ name: 'creado_en' })
-  creadoEn: Date;
+  creadoEn!: Date;
 
   @UpdateDateColumn({ name: 'actualizado_en' })
-  actualizadoEn: Date;
+  actualizadoEn!: Date;
 }

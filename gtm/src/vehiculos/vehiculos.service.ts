@@ -36,7 +36,7 @@ export class VehiculosService {
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
-      ano: vehiculo.ano,
+      año: vehiculo.año,
       color: vehiculo.color,
       kilometraje: vehiculo.kilometraje,
       cliente_id: vehiculo.cliente_id,

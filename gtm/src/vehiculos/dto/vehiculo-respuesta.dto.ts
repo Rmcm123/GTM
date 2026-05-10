@@ -3,7 +3,7 @@ export type VehiculoRespuestaDto = {
   patente: string;
   marca: string;
   modelo: string;
-  ano: number;
+  año: number;
   color?: string;
   kilometraje?: number;
   cliente_id: string;

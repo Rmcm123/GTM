@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActionPanel } from './components/ActionPanel';
 import { AppLayout } from './components/AppLayout';
 import { CapacityPanel } from './components/CapacityPanel';
@@ -19,7 +19,7 @@ import {
   workOrders,
   workflow,
 } from './data/mockData';
-import type { UserRole } from './types';
+import type { UserRole, WorkOrder } from './types';
 
 function Header({
   title,
@@ -56,11 +56,56 @@ function Header({
 }
 
 function AdminView() {
+  const [orders, setOrders] = useState<WorkOrder[]>([]);
+
+  async function fetchOrders() {
+    try {
+      const res = await fetch('/ot');
+      const data = await res.json();
+      const mapped: WorkOrder[] = (data || []).map((o: any) => ({
+        id: o.id,
+        client: o.clienteId || 'N/A',
+        vehicle: o.vehiculoId || 'N/A',
+        mechanic: o.mecanicoId || 'Sin asignar',
+        status: o.estado === 'pendiente' ? 'Pendiente' : o.estado === 'progreso' ? 'En proceso' : 'Finalizada',
+        checkIn: new Date(o.creadoEn || o.fechaIngreso).toLocaleString(),
+      }));
+      setOrders(mapped);
+    } catch (e) {
+      setOrders([]);
+    }
+  }
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  async function handleStart(id: string) {
+    await fetch(`/ot/${id}/iniciar`, { method: 'POST' });
+    fetchOrders();
+  }
+
+  async function handleFinish(id: string) {
+    await fetch(`/ot/${id}/finalizar`, { method: 'POST' });
+    fetchOrders();
+  }
+
+  async function handlePay(id: string) {
+    const amount = Number(prompt('Monto a pagar') || '0');
+    if (!amount || amount <= 0) return;
+    await fetch(`/ot/${id}/registrar-pago`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ monto: amount }),
+    });
+    fetchOrders();
+  }
+
   return (
     <>
       <SummaryCards cards={adminSummary} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        <OrdersTable title="Ordenes activas" helper="Todas las ordenes visibles para control general." orders={workOrders} />
+        <OrdersTable title="Ordenes activas" helper="Todas las ordenes visibles para control general." orders={orders} onStart={handleStart} onFinish={handleFinish} onPay={handlePay} />
         <div className="grid gap-[18px]">
           <CapacityPanel occupiedSlots={3} totalSlots={5} />
           <WorkflowPanel items={workflow} />

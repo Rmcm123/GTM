@@ -13,9 +13,12 @@ type OrdersTableProps = {
   helper: string;
   orders: WorkOrder[];
   actionLabel?: string;
+  onStart?: (id: string) => void;
+  onFinish?: (id: string) => void;
+  onPay?: (id: string) => void;
 };
 
-export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes' }: OrdersTableProps) {
+export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes'}: OrdersTableProps) {
   return (
     <Panel>
       <div className="mb-[18px] flex flex-col items-start justify-between gap-3.5 md:flex-row md:items-center">
@@ -53,6 +56,10 @@ export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes'
                   <span className={`inline-flex w-fit rounded-full px-2.5 py-1.5 text-[12px] font-extrabold ${statusClass[order.status]}`}>{order.status}</span>
                 </td>
                 <td className="border-b border-[#e5eaf0] p-[13px_10px] text-left align-middle text-[14px]">{order.checkIn}</td>
+                <td className="border-b border-[#e5eaf0] p-[13px_10px] text-left align-middle text-[14px]">
+                  <div className="flex gap-2">
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

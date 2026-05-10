@@ -9,19 +9,19 @@ import {
 @Entity({ name: 'vehiculos' })
 export class Vehiculo {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  patente: string;
+  patente!: string;
 
   @Column()
-  marca: string;
+  marca!: string;
 
   @Column()
-  modelo: string;
+  modelo!: string;
 
   @Column('integer')
-  ano: number;
+  año!: number;
 
   @Column({ nullable: true })
   color?: string;
@@ -30,11 +30,11 @@ export class Vehiculo {
   kilometraje?: number;
 
   @Column({ name: 'cliente_id', type: 'uuid' })
-  cliente_id: string;
+  cliente_id!: string;
 
   @CreateDateColumn({ name: 'creado_en' })
-  creadoEn: Date;
+  creadoEn!: Date;
 
   @UpdateDateColumn({ name: 'actualizado_en' })
-  actualizadoEn: Date;
+  actualizadoEn!: Date;
 }

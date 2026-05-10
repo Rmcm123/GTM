@@ -24,7 +24,7 @@ export const roleConfig: Record<
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: 'Nueva orden',
     secondaryAction: 'Registrar cliente',
-    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios', 'Revisar cupos'],
+    actions: ['Ver ordenes','Ver inventario', 'Gestionar usuarios', 'Revisar cupos'],
   },
   Recepcionista: {
     navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes'],
@@ -144,6 +144,7 @@ export const workOrders: WorkOrder[] = [
     mechanic: 'Matias Rojas',
     status: 'En proceso',
     checkIn: '07/05/2026',
+    tipoServicio: 'Reparacion',
   },
   {
     id: 'OT-002',
@@ -152,6 +153,7 @@ export const workOrders: WorkOrder[] = [
     mechanic: 'Camila Torres',
     status: 'En revision',
     checkIn: '07/05/2026',
+    tipoServicio: 'Revision general',
   },
   {
     id: 'OT-003',
@@ -160,6 +162,7 @@ export const workOrders: WorkOrder[] = [
     mechanic: 'Diego Silva',
     status: 'Pendiente',
     checkIn: '06/05/2026',
+    tipoServicio: 'Mantencion',
   },
   {
     id: 'OT-004',
@@ -168,6 +171,7 @@ export const workOrders: WorkOrder[] = [
     mechanic: 'Camila Torres',
     status: 'Finalizada',
     checkIn: '05/05/2026',
+    tipoServicio: 'Cambio de aceite',
   },
 ];
 

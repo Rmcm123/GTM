@@ -88,19 +88,232 @@ function Header({
   );
 }
 
-function AdminView({ ordenes }: { ordenes: WorkOrder[] }) {
+function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[] }) {
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const selectedOrder = ordenes.find((o) => o.id === selectedOrderId) || null;
+  const repuestosOrden = selectedOrder ? repuestosSolicitados.filter((r) => r.ordenTrabajo === selectedOrder.id) : [];
+
+  if (activeSection === 'Clientes') {
+    return (
+      <section className="grid grid-cols-1 items-start gap-[18px]">
+        <Panel>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Directorio</span>
+              <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Todos los clientes</h2>
+              <p className="m-[6px_0_0] text-[14px] text-[#64748b]">Listado completo de clientes registrados en el sistema.</p>
+            </div>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse">
+              <thead>
+                <tr>
+                  {['RUT', 'Nombre', 'Telefono', 'Correo'].map((heading) => (
+                    <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[13px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={heading}>
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {clientes.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="border-b border-[#e5eaf0] p-[13px_10px] text-center text-[14px] text-[#64748b]">
+                      No hay clientes registrados
+                    </td>
+                  </tr>
+                ) : (
+                  clientes.map((cliente) => (
+                    <tr key={cliente.rut} className="hover:bg-slate-50">
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px] font-bold text-[#111827]">{cliente.rut}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.nombre}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.telefono}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.correo}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </section>
+    );
+  }
+
+  if (activeSection === 'Inventario') {
+    return (
+      <section className="grid grid-cols-1 items-start gap-[18px]">
+        <Panel>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Inventario</span>
+              <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Todos los repuestos</h2>
+              <p className="m-[6px_0_0] text-[14px] text-[#64748b]">Listado completo de repuestos registrados en el sistema.</p>
+            </div>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse">
+              <thead>
+                <tr>
+                  {['Nombre', 'Categoria', 'Stock', 'Minimo'].map((heading) => (
+                    <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[13px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={heading}>
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {inventario.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="border-b border-[#e5eaf0] p-[13px_10px] text-center text-[14px] text-[#64748b]">
+                      No hay repuestos registrados
+                    </td>
+                  </tr>
+                ) : (
+                  inventario.map((item) => (
+                    <tr key={item.id || item.name} className="hover:bg-slate-50">
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px] font-bold text-[#111827]">{item.name}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{item.category}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">
+                        <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[12px] font-extrabold ${item.stock < item.minimum ? 'bg-[#fef2f2] text-[#b91c1c]' : 'bg-[#e8f7ef] text-[#0d6848]'}`}>
+                          {item.stock}
+                        </span>
+                      </td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{item.minimum}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+        <Panel>
+          <div className="mb-3">
+            <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Solicitudes</span>
+            <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Repuestos solicitados</h2>
+            <p className="m-[6px_0_0] text-[13px] text-[#64748b]">Listado de repuestos solicitados por mecanicos para reparaciones.</p>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse">
+              <thead>
+                <tr>
+                  {['Repuesto', 'Cantidad', 'Mecanico', 'Orden de Trabajo', 'Fecha', 'Observaciones'].map((heading) => (
+                    <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[13px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={heading}>
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {repuestosSolicitados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="border-b border-[#e5eaf0] p-[13px_10px] text-center text-[14px] text-[#64748b]">
+                      No hay repuestos solicitados
+                    </td>
+                  </tr>
+                ) : (
+                  repuestosSolicitados.map((repuesto) => (
+                    <tr key={repuesto.id} className="hover:bg-slate-50">
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px] font-bold text-[#111827]">{repuesto.nombre}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{repuesto.cantidad}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{repuesto.mecanico}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px] font-bold">{repuesto.ordenTrabajo}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{repuesto.fecha}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{repuesto.observaciones || '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </section>
+    );
+  }
+
+  if (activeSection === 'Ordenes') {
+    return (
+      <section className="grid grid-cols-1 items-start gap-[18px]">
+        <div className="grid gap-[18px]">
+          <OrdersTable
+            title="Todas las ordenes"
+            helper="Haz clic en una fila para ver todos los detalles de la orden."
+            orders={ordenes}
+            onRowClick={(order) => setSelectedOrderId(order.id === selectedOrderId ? null : order.id)}
+            selectedOrderId={selectedOrderId || undefined}
+          />
+          {selectedOrder && (
+            <Panel>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Detalle de Orden</span>
+                  <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Orden {selectedOrder.id}</h2>
+                </div>
+                <span className={`inline-flex w-fit rounded-full px-2.5 py-1.5 text-[12px] font-extrabold ${
+                  selectedOrder.status === 'En proceso'
+                    ? 'bg-[#e8f7ef] text-[#0d6848]'
+                    : selectedOrder.status === 'Finalizada'
+                    ? 'bg-[#e5f7f8] text-[#0f6872]'
+                    : selectedOrder.status === 'En revision'
+                    ? 'bg-[#eaf2ff] text-[#1e55a8]'
+                    : 'bg-[#fff7ed] text-[#9a4b00]'
+                }`}>{selectedOrder.status}</span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4">
+                  <h3 className="mb-2.5 text-[14px] font-extrabold text-[#111827]">Datos Generales</h3>
+                  <div className="grid gap-1.5 text-[13px] text-[#475569]">
+                    <p className="m-0"><strong>Cliente:</strong> {selectedOrder.client}</p>
+                    <p className="m-0"><strong>Vehiculo:</strong> {selectedOrder.vehicle}</p>
+                    <p className="m-0"><strong>Mecanico asignado:</strong> {selectedOrder.mechanic || 'Sin asignar'}</p>
+                    <p className="m-0"><strong>Tipo de servicio:</strong> {selectedOrder.tipoServicio || 'No especificado'}</p>
+                    <p className="m-0 border-t border-[#e5eaf0] pt-1.5 mt-1"><strong>Fecha de Ingreso:</strong> {selectedOrder.checkIn}</p>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4">
+                  <h3 className="mb-2.5 text-[14px] font-extrabold text-[#111827]">Informacion Tecnica</h3>
+                  <div className="grid gap-1.5 text-[13px] text-[#475569]">
+                    <p className="m-0"><strong>Año:</strong> {selectedOrder.año || 'No especificado'}</p>
+                    <p className="m-0"><strong>Kilometraje:</strong> {selectedOrder.kilometraje ? `${selectedOrder.kilometraje.toLocaleString('es-CL')} km` : 'No especificado'}</p>
+                  </div>
+                </div>
+                <div className="md:col-span-2 rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4">
+                  <h3 className="mb-1.5 text-[14px] font-extrabold text-[#111827]">Diagnostico Inicial</h3>
+                  <p className="m-0 text-[13px] text-[#475569] whitespace-pre-wrap">{selectedOrder.diagnosticoInicial || 'Sin diagnostico inicial registrado.'}</p>
+                </div>
+                {repuestosOrden.length > 0 && (
+                  <div className="md:col-span-2 rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4">
+                    <h3 className="mb-2.5 text-[14px] font-extrabold text-[#111827]">Repuestos Solicitados</h3>
+                    <ul className="m-0 grid gap-2 pl-4 text-[13px] text-[#475569]">
+                      {repuestosOrden.map((repuesto) => (
+                        <li key={repuesto.id}>
+                          <strong>{repuesto.cantidad}x {repuesto.nombre}</strong>
+                          {repuesto.observaciones ? ` - ${repuesto.observaciones}` : ''}
+                          <span className="text-[#64748b]"> (Solicitado el {repuesto.fecha})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Panel>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
       <SummaryCards cards={adminSummary} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        <OrdersTable title="Ordenes activas" helper="Todas las ordenes visibles para control general." orders={ordenes} />
         <div className="grid gap-[18px]">
+          <InventoryPanel items={inventoryItems} />
           <WorkflowPanel items={workflow} />
         </div>
-      </section>
-      <section className="mt-[18px] grid grid-cols-1 gap-[18px] xl:grid-cols-[minmax(280px,1fr)_320px]">
-        <InventoryPanel items={inventoryItems} />
-        <ActionPanel actions={roleConfig.Administrador.actions} />
+        <div className="grid gap-[18px]">
+          <ActionPanel actions={roleConfig.Administrador.actions} />
+        </div>
       </section>
     </>
   );
@@ -737,7 +950,7 @@ function RoleDashboard({
     );
   }
 
-  return <AdminView ordenes={ordenesTrabajo} />;
+  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} />;
 }
 
 function App() {
@@ -1039,6 +1252,9 @@ function App() {
   }
 
   function handlePrimaryAction() {
+    if (activeRole === 'Administrador') {
+      setActiveSection('Ordenes');
+    }
     if (activeRole === 'Recepcionista') {
       setActiveSection('Ordenes');
     }

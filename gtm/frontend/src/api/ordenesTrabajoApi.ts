@@ -9,6 +9,7 @@ type OrdenTrabajoApi = {
   vehiculo: string;
   mecanicoAsignado?: string;
   estado: WorkOrder['status'];
+  tipoServicio?: string;
   fechaIngreso: string;
   diagnosticoInicial?: string;
   año?: number;
@@ -31,6 +32,7 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     mechanic: orden.mecanicoAsignado ?? 'Sin asignar',
     status: orden.estado,
     checkIn: orden.fechaIngreso,
+    tipoServicio: orden.tipoServicio,
     diagnosticoInicial: orden.diagnosticoInicial,
     año: orden.año,
     kilometraje: orden.kilometraje,

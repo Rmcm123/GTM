@@ -11,6 +11,7 @@ import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-or
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { EstadoOrdenTrabajo, OrdenTrabajo } from './orden-trabajo.entity';
+import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
 
 @Injectable()
 export class OrdenesTrabajoService {
@@ -21,6 +22,7 @@ export class OrdenesTrabajoService {
     private readonly repositorioClientes: Repository<Cliente>,
     @InjectRepository(Vehiculo)
     private readonly repositorioVehiculos: Repository<Vehiculo>,
+    private readonly factory: OrdenTrabajoFactory,
   ) {}
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
@@ -64,17 +66,8 @@ export class OrdenesTrabajoService {
 
     const cliente = vehiculo.cliente;
 
-    const orden = this.repositorioOrdenesTrabajo.create({
-      clienteId: cliente.id,
-      cliente,
-      vehiculoId: vehiculo.id,
-      vehiculo,
-      tipoServicio: datosOrden.tipoServicio.trim(),
-      diagnosticoInicial: datosOrden.diagnosticoInicial.trim(),
-      mecanicoAsignado: datosOrden.mecanicoAsignado?.trim() || undefined,
-      fechaIngreso: datosOrden.fechaIngreso,
-      estado: EstadoOrdenTrabajo.Pendiente,
-    });
+    // Usar factory para crear la orden
+    const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
 
     const ordenGuardada = await this.repositorioOrdenesTrabajo.save(orden);
 

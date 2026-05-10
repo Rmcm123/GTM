@@ -154,6 +154,8 @@ export class OrdenesTrabajoService {
       mecanicoAsignado: orden.mecanicoAsignado,
       estado: orden.estado,
       fechaIngreso: orden.fechaIngreso,
+      año: orden.vehiculo.año,
+      kilometraje: orden.vehiculo.kilometraje,
     };
   }
 }

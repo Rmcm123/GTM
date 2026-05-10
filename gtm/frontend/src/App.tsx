@@ -660,9 +660,9 @@ function App() {
   const [guardandoCliente, setGuardandoCliente] = useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(null);
-  const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>(workOrders);
+  const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
-  const [ordenes, setOrdenes] = useState<WorkOrder[]>(workOrders);
+  const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [movimientosInventario, setMovimientosInventario] = useState<StockMovement[]>(stockMovements);
   const [cargandoInventario, setCargandoInventario] = useState(false);
@@ -694,8 +694,10 @@ function App() {
       try {
         const ordenesDesdeApi = await obtenerOrdenesTrabajo();
         setOrdenes(ordenesDesdeApi);
+        setOrdenesTrabajo(ordenesDesdeApi);
       } catch {
         setOrdenes(workOrders);
+        setOrdenesTrabajo(workOrders);
       }
     }
 
@@ -753,6 +755,7 @@ function App() {
   async function recargarOrdenes() {
     const ordenesDesdeApi = await obtenerOrdenesTrabajo();
     setOrdenes(ordenesDesdeApi);
+    setOrdenesTrabajo(ordenesDesdeApi);
   }
 
   async function handleCrearOrden(orden: CrearOrdenTrabajoPayload) {

@@ -48,6 +48,16 @@ export type StockMovement = {
   date: string;
 };
 
+export type RepuestoSolicitado = {
+  id: string;
+  nombre: string;
+  cantidad: number;
+  mecanico: string;
+  ordenTrabajo: string;
+  observaciones?: string;
+  fecha: string;
+};
+
 export type SummaryCardData = {
   label: string;
   value: string;

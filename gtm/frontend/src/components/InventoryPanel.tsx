@@ -11,17 +11,6 @@ type InventoryFormState = {
   nota: string;
 };
 
-type CrearRepuestoForm = {
-  nombre: string;
-  categoria: string;
-  minimo: string;
-};
-
-type ReponerRepuestoForm = {
-  repuesto: string;
-  cantidad: string;
-};
-
 type InventoryPanelProps = {
   items: InventoryItem[];
   movements?: StockMovement[];
@@ -34,6 +23,7 @@ type InventoryPanelProps = {
   onActualizarCampo?: (campo: keyof InventoryFormState, valor: string) => void;
   onActualizarStock?: () => Promise<void>;
   onRegistrarEntrada?: () => Promise<void>;
+  onRegistrarSalida?: () => Promise<void>;
 };
 
 const inputClass =
@@ -51,12 +41,14 @@ export function InventoryPanel({
   onActualizarCampo,
   onActualizarStock,
   onRegistrarEntrada,
+  onRegistrarSalida,
 }: InventoryPanelProps) {
   const tieneFormulario =
     Boolean(formulario) &&
     Boolean(onActualizarCampo) &&
     Boolean(onActualizarStock) &&
-    Boolean(onRegistrarEntrada);
+    Boolean(onRegistrarEntrada) &&
+    Boolean(onRegistrarSalida);
 
   function bloquearEnvio(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -98,7 +90,7 @@ export function InventoryPanel({
         </div>
       )}
 
-      {tieneFormulario && formulario && onActualizarCampo && onActualizarStock && onRegistrarEntrada && (
+      {tieneFormulario && formulario && onActualizarCampo && onActualizarStock && onRegistrarEntrada && onRegistrarSalida && (
         <div id="update-stock-top" className="mt-5 border-t border-[#e5eaf0] pt-4">
           <div className="mb-3">
             <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Crear repuesto</span>
@@ -163,7 +155,6 @@ export function InventoryPanel({
                     className={inputClass}
                     onChange={(evento) => {
                       onActualizarCampo('nombre', evento.target.value);
-                      onActualizarCampo('stock', evento.target.value);
                     }}
                     value={formulario.nombre}
                   >
@@ -193,6 +184,54 @@ export function InventoryPanel({
               <div className="mt-2 flex justify-end">
                 <button className="min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] disabled:cursor-not-allowed disabled:opacity-60" disabled={cargando} onClick={onRegistrarEntrada} type="button">
                   Reponer repuesto
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div id="register-output" className="mt-8 border-t border-[#e5eaf0] pt-6">
+            <div className="mb-3">
+              <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Registrar salida</span>
+              <p className="m-0 text-[14px] text-[#64748b]">Descuenta unidades de un repuesto por uso en ordenes de trabajo.</p>
+            </div>
+
+            <form className="grid gap-4" onSubmit={bloquearEnvio}>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                  Repuesto utilizado
+                  <select
+                    className={inputClass}
+                    onChange={(evento) => {
+                      onActualizarCampo('nombre', evento.target.value);
+                    }}
+                    value={formulario.nombre}
+                  >
+                    <option value="">-- Selecciona un repuesto --</option>
+                    {items.map((item) => (
+                      <option key={item?.id ?? item?.name} value={item?.name || ''}>
+                        {item?.name || 'Desconocido'} ({item?.stock || 0} unidades)
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                  Cantidad a descontar
+                  <input
+                    className={inputClass}
+                    onChange={(evento) => onActualizarCampo('cantidad', evento.target.value)}
+                    placeholder="Cantidad utilizada"
+                    type="number"
+                    min="1"
+                    value={formulario.cantidad}
+                  />
+                </label>
+              </div>
+
+              {mensaje && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">{mensaje}</p>}
+
+              <div className="mt-2 flex justify-end">
+                <button className="min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] disabled:cursor-not-allowed disabled:opacity-60" disabled={cargando} onClick={onRegistrarSalida} type="button">
+                  Registrar salida
                 </button>
               </div>
             </form>

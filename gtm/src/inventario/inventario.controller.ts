@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import type { ActualizarStockDto } from './dto/actualizar-stock.dto';
 import type { RegistrarEntradaDto } from './dto/registrar-entrada.dto';
+import type { RegistrarSalidaDto } from './dto/registrar-salida.dto';
 import { InventarioService } from './inventario.service';
 
 @Controller('inventario')
@@ -25,5 +26,10 @@ export class InventarioController {
   @Post('entrada')
   registrarEntrada(@Body() datos: RegistrarEntradaDto) {
     return this.inventarioService.registrarEntrada(datos);
+  }
+
+  @Post('salida')
+  registrarSalida(@Body() datos: RegistrarSalidaDto) {
+    return this.inventarioService.registrarSalida(datos);
   }
 }

@@ -536,7 +536,7 @@ function InventoryView({
         <ActionPanel
           actions={roleConfig.Inventario.actions}
           onAction={(action) => {
-            if (action === 'Registrar entrada') {
+            if (action === 'Reponer repuesto') {
               onIrAMovimientos('entry');
             } else if (action === 'Registrar salida') {
               onIrAMovimientos('recent');
@@ -787,7 +787,7 @@ function App() {
       return null;
     }
 
-    const stock = Number(formularioInventario.stock);
+    const stock = formularioInventario.stock.trim().length > 0 ? Number(formularioInventario.stock) : 0;
     const minimo = formularioInventario.minimo.trim().length > 0 ? Number(formularioInventario.minimo) : undefined;
 
     if (!Number.isInteger(stock) || stock < 0) {
@@ -832,7 +832,8 @@ function App() {
     try {
       await actualizarStockInventario(payload);
       await recargarInventario();
-      setMensajeInventario('Stock actualizado correctamente');
+      setMensajeInventario('Repuesto creado correctamente');
+      setFormularioInventario(formularioInventarioInicial);
     } catch (error) {
       setMensajeInventario(error instanceof Error ? error.message : 'No se pudo actualizar el stock');
     } finally {
@@ -874,7 +875,8 @@ function App() {
     try {
       await registrarEntradaInventario(payload);
       await recargarInventario();
-      setMensajeInventario('Entrada registrada correctamente');
+      setMensajeInventario('Repuesto reponido correctamente');
+      setFormularioInventario(formularioInventarioInicial);
     } catch (error) {
       setMensajeInventario(error instanceof Error ? error.message : 'No se pudo registrar la entrada');
     } finally {

@@ -47,8 +47,8 @@ export const roleConfig: Record<
     title: 'Panel de inventario',
     description: 'Control de repuestos, entradas, salidas y stock bajo.',
     primaryAction: 'Actualizar stock',
-    secondaryAction: 'Registrar entrada',
-    actions: ['Registrar entrada', 'Registrar salida', 'Revisar stock bajo', 'Crear repuesto'],
+    secondaryAction: 'Reponer repuesto',
+    actions: ['Reponer repuesto', 'Registrar salida', 'Revisar stock bajo', 'Crear repuesto'],
   },
 };
 

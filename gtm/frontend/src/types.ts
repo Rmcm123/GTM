@@ -31,6 +31,7 @@ export type Vehiculo = {
 };
 
 export type InventoryItem = {
+  id?: string;
   name: string;
   stock: number;
   minimum: number;
@@ -39,7 +40,7 @@ export type InventoryItem = {
 
 export type StockMovement = {
   item: string;
-  type: 'Entrada' | 'Salida';
+  type: 'Entrada' | 'Salida' | 'Actualizacion';
   quantity: number;
   date: string;
 };

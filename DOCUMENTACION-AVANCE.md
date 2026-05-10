@@ -178,6 +178,7 @@ Entidad TypeORM que representa la tabla `ordenes_trabajo`.
 
 Define el modelo inicial de una orden de trabajo:
 
+- id numerico autoincremental;
 - cliente asociado;
 - vehiculo asociado;
 - tipo de servicio;
@@ -187,6 +188,8 @@ Define el modelo inicial de una orden de trabajo:
 - fecha de ingreso.
 
 Por ahora el mecanico asignado se guarda como texto, porque aun no existe un modulo real de usuarios o mecanicos. Cuando se implemente login, este campo se puede reemplazar o complementar con una relacion al usuario mecanico.
+
+El id de la orden es numerico para que el frontend pueda mostrar codigos simples como `OT-001`, `OT-002` y evitar mostrar identificadores largos.
 
 ### `gtm/src/ordenes-trabajo/ordenes-trabajo.module.ts`
 
@@ -272,6 +275,23 @@ Esta funcion hace un `fetch` a:
 
 Asi el frontend deja de depender solamente de datos escritos en `mockData.ts`.
 
+### `gtm/frontend/src/api/ordenesTrabajoApi.ts`
+
+Archivo encargado de consumir la API de ordenes de trabajo del backend.
+
+Contiene las funciones:
+
+```ts
+obtenerOrdenesTrabajo()
+crearOrdenTrabajo()
+```
+
+`obtenerOrdenesTrabajo()` hace un `GET /ordenes-trabajo` para listar ordenes.
+
+`crearOrdenTrabajo()` hace un `POST /ordenes-trabajo` para crear una orden desde recepcion.
+
+Tambien transforma la respuesta del backend al formato que usa el frontend para mostrar tablas de ordenes.
+
 ### `gtm/frontend/src/components/ReceptionPanel.tsx`
 
 Panel visual de recepcion para registrar clientes.
@@ -306,8 +326,9 @@ Actualmente:
 
 - muestra un formulario para cliente, vehiculo, servicio, mecanico, fecha y diagnostico;
 - permite buscar clientes por RUT como ayuda para completar el formulario;
-- muestra ordenes recientes con datos locales;
-- no se conecta con API ni backend, porque por ahora solo se esta definiendo la interfaz.
+- muestra ordenes activas y finalizadas;
+- crea ordenes usando la API `POST /ordenes-trabajo`;
+- carga ordenes desde la API `GET /ordenes-trabajo`, usando datos locales como respaldo si el backend no esta disponible.
 
 ### `gtm/frontend/src/components/AppLayout.tsx`
 

@@ -1,9 +1,13 @@
 import { useState, type FormEvent } from 'react';
+import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { Cliente, WorkOrder } from '../types';
 import { Panel } from './Panel';
 
 type WorkOrdersPanelProps = {
   clientes: Cliente[];
+  guardandoOrden: boolean;
+  mensajeOrden: string | null;
+  onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
 };
 
@@ -36,12 +40,13 @@ const estadoClass: Record<WorkOrder['status'], string> = {
   'En revision': 'bg-[#eaf2ff] text-[#1e55a8]',
   'En proceso': 'bg-[#e8f7ef] text-[#0d6848]',
   Finalizada: 'bg-[#e5f7f8] text-[#0f6872]',
+  Entregada: 'bg-[#ecfdf5] text-[#047857]',
+  Cancelada: 'bg-[#fef2f2] text-[#b91c1c]',
 };
 
-export function WorkOrdersPanel({ clientes, ordenes }: WorkOrdersPanelProps) {
+export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrearOrden, ordenes }: WorkOrdersPanelProps) {
   const [formulario, setFormulario] = useState<FormularioOrden>(formularioInicial);
   const [busquedaCliente, setBusquedaCliente] = useState('');
-  const [mensaje, setMensaje] = useState<string | null>(null);
 
   const clientesFiltrados = clientes.filter((cliente) => {
     const textoBusqueda = busquedaCliente.trim().toLowerCase();
@@ -49,8 +54,8 @@ export function WorkOrdersPanel({ clientes, ordenes }: WorkOrdersPanelProps) {
     return textoBusqueda.length > 0 && cliente.rut.toLowerCase().includes(textoBusqueda);
   }).slice(0, 3);
 
-  const ordenesActivas = ordenes.filter((orden) => orden.status !== 'Finalizada');
-  const ordenesFinalizadas = ordenes.filter((orden) => orden.status === 'Finalizada');
+  const ordenesActivas = ordenes.filter((orden) => !['Finalizada', 'Entregada', 'Cancelada'].includes(orden.status));
+  const ordenesFinalizadas = ordenes.filter((orden) => orden.status === 'Finalizada' || orden.status === 'Entregada');
 
   function actualizarCampo(campo: keyof FormularioOrden, valor: string) {
     setFormulario((actual) => ({
@@ -59,11 +64,21 @@ export function WorkOrdersPanel({ clientes, ordenes }: WorkOrdersPanelProps) {
     }));
   }
 
-  function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
+  async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
-    // Vista inicial solamente: la creacion real de la orden se conectara al backend en otra etapa.
-    setMensaje('Vista lista: falta conectar la creacion de ordenes con backend.');
+    const ordenCreada = await onCrearOrden({
+      rutCliente: formulario.rutCliente,
+      patenteVehiculo: formulario.patente,
+      tipoServicio: formulario.tipoServicio,
+      diagnosticoInicial: formulario.diagnostico,
+      mecanicoAsignado: formulario.mecanico || undefined,
+      fechaIngreso: formulario.fechaIngreso,
+    });
+
+    if (ordenCreada) {
+      setFormulario(formularioInicial);
+    }
   }
 
   function renderOrdenes(ordenesListado: WorkOrder[]) {
@@ -174,14 +189,14 @@ export function WorkOrdersPanel({ clientes, ordenes }: WorkOrdersPanelProps) {
               </label>
             </div>
 
-            {mensaje && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">{mensaje}</p>}
+            {mensajeOrden && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">{mensajeOrden}</p>}
 
             <div className="flex flex-col gap-2 md:flex-row md:justify-end">
               <button className="min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50" onClick={() => setFormulario(formularioInicial)} type="button">
                 Limpiar
               </button>
-              <button className="min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943]" type="submit">
-                Preparar orden
+              <button className="min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] disabled:cursor-not-allowed disabled:opacity-60" disabled={guardandoOrden} type="submit">
+                {guardandoOrden ? 'Creando...' : 'Crear orden'}
               </button>
             </div>
           </form>

@@ -21,8 +21,8 @@ export enum EstadoOrdenTrabajo {
 
 @Entity({ name: 'ordenes_trabajo' })
 export class OrdenTrabajo {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
   @Column({ name: 'cliente_id', type: 'uuid' })
   clienteId: string;

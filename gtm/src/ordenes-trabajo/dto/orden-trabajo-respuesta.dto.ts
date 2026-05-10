@@ -1,7 +1,7 @@
 import { EstadoOrdenTrabajo } from '../orden-trabajo.entity';
 
 export type OrdenTrabajoRespuestaDto = {
-  id: string;
+  id: number;
   clienteId: string;
   rutCliente: string;
   nombreCliente: string;

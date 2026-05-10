@@ -182,7 +182,7 @@ function ReceptionView({
   }
 
   if (activeSection === 'Ordenes') {
-    return <WorkOrdersPanel clientes={clientes} guardandoOrden={guardandoOrden} mensajeOrden={mensajeOrden} onCrearOrden={onCrearOrden} ordenes={ordenes} />;
+    return <WorkOrdersPanel guardandoOrden={guardandoOrden} mensajeOrden={mensajeOrden} onCrearOrden={onCrearOrden} ordenes={ordenes} />;
   }
 
   return <ReceptionDashboard ordenes={ordenes} onNavigate={onNavigate} />;

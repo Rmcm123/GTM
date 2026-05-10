@@ -54,12 +54,6 @@ export const roleConfig: Record<
 
 export const adminSummary: SummaryCardData[] = [
   {
-    label: 'Cupos ocupados',
-    value: '3 / 5',
-    helper: 'Quedan 2 cupos disponibles',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
     label: 'Ordenes activas',
     value: '4',
     helper: 'Trabajos abiertos en el taller',

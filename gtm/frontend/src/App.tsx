@@ -6,6 +6,7 @@ import { InventoryPanel } from './components/InventoryPanel';
 import { OrdersTable } from './components/OrdersTable';
 import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
+import { VehiclesPanel } from './components/VehiclesPanel';
 import { WorkflowPanel } from './components/WorkflowPanel';
 import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
 import {
@@ -120,6 +121,10 @@ function ReceptionView({
         onCrearCliente={onCrearCliente}
       />
     );
+  }
+
+  if (activeSection === 'Vehiculos') {
+    return <VehiclesPanel clientes={clientes} />;
   }
 
   return <ReceptionDashboard />;

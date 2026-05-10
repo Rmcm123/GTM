@@ -214,6 +214,17 @@ Actualmente:
 
 El formulario ya no se limpia si el backend rechaza el registro, por ejemplo cuando el RUT ya existe. Esto evita que el usuario pierda lo que escribio.
 
+### `gtm/frontend/src/components/VehiclesPanel.tsx`
+
+Panel visual de recepcion para registrar vehiculos.
+
+Actualmente:
+
+- muestra un formulario para datos del vehiculo;
+- permite asociar el vehiculo a un cliente usando su RUT;
+- muestra una lista de clientes disponibles para copiar el RUT al formulario;
+- no se conecta todavia con la API, porque primero se esta revisando la interfaz.
+
 ### `gtm/frontend/src/components/AppLayout.tsx`
 
 Layout general de la aplicacion.
@@ -272,6 +283,6 @@ Esto permite demostrar una API propia conectada a base de datos.
 ## Pendientes sugeridos
 
 - Crear ordenes de trabajo en backend.
-- Crear la pantalla de recepcion para registrar o seleccionar vehiculos antes de abrir una orden.
+- Conectar la pantalla de vehiculos con la API de `POST /vehiculos`.
 - Conectar recepcion con ordenes reales.
 - Cambiar `DB_SYNCHRONIZE=true` por migraciones cuando el modelo se estabilice.

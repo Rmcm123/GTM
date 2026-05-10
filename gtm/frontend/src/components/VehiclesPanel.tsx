@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { Cliente } from '../types';
+import { crearVehiculo } from '../api/vehiculoApi';
 import { Panel } from './Panel';
 
 type VehiclesPanelProps = {
@@ -50,8 +51,37 @@ export function VehiclesPanel({ clientes }: VehiclesPanelProps) {
   function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
-    // Por ahora esta pantalla solo prepara la interfaz; la conexion real con la API se hara en el siguiente paso.
-    setMensaje('Vista lista: falta conectar este formulario con la API de vehiculos.');
+    // Validar que todos los campos requeridos estén completos
+    if (
+      !formulario.rutCliente ||
+      !formulario.patente ||
+      !formulario.marca ||
+      !formulario.modelo ||
+      !formulario.año ||
+      !formulario.color ||
+      !formulario.kilometraje
+    ) {
+      setMensaje('Por favor completa todos los campos del formulario.');
+      return;
+    }
+
+    // Llamar a la API para registrar el vehículo
+    crearVehiculo({
+      rutCliente: formulario.rutCliente,
+      patente: formulario.patente,
+      marca: formulario.marca,
+      modelo: formulario.modelo,
+      año: parseInt(formulario.año, 10),
+      color: formulario.color,
+      kilometraje: parseInt(formulario.kilometraje, 10),
+    })
+      .then(() => {
+        setMensaje('Vehículo registrado correctamente.');
+        setFormulario(formularioInicial);
+      })
+      .catch((error: Error) => {
+        setMensaje(`Error: ${error.message}`);
+      });
   }
 
   return (

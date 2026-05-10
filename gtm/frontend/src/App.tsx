@@ -375,16 +375,18 @@ function MechanicView({
                     <p className="m-0"><strong>Vehiculo:</strong> {selectedOrder.vehicle}</p>
                     <p className="m-0"><strong>Cliente:</strong> {selectedOrder.client}</p>
                     <p className="m-0"><strong>Ingreso:</strong> {selectedOrder.checkIn}</p>
-                    <p className="m-0 mt-1 border-t border-[#e5eaf0] pt-1.5"><strong>Año:</strong> 2018 (aprox)</p>
-                    <p className="m-0"><strong>Kilometraje:</strong> 55.000 km</p>
+                    <p className="m-0 mt-1 border-t border-[#e5eaf0] pt-1.5"><strong>Año:</strong> {selectedOrder.año || 'No especificado'}</p>
+                    <p className="m-0"><strong>Kilometraje:</strong> {selectedOrder.kilometraje ? `${selectedOrder.kilometraje.toLocaleString('es-CL')} km` : 'No especificado'}</p>
                   </div>
                 </div>
               <div className="flex flex-col gap-3 rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4" key={selectedOrder.id}>
                 <div>
                   <h3 className="mb-1.5 text-[14px] font-extrabold text-[#111827]">Motivo de Ingreso / Diagnostico</h3>
                   <textarea
-                    className="min-h-[80px] w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3 py-2 text-[13px] text-[#111827] outline-none focus:border-[#0f6b52]"
-                    placeholder="Escribe el motivo de ingreso o diagnostico inicial del vehiculo..."
+                    className="min-h-[80px] w-full rounded-[7px] border border-[#cbd5e1] bg-[#f8fafc] px-3 py-2 text-[13px] text-[#111827] outline-none cursor-default"
+                    placeholder="Diagnostico no disponible"
+                    value={selectedOrder.diagnosticoInicial || ''}
+                    readOnly
                   />
                 </div>
                 <div>

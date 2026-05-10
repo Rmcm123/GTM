@@ -9,6 +9,9 @@ export type WorkOrder = {
   mechanic: string;
   status: OrderStatus;
   checkIn: string;
+  año?: number;
+  kilometraje?: number;
+  diagnosticoInicial?: string;
 };
 
 export type Cliente = {

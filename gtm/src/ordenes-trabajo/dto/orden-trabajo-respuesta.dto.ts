@@ -13,4 +13,6 @@ export type OrdenTrabajoRespuestaDto = {
   mecanicoAsignado?: string;
   estado: EstadoOrdenTrabajo;
   fechaIngreso: string;
+  año?: number;
+  kilometraje?: number;
 };

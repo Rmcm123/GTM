@@ -10,6 +10,9 @@ type OrdenTrabajoApi = {
   mecanicoAsignado?: string;
   estado: WorkOrder['status'];
   fechaIngreso: string;
+  diagnosticoInicial?: string;
+  año?: number;
+  kilometraje?: number;
 };
 
 export type CrearOrdenTrabajoPayload = {
@@ -29,6 +32,9 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     mechanic: orden.mecanicoAsignado ?? 'Sin asignar',
     status: orden.estado,
     checkIn: orden.fechaIngreso,
+    diagnosticoInicial: orden.diagnosticoInicial,
+    año: orden.año,
+    kilometraje: orden.kilometraje,
   };
 }
 

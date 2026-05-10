@@ -194,6 +194,41 @@ function MechanicView({
   const selectedOrder = mechanicOrders.find((o) => o.id === selectedOrderId) || null;
   const [mostrarPista, setMostrarPista] = useState(false);
   const [mensajeDetalle, setMensajeDetalle] = useState<string | null>(null);
+  const [mostrarModalRepuesto, setMostrarModalRepuesto] = useState(false);
+  const [repuestoSolicitado, setRepuestoSolicitado] = useState('');
+  const [mensajeAccion, setMensajeAccion] = useState<string | null>(null);
+
+  function handleAccionBotonesMecanico(accion: string) {
+    if (!selectedOrder) {
+      setMensajeAccion('Debes seleccionar una orden de trabajo primero.');
+      setTimeout(() => setMensajeAccion(null), 3000);
+      return;
+    }
+
+    switch (accion) {
+      case 'Iniciar revision':
+        onActualizarEstado(selectedOrder.id, 'En revision');
+        setMensajeAccion('Revisión iniciada correctamente.');
+        break;
+      case 'Pasar a proceso':
+        if (selectedOrder.status !== 'En revision') {
+          setMensajeAccion('Debes estar en revisión para pasar a proceso.');
+          setTimeout(() => setMensajeAccion(null), 3000);
+          return;
+        }
+        onActualizarEstado(selectedOrder.id, 'En proceso');
+        setMensajeAccion('Orden pasada a proceso.');
+        break;
+      case 'Finalizar OT':
+        onActualizarEstado(selectedOrder.id, 'Finalizada');
+        setMensajeAccion('Orden finalizada correctamente.');
+        break;
+      case 'Solicitar repuesto':
+        setMostrarModalRepuesto(true);
+        break;
+    }
+    setTimeout(() => setMensajeAccion(null), 3000);
+  }
 
   if (activeSection === 'Vehiculos') {
     return (
@@ -374,7 +409,74 @@ function MechanicView({
             </Panel>
           )}
         </div>
-        <ActionPanel actions={roleConfig.Mecanico.actions} />
+        <div className="grid gap-[18px]">
+          {mensajeAccion && (
+            <div className="rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">
+              {mensajeAccion}
+            </div>
+          )}
+          <ActionPanel actions={roleConfig.Mecanico.actions} onAction={handleAccionBotonesMecanico} />
+          {mostrarModalRepuesto && (
+            <Panel className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="w-full max-w-md rounded-[7px] border border-[#e5eaf0] bg-white p-6">
+                <h3 className="mb-4 text-[18px] font-extrabold text-[#111827]">Solicitar Repuesto</h3>
+                <p className="mb-4 text-[14px] text-[#64748b]">Orden: {selectedOrder?.id}</p>
+                <div className="mb-4 grid gap-3">
+                  <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                    Nombre del repuesto
+                    <input
+                      className="min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[14px] text-[#111827] outline-none focus:border-[#0f6b52]"
+                      placeholder="Ej: Pastilla de freno, filtro de aire"
+                      type="text"
+                      value={repuestoSolicitado}
+                      onChange={(e) => setRepuestoSolicitado(e.target.value)}
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                    Cantidad
+                    <input
+                      className="min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[14px] text-[#111827] outline-none focus:border-[#0f6b52]"
+                      placeholder="Cantidad necesaria"
+                      type="number"
+                      min="1"
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                    Observaciones
+                    <textarea
+                      className="min-h-[80px] w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3 py-2 text-[13px] text-[#111827] outline-none focus:border-[#0f6b52]"
+                      placeholder="Detalles adicionales sobre el repuesto..."
+                    />
+                  </label>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    className="rounded-[7px] border border-[#cbd5e1] bg-[#f8fafc] px-3.5 py-2 text-[14px] font-bold text-[#1f2937] hover:bg-[#eef4f2]"
+                    onClick={() => {
+                      setMostrarModalRepuesto(false);
+                      setRepuestoSolicitado('');
+                    }}
+                    type="button"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 py-2 text-[14px] font-bold text-white hover:bg-[#0c5943]"
+                    onClick={() => {
+                      setMensajeAccion(`Repuesto "${repuestoSolicitado}" solicitado correctamente.`);
+                      setMostrarModalRepuesto(false);
+                      setRepuestoSolicitado('');
+                      setTimeout(() => setMensajeAccion(null), 3000);
+                    }}
+                    type="button"
+                  >
+                    Solicitar
+                  </button>
+                </div>
+              </div>
+            </Panel>
+          )}
+        </div>
       </section>
     </>
   );

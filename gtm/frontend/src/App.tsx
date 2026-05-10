@@ -11,6 +11,7 @@ import { WorkOrdersPanel } from './components/WorkOrdersPanel';
 import { WorkflowPanel } from './components/WorkflowPanel';
 import { Panel } from './components/Panel';
 import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
+import { crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
 import {
   actualizarStockInventario,
   obtenerInventario,
@@ -134,8 +135,11 @@ function ReceptionView({
   clientes,
   errorClientes,
   guardandoCliente,
+  guardandoOrden,
   mensajeFormulario,
+  mensajeOrden,
   onCrearCliente,
+  onCrearOrden,
   ordenes,
   onNavigate,
 }: {
@@ -144,8 +148,11 @@ function ReceptionView({
   clientes: Cliente[];
   errorClientes: string | null;
   guardandoCliente: boolean;
+  guardandoOrden: boolean;
   mensajeFormulario: string | null;
+  mensajeOrden: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
+  onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   onNavigate: (section: string) => void;
 }) {
@@ -167,7 +174,7 @@ function ReceptionView({
   }
 
   if (activeSection === 'Ordenes') {
-    return <WorkOrdersPanel clientes={clientes} ordenes={ordenes} />;
+    return <WorkOrdersPanel clientes={clientes} guardandoOrden={guardandoOrden} mensajeOrden={mensajeOrden} onCrearOrden={onCrearOrden} ordenes={ordenes} />;
   }
 
   return <ReceptionDashboard ordenes={ordenes} onNavigate={onNavigate} />;
@@ -449,8 +456,12 @@ function RoleDashboard({
   clientes,
   errorClientes,
   guardandoCliente,
+  guardandoOrden,
   mensajeFormulario,
+  mensajeOrden,
   onCrearCliente,
+  onCrearOrden,
+  ordenes,
   cargandoInventario,
   inventario,
   movimientosInventario,
@@ -471,8 +482,12 @@ function RoleDashboard({
   clientes: Cliente[];
   errorClientes: string | null;
   guardandoCliente: boolean;
+  guardandoOrden: boolean;
   mensajeFormulario: string | null;
+  mensajeOrden: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
+  onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
+  ordenes: WorkOrder[];
   cargandoInventario: boolean;
   inventario: InventoryItem[];
   movimientosInventario: StockMovement[];
@@ -496,9 +511,12 @@ function RoleDashboard({
         clientes={clientes}
         errorClientes={errorClientes}
         guardandoCliente={guardandoCliente}
+        guardandoOrden={guardandoOrden}
         mensajeFormulario={mensajeFormulario}
+        mensajeOrden={mensajeOrden}
         onCrearCliente={onCrearCliente}
-        ordenes={ordenesTrabajo}
+        onCrearOrden={onCrearOrden}
+        ordenes={ordenes}
         onNavigate={onNavigate}
       />
     );
@@ -538,8 +556,11 @@ function App() {
   const [cargandoClientes, setCargandoClientes] = useState(false);
   const [errorClientes, setErrorClientes] = useState<string | null>(null);
   const [guardandoCliente, setGuardandoCliente] = useState(false);
+  const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(null);
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>(workOrders);
+  const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
+  const [ordenes, setOrdenes] = useState<WorkOrder[]>(workOrders);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [movimientosInventario, setMovimientosInventario] = useState<StockMovement[]>(stockMovements);
   const [cargandoInventario, setCargandoInventario] = useState(false);
@@ -564,6 +585,19 @@ function App() {
     }
 
     void cargarClientes();
+  }, []);
+
+  useEffect(() => {
+    async function cargarOrdenes() {
+      try {
+        const ordenesDesdeApi = await obtenerOrdenesTrabajo();
+        setOrdenes(ordenesDesdeApi);
+      } catch {
+        setOrdenes(workOrders);
+      }
+    }
+
+    void cargarOrdenes();
   }, []);
 
   useEffect(() => {
@@ -611,6 +645,28 @@ function App() {
       return false;
     } finally {
       setGuardandoCliente(false);
+    }
+  }
+
+  async function recargarOrdenes() {
+    const ordenesDesdeApi = await obtenerOrdenesTrabajo();
+    setOrdenes(ordenesDesdeApi);
+  }
+
+  async function handleCrearOrden(orden: CrearOrdenTrabajoPayload) {
+    setGuardandoOrden(true);
+    setMensajeOrden(null);
+
+    try {
+      await crearOrdenTrabajo(orden);
+      await recargarOrdenes();
+      setMensajeOrden('Orden de trabajo creada correctamente');
+      return true;
+    } catch (error) {
+      setMensajeOrden(error instanceof Error ? error.message : 'No se pudo crear la orden de trabajo');
+      return false;
+    } finally {
+      setGuardandoOrden(false);
     }
   }
 
@@ -794,13 +850,17 @@ function App() {
         clientes={clientes}
         errorClientes={errorClientes}
         guardandoCliente={guardandoCliente}
+        guardandoOrden={guardandoOrden}
+        mensajeFormulario={mensajeFormulario}
+        mensajeOrden={mensajeOrden}
+        onCrearCliente={handleCrearCliente}
+        onCrearOrden={handleCrearOrden}
+        ordenes={ordenes}
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}
         inventario={inventario}
-        mensajeFormulario={mensajeFormulario}
         mensajeInventario={mensajeInventario}
         movimientosInventario={movimientosInventario}
-        onCrearCliente={handleCrearCliente}
         onActualizarCampoInventario={actualizarCampoInventario}
         onActualizarStockInventario={handleActualizarStockInventario}
         onRegistrarEntradaInventario={handleRegistrarEntradaInventario}

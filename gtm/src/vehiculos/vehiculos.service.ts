@@ -20,6 +20,15 @@ export class VehiculosService {
     private readonly repositorioClientes: Repository<Cliente>,
   ) {}
 
+  async buscarTodos(): Promise<VehiculoRespuestaDto[]> {
+    const vehiculos = await this.repositorioVehiculos.find({
+      order: { creadoEn: 'DESC' },
+      relations: ['cliente'],
+    });
+
+    return vehiculos.map((vehiculo) => this.convertirARespuesta(vehiculo));
+  }
+
   async buscarPorCliente(clienteId: string): Promise<VehiculoRespuestaDto[]> {
     const vehiculos = await this.repositorioVehiculos.find({
       where: { clienteId },

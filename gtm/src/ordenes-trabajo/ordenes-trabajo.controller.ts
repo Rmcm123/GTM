@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { OrdenesTrabajoService } from './ordenes-trabajo.service';
@@ -13,7 +13,7 @@ export class OrdenesTrabajoController {
   }
 
   @Get(':id')
-  buscarPorId(@Param('id') id: string): Promise<OrdenTrabajoRespuestaDto> {
+  buscarPorId(@Param('id', ParseIntPipe) id: number): Promise<OrdenTrabajoRespuestaDto> {
     return this.ordenesTrabajoService.buscarPorId(id);
   }
 

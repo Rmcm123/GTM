@@ -122,7 +122,6 @@ function ReceptionDashboard({ ordenes, onNavigate }: { ordenes: WorkOrder[]; onN
           onActionClick={() => onNavigate('Ordenes')}
         />
         <div className="grid gap-[18px]">
-          <CapacityPanel occupiedSlots={3} totalSlots={5} />
           <ActionPanel
             actions={roleConfig.Recepcionista.actions}
             onAction={(action) => {

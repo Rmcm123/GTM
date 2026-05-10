@@ -19,6 +19,17 @@ export type Cliente = {
   correo: string;
 };
 
+export type Vehiculo = {
+  id?: string;
+  rutCliente: string;
+  patente: string;
+  marca: string;
+  modelo: string;
+  año: number;
+  color: string;
+  kilometraje: number;
+};
+
 export type InventoryItem = {
   name: string;
   stock: number;

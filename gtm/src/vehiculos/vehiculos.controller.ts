@@ -7,6 +7,11 @@ import type { VehiculoRespuestaDto } from './dto/vehiculo-respuesta.dto';
 export class VehiculosController {
   constructor(private readonly vehiculosService: VehiculosService) {}
 
+  @Get()
+  buscarTodos(): Promise<VehiculoRespuestaDto[]> {
+    return this.vehiculosService.buscarTodos();
+  }
+
   @Get('cliente/:clienteId')
   buscarPorCliente(
     @Param('clienteId') clienteId: string,

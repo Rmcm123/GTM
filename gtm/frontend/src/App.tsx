@@ -7,6 +7,7 @@ import { OrdersTable } from './components/OrdersTable';
 import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
 import { VehiclesPanel } from './components/VehiclesPanel';
+import { WorkOrdersPanel } from './components/WorkOrdersPanel';
 import { WorkflowPanel } from './components/WorkflowPanel';
 import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
 import {
@@ -125,6 +126,10 @@ function ReceptionView({
 
   if (activeSection === 'Vehiculos') {
     return <VehiclesPanel clientes={clientes} />;
+  }
+
+  if (activeSection === 'Ordenes') {
+    return <WorkOrdersPanel clientes={clientes} ordenes={workOrders} />;
   }
 
   return <ReceptionDashboard />;

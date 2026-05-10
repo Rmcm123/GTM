@@ -225,6 +225,17 @@ Actualmente:
 - muestra una lista de clientes disponibles para copiar el RUT al formulario;
 - no se conecta todavia con la API, porque primero se esta revisando la interfaz.
 
+### `gtm/frontend/src/components/WorkOrdersPanel.tsx`
+
+Panel visual inicial de recepcion para preparar una orden de trabajo.
+
+Actualmente:
+
+- muestra un formulario para cliente, vehiculo, servicio, mecanico, fecha y diagnostico;
+- permite buscar clientes por RUT como ayuda para completar el formulario;
+- muestra ordenes recientes con datos locales;
+- no se conecta con API ni backend, porque por ahora solo se esta definiendo la interfaz.
+
 ### `gtm/frontend/src/components/AppLayout.tsx`
 
 Layout general de la aplicacion.

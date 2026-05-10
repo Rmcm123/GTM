@@ -50,19 +50,10 @@ export class OrdenesTrabajoService {
   ): Promise<OrdenTrabajoRespuestaDto> {
     this.validarDatosObligatorios(datosOrden);
 
-    const cliente = await this.repositorioClientes.findOne({
-      where: { rut: datosOrden.rutCliente.trim() },
-    });
-
-    if (!cliente) {
-      throw new NotFoundException(
-        'No existe un cliente registrado con ese RUT',
-      );
-    }
-
     const patenteNormalizada = datosOrden.patenteVehiculo.trim().toUpperCase();
     const vehiculo = await this.repositorioVehiculos.findOne({
       where: { patente: patenteNormalizada },
+      relations: ['cliente'],
     });
 
     if (!vehiculo) {
@@ -71,11 +62,7 @@ export class OrdenesTrabajoService {
       );
     }
 
-    if (vehiculo.clienteId !== cliente.id) {
-      throw new BadRequestException(
-        'El vehiculo indicado no pertenece al cliente seleccionado',
-      );
-    }
+    const cliente = vehiculo.cliente;
 
     const orden = this.repositorioOrdenesTrabajo.create({
       clienteId: cliente.id,
@@ -124,7 +111,6 @@ export class OrdenesTrabajoService {
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {
     const camposObligatorios = [
-      datosOrden.rutCliente,
       datosOrden.patenteVehiculo,
       datosOrden.tipoServicio,
       datosOrden.diagnosticoInicial,

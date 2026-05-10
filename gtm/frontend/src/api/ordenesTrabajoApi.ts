@@ -16,7 +16,6 @@ type OrdenTrabajoApi = {
 };
 
 export type CrearOrdenTrabajoPayload = {
-  rutCliente: string;
   patenteVehiculo: string;
   tipoServicio: string;
   diagnosticoInicial: string;

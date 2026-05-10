@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
-import type { Cliente, WorkOrder } from '../types';
+import type { WorkOrder } from '../types';
 import { Panel } from './Panel';
 
 type WorkOrdersPanelProps = {
-  clientes: Cliente[];
   guardandoOrden: boolean;
   mensajeOrden: string | null;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
@@ -12,7 +11,6 @@ type WorkOrdersPanelProps = {
 };
 
 type FormularioOrden = {
-  rutCliente: string;
   patente: string;
   diagnostico: string;
   tipoServicio: string;
@@ -21,7 +19,6 @@ type FormularioOrden = {
 };
 
 const formularioInicial: FormularioOrden = {
-  rutCliente: '',
   patente: '',
   diagnostico: '',
   tipoServicio: '',
@@ -44,15 +41,8 @@ const estadoClass: Record<WorkOrder['status'], string> = {
   Cancelada: 'bg-[#fef2f2] text-[#b91c1c]',
 };
 
-export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrearOrden, ordenes }: WorkOrdersPanelProps) {
+export function WorkOrdersPanel({ guardandoOrden, mensajeOrden, onCrearOrden, ordenes }: WorkOrdersPanelProps) {
   const [formulario, setFormulario] = useState<FormularioOrden>(formularioInicial);
-  const [busquedaCliente, setBusquedaCliente] = useState('');
-
-  const clientesFiltrados = clientes.filter((cliente) => {
-    const textoBusqueda = busquedaCliente.trim().toLowerCase();
-
-    return textoBusqueda.length > 0 && cliente.rut.toLowerCase().includes(textoBusqueda);
-  }).slice(0, 3);
 
   const ordenesActivas = ordenes.filter((orden) => !['Finalizada', 'Entregada', 'Cancelada'].includes(orden.status));
   const ordenesFinalizadas = ordenes.filter((orden) => orden.status === 'Finalizada' || orden.status === 'Entregada');
@@ -68,7 +58,6 @@ export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrea
     evento.preventDefault();
 
     const ordenCreada = await onCrearOrden({
-      rutCliente: formulario.rutCliente,
       patenteVehiculo: formulario.patente,
       tipoServicio: formulario.tipoServicio,
       diagnosticoInicial: formulario.diagnostico,
@@ -115,29 +104,18 @@ export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrea
 
   return (
     <div className="grid gap-[18px]">
-      <section className="grid gap-[18px] xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="grid gap-[18px]">
         <Panel>
           <div className="mb-4">
             <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Recepcion</span>
             <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Abrir orden de trabajo</h2>
             <p className="m-[6px_0_0] text-[14px] text-[#64748b]">
-              Selecciona cliente, vehiculo, diagnostico inicial y mecanico asignado.
+              Selecciona vehiculo, diagnostico inicial y mecanico asignado. El cliente se obtiene automáticamente del vehículo.
             </p>
           </div>
 
           <form className="grid gap-4" onSubmit={enviarFormulario}>
             <div className="grid gap-3 md:grid-cols-2">
-              <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-                RUT cliente
-                <input
-                  className={inputClass}
-                  onChange={(evento) => actualizarCampo('rutCliente', evento.target.value)}
-                  placeholder="Ej: 12.345.678-9"
-                  type="text"
-                  value={formulario.rutCliente}
-                />
-              </label>
-
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
                 Patente vehiculo
                 <input
@@ -200,45 +178,6 @@ export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrea
               </button>
             </div>
           </form>
-        </Panel>
-
-        <Panel>
-          <div className="mb-3">
-            <h3 className="m-0 text-[16px] font-extrabold text-[#111827]">Buscar cliente</h3>
-            <p className="m-[6px_0_0] text-[13px] text-[#64748b]">Busca por RUT para completar el campo del formulario.</p>
-          </div>
-
-          <label className="mb-2 grid gap-1.5 text-[13px] font-bold text-[#475569]">
-            RUT
-            <input
-              className={inputClass}
-              onChange={(evento) => setBusquedaCliente(evento.target.value)}
-              placeholder="Ej: 12.345.678-9"
-              type="search"
-              value={busquedaCliente}
-            />
-          </label>
-
-          <div className="grid">
-            {!busquedaCliente.trim() && <p className="m-0 rounded-[7px] bg-[#f8fafc] p-3 text-[13px] font-bold text-[#64748b]">Escribe un RUT para buscar.</p>}
-
-            {busquedaCliente.trim() &&
-              clientesFiltrados.map((cliente, index) => (
-                <button
-                  className={`w-full bg-white py-3 text-left hover:bg-slate-50 ${index === 0 ? '' : 'border-t border-[#e5eaf0]'}`}
-                  key={cliente.rut}
-                  onClick={() => actualizarCampo('rutCliente', cliente.rut)}
-                  type="button"
-                >
-                  <strong className="block text-[14px] text-[#111827]">{cliente.nombre}</strong>
-                  <span className="text-[13px] text-[#64748b]">{cliente.rut}</span>
-                </button>
-              ))}
-
-            {busquedaCliente.trim() && clientesFiltrados.length === 0 && (
-              <p className="m-0 rounded-[7px] bg-[#f8fafc] p-3 text-[13px] font-bold text-[#64748b]">No se encontraron clientes con ese RUT.</p>
-            )}
-          </div>
         </Panel>
       </section>
 

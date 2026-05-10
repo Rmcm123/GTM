@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { OrdenTrabajo } from '../ordenes-trabajo/orden-trabajo.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 
 @Entity({ name: 'clientes' })
@@ -27,6 +28,9 @@ export class Cliente {
 
   @OneToMany(() => Vehiculo, (vehiculo) => vehiculo.cliente)
   vehiculos: Vehiculo[];
+
+  @OneToMany(() => OrdenTrabajo, (ordenTrabajo) => ordenTrabajo.cliente)
+  ordenesTrabajo: OrdenTrabajo[];
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

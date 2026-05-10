@@ -1,4 +1,4 @@
-export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada';
+export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada' | 'Entregada' | 'Cancelada';
 
 export type UserRole = 'Administrador' | 'Recepcionista' | 'Mecanico' | 'Inventario';
 

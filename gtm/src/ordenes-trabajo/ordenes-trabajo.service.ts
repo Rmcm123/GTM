@@ -31,7 +31,7 @@ export class OrdenesTrabajoService {
     return ordenes.map((orden) => this.convertirARespuesta(orden));
   }
 
-  async buscarPorId(id: string): Promise<OrdenTrabajoRespuestaDto> {
+  async buscarPorId(id: number): Promise<OrdenTrabajoRespuestaDto> {
     const orden = await this.repositorioOrdenesTrabajo.findOne({
       where: { id },
       relations: ['cliente', 'vehiculo'],

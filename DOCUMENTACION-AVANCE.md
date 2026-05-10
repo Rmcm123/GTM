@@ -172,6 +172,79 @@ Incluye `rutCliente` para vincular el vehiculo con un cliente ya registrado.
 
 Tipo que define la forma de los datos enviados al frontend cuando se consultan vehiculos.
 
+### `gtm/src/ordenes-trabajo/orden-trabajo.entity.ts`
+
+Entidad TypeORM que representa la tabla `ordenes_trabajo`.
+
+Define el modelo inicial de una orden de trabajo:
+
+- cliente asociado;
+- vehiculo asociado;
+- tipo de servicio;
+- diagnostico inicial;
+- mecanico asignado;
+- estado;
+- fecha de ingreso.
+
+Por ahora el mecanico asignado se guarda como texto, porque aun no existe un modulo real de usuarios o mecanicos. Cuando se implemente login, este campo se puede reemplazar o complementar con una relacion al usuario mecanico.
+
+### `gtm/src/ordenes-trabajo/ordenes-trabajo.module.ts`
+
+Modulo de NestJS para agrupar lo relacionado con ordenes de trabajo.
+
+Incluye:
+
+- entidad `OrdenTrabajo`;
+- controlador `OrdenesTrabajoController`;
+- servicio `OrdenesTrabajoService`;
+- repositorios necesarios de cliente y vehiculo para validar relaciones.
+
+### `gtm/src/ordenes-trabajo/ordenes-trabajo.controller.ts`
+
+Controlador que expone la API de ordenes de trabajo.
+
+Por ahora tiene:
+
+```text
+GET /ordenes-trabajo
+GET /ordenes-trabajo/:id
+POST /ordenes-trabajo
+```
+
+Sirve para listar ordenes, consultar una orden especifica y crear una orden nueva desde recepcion.
+
+### `gtm/src/ordenes-trabajo/ordenes-trabajo.service.ts`
+
+Servicio que contiene la logica de ordenes de trabajo.
+
+Actualmente:
+
+- valida que existan los datos obligatorios;
+- busca el cliente por RUT;
+- busca el vehiculo por patente;
+- verifica que el vehiculo pertenezca al cliente;
+- crea la orden en estado `Pendiente`;
+- transforma la entidad en un formato claro para la respuesta de la API.
+
+### `gtm/src/ordenes-trabajo/dto/crear-orden-trabajo.dto.ts`
+
+Tipo que define los datos que el backend espera recibir cuando se crea una orden de trabajo.
+
+Incluye:
+
+- `rutCliente`;
+- `patenteVehiculo`;
+- `tipoServicio`;
+- `diagnosticoInicial`;
+- `mecanicoAsignado`;
+- `fechaIngreso`.
+
+### `gtm/src/ordenes-trabajo/dto/orden-trabajo-respuesta.dto.ts`
+
+Tipo que define la forma de los datos enviados al frontend cuando se consultan o crean ordenes de trabajo.
+
+Incluye datos de la orden, del cliente y del vehiculo para que el frontend no tenga que consultar varias APIs solo para mostrar una lista inicial.
+
 ### `gtm/database/semilla-clientes.sql`
 
 Script SQL para insertar clientes iniciales en PostgreSQL.

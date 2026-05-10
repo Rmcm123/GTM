@@ -5,6 +5,7 @@ import { MovimientoInventario } from './movimiento-inventario.entity';
 import { Repuesto } from './repuesto.entity';
 import type { ActualizarStockDto } from './dto/actualizar-stock.dto';
 import type { RegistrarEntradaDto } from './dto/registrar-entrada.dto';
+import type { RegistrarSalidaDto } from './dto/registrar-salida.dto';
 import type { MovimientoRespuestaDto } from './dto/movimiento-respuesta.dto';
 import type { RepuestoRespuestaDto } from './dto/repuesto-respuesta.dto';
 
@@ -111,6 +112,43 @@ export class InventarioService implements OnModuleInit {
         stockAnterior,
         stockNuevo: repuestoGuardado.stock,
         nota: datos.nota?.trim() || 'Entrada de inventario',
+      }),
+    );
+
+    return this.convertirARespuesta(repuestoGuardado);
+  }
+
+  async registrarSalida(datos: RegistrarSalidaDto): Promise<RepuestoRespuestaDto> {
+    this.validarNombre(datos.nombre);
+    this.validarCantidadPositiva(datos.cantidad);
+
+    const nombreNormalizado = datos.nombre.trim();
+    const repuesto = await this.repositorioRepuestos.findOne({
+      where: { nombre: nombreNormalizado },
+    });
+
+    if (!repuesto) {
+      throw new BadRequestException('El repuesto no existe en inventario');
+    }
+
+    const stockAnterior = repuesto.stock;
+    const cantidadSalida = Number(datos.cantidad);
+
+    if (cantidadSalida > stockAnterior) {
+      throw new BadRequestException('No hay stock suficiente para registrar la salida');
+    }
+
+    repuesto.stock = stockAnterior - cantidadSalida;
+
+    const repuestoGuardado = await this.repositorioRepuestos.save(repuesto);
+    await this.repositorioMovimientos.save(
+      this.repositorioMovimientos.create({
+        repuestoId: repuestoGuardado.id,
+        tipo: 'Salida',
+        cantidad: cantidadSalida,
+        stockAnterior,
+        stockNuevo: repuestoGuardado.stock,
+        nota: datos.nota?.trim() || 'Salida de inventario',
       }),
     );
 

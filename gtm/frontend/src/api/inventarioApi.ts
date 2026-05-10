@@ -18,6 +18,12 @@ export type RegistrarEntradaPayload = {
   nota?: string;
 };
 
+export type RegistrarSalidaPayload = {
+  nombre: string;
+  cantidad: number;
+  nota?: string;
+};
+
 type InventarioApiItem = {
   id: string;
   nombre: string;
@@ -102,6 +108,27 @@ export async function registrarEntradaInventario(payload: RegistrarEntradaPayloa
   });
 
   await verificarRespuesta(respuesta, 'No se pudo registrar la entrada');
+  const item: InventarioApiItem = await respuesta.json();
+
+  return {
+    id: item.id,
+    name: item.nombre,
+    category: item.categoria ?? 'General',
+    stock: item.stock,
+    minimum: item.minimo,
+  };
+}
+
+export async function registrarSalidaInventario(payload: RegistrarSalidaPayload): Promise<InventoryItem> {
+  const respuesta = await fetch(`${API_URL}/inventario/salida`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  await verificarRespuesta(respuesta, 'No se pudo registrar la salida');
   const item: InventarioApiItem = await respuesta.json();
 
   return {

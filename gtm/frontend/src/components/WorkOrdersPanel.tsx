@@ -87,7 +87,7 @@ export function WorkOrdersPanel({ clientes, guardandoOrden, mensajeOrden, onCrea
         <table className="w-full min-w-[680px] border-collapse">
           <thead>
             <tr>
-              {['OT', 'Cliente', 'Vehiculo', 'Mecanico', 'Estado', 'Ingreso'].map((columna) => (
+            {['OT', 'Cliente', 'Vehiculo', 'Mecanico', 'Estado', 'Ingreso'].map((columna) => (
                 <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[12px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={columna}>
                   {columna}
                 </th>

@@ -9,7 +9,7 @@ export class MovimientoInventario {
   repuestoId!: string;
 
   @Column({ type: 'varchar' })
-  tipo!: 'Entrada' | 'Actualizacion';
+  tipo!: 'Entrada' | 'Salida' | 'Actualizacion';
 
   @Column({ type: 'int' })
   cantidad!: number;

@@ -43,7 +43,7 @@ export const roleConfig: Record<
     actions: ['Iniciar revision', 'Pasar a proceso', 'Finalizar OT', 'Solicitar repuesto'],
   },
   Inventario: {
-    navItems: ['Inventario', 'Stock bajo', 'Movimientos'],
+    navItems: ['Inventario', 'Stock bajo', 'Movimientos', 'Repuestos solicitados'],
     title: 'Panel de inventario',
     description: 'Control de repuestos, entradas, salidas y stock bajo.',
     primaryAction: 'Actualizar stock',

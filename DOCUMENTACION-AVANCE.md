@@ -172,6 +172,28 @@ Incluye `rutCliente` para vincular el vehiculo con un cliente ya registrado.
 
 Tipo que define la forma de los datos enviados al frontend cuando se consultan vehiculos.
 
+### `gtm/src/ordenes-trabajo/orden-trabajo.entity.ts`
+
+Entidad TypeORM que representa la tabla `ordenes_trabajo`.
+
+Define el modelo inicial de una orden de trabajo:
+
+- cliente asociado;
+- vehiculo asociado;
+- tipo de servicio;
+- diagnostico inicial;
+- mecanico asignado;
+- estado;
+- fecha de ingreso.
+
+Por ahora el mecanico asignado se guarda como texto, porque aun no existe un modulo real de usuarios o mecanicos. Cuando se implemente login, este campo se puede reemplazar o complementar con una relacion al usuario mecanico.
+
+### `gtm/src/ordenes-trabajo/ordenes-trabajo.module.ts`
+
+Modulo inicial de NestJS para registrar la entidad `OrdenTrabajo` dentro de TypeORM.
+
+Sirve como base para que despues se puedan agregar controlador, servicio y endpoints de ordenes de trabajo sin mezclar responsabilidades con clientes o vehiculos.
+
 ### `gtm/database/semilla-clientes.sql`
 
 Script SQL para insertar clientes iniciales en PostgreSQL.

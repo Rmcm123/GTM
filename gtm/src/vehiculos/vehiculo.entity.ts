@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
+import { OrdenTrabajo } from '../ordenes-trabajo/orden-trabajo.entity';
 
 @Entity({ name: 'vehiculos' })
 export class Vehiculo {
@@ -40,6 +42,9 @@ export class Vehiculo {
   })
   @JoinColumn({ name: 'cliente_id' })
   cliente: Cliente;
+
+  @OneToMany(() => OrdenTrabajo, (ordenTrabajo) => ordenTrabajo.vehiculo)
+  ordenesTrabajo: OrdenTrabajo[];
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

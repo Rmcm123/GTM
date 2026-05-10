@@ -9,6 +9,7 @@ import { SummaryCards } from './components/SummaryCards';
 import { VehiclesPanel } from './components/VehiclesPanel';
 import { WorkOrdersPanel } from './components/WorkOrdersPanel';
 import { WorkflowPanel } from './components/WorkflowPanel';
+import { Panel } from './components/Panel';
 import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
 import {
   actualizarStockInventario,
@@ -30,7 +31,7 @@ import {
   workOrders,
   workflow,
 } from './data/mockData';
-import type { Cliente, InventoryItem, StockMovement, UserRole } from './types';
+import type { Cliente, InventoryItem, StockMovement, UserRole, WorkOrder } from './types';
 
 type InventarioFormulario = {
   nombre: string;
@@ -163,12 +164,90 @@ function ReceptionView({
 
 function MechanicView() {
   const mechanicOrders = workOrders.filter((order) => order.mechanic === 'Camila Torres');
+  const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
+  const [mostrarPista, setMostrarPista] = useState(false);
+  const [mensajeDetalle, setMensajeDetalle] = useState<string | null>(null);
 
   return (
     <>
       <SummaryCards cards={mechanicSummary} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        <OrdersTable title="Mis ordenes asignadas" helper="Trabajos que el mecanico debe revisar o actualizar." orders={mechanicOrders} actionLabel="Ver detalle" />
+        <div className="grid gap-[18px]">
+          <OrdersTable
+            title="Mis ordenes asignadas"
+            helper="Trabajos que el mecanico debe revisar o actualizar."
+            orders={mechanicOrders}
+            actionLabel="Ver detalle"
+            onActionClick={() => {
+              if (!selectedOrder) setMostrarPista(true);
+            }}
+            onRowClick={(order) => {
+              setSelectedOrder(order);
+              setMostrarPista(false);
+              setMensajeDetalle(null);
+            }}
+            selectedOrderId={selectedOrder?.id}
+          />
+
+          {mostrarPista && !selectedOrder && (
+            <div className="rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">
+              Haz clic en una fila de la tabla para seleccionar una Orden de Trabajo (OT) y ver sus detalles.
+            </div>
+          )}
+
+          {selectedOrder && (
+            <Panel>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Detalle de Orden</span>
+                  <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Orden {selectedOrder.id}</h2>
+                </div>
+                <span className={`inline-flex w-fit rounded-full px-2.5 py-1.5 text-[12px] font-extrabold ${selectedOrder.status === 'En proceso' ? 'bg-[#e8f7ef] text-[#0d6848]' : 'bg-[#eaf2ff] text-[#1e55a8]'}`}>
+                  {selectedOrder.status}
+                </span>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4">
+                  <h3 className="mb-2.5 text-[14px] font-extrabold text-[#111827]">Caracteristicas del Vehiculo</h3>
+                  <div className="grid gap-1.5 text-[13px] text-[#475569]">
+                    <p className="m-0"><strong>Vehiculo:</strong> {selectedOrder.vehicle}</p>
+                    <p className="m-0"><strong>Cliente:</strong> {selectedOrder.client}</p>
+                    <p className="m-0"><strong>Ingreso:</strong> {selectedOrder.checkIn}</p>
+                    <p className="m-0 mt-1 border-t border-[#e5eaf0] pt-1.5"><strong>Año:</strong> 2018 (aprox)</p>
+                    <p className="m-0"><strong>Kilometraje:</strong> 55.000 km</p>
+                  </div>
+                </div>
+              <div className="flex flex-col gap-3 rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-4" key={selectedOrder.id}>
+                <div>
+                  <h3 className="mb-1.5 text-[14px] font-extrabold text-[#111827]">Motivo de Ingreso / Diagnostico Final</h3>
+                  <textarea
+                    className="min-h-[80px] w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3 py-2 text-[13px] text-[#111827] outline-none focus:border-[#0f6b52]"
+                    placeholder="Escribe el motivo de ingreso o diagnostico inicial del vehiculo..."
+                  />
+                </div>
+                <div>
+                  <h4 className="mb-1.5 text-[13px] font-extrabold text-[#111827]">Trabajos a realizar</h4>
+                  <textarea
+                    className="min-h-[80px] w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3 py-2 text-[13px] text-[#111827] outline-none focus:border-[#0f6b52]"
+                    placeholder="Describe los trabajos exactos a realizar (ej: Cambio de aceite, revision de frenos)..."
+                  />
+                </div>
+                {mensajeDetalle && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-2.5 text-[13px] font-bold text-[#0f6b52]">{mensajeDetalle}</p>}
+                <div className="mt-1 flex justify-end">
+                  <button
+                    className="rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 py-2 text-[13px] font-bold text-white hover:bg-[#0c5943]"
+                    onClick={() => setMensajeDetalle('Detalles guardados correctamente.')}
+                    type="button"
+                  >
+                    Guardar detalles
+                  </button>
+                </div>
+                </div>
+              </div>
+            </Panel>
+          )}
+        </div>
         <ActionPanel actions={roleConfig.Mecanico.actions} />
       </section>
     </>

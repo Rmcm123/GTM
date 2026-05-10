@@ -13,9 +13,12 @@ type OrdersTableProps = {
   helper: string;
   orders: WorkOrder[];
   actionLabel?: string;
+  onActionClick?: () => void;
+  onRowClick?: (order: WorkOrder) => void;
+  selectedOrderId?: string;
 };
 
-export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes' }: OrdersTableProps) {
+export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes', onActionClick, onRowClick, selectedOrderId }: OrdersTableProps) {
   return (
     <Panel>
       <div className="mb-[18px] flex flex-col items-start justify-between gap-3.5 md:flex-row md:items-center">
@@ -24,7 +27,7 @@ export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes'
           <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">{title}</h2>
           <p className="m-[6px_0_0] text-[14px] text-[#64748b]">{helper}</p>
         </div>
-        <button className="min-h-9 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50" type="button">
+        <button className="min-h-9 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50" onClick={onActionClick} type="button">
           {actionLabel}
         </button>
       </div>
@@ -42,7 +45,11 @@ export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes'
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id}>
+              <tr
+                className={onRowClick ? `cursor-pointer transition-colors hover:bg-slate-50 ${selectedOrderId === order.id ? 'bg-[#f0f4f8]' : ''}` : ''}
+                key={order.id}
+                onClick={() => onRowClick?.(order)}
+              >
                 <td className="border-b border-[#e5eaf0] p-[13px_10px] text-left align-middle text-[14px]">
                   <strong className="text-[#111827]">{order.id}</strong>
                 </td>

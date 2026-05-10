@@ -8,7 +8,6 @@ import { ReceptionPanel } from './components/ReceptionPanel';
 import { SummaryCards } from './components/SummaryCards';
 import { VehiclesPanel } from './components/VehiclesPanel';
 import { WorkOrdersPanel } from './components/WorkOrdersPanel';
-import { WorkflowPanel } from './components/WorkflowPanel';
 import { Panel } from './components/Panel';
 import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
 import { crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
@@ -23,7 +22,6 @@ import {
   type RegistrarSalidaPayload,
 } from './api/inventarioApi';
 import {
-  adminSummary,
   clientes as clientesMock,
   inventoryItems,
   inventorySummary,
@@ -32,7 +30,6 @@ import {
   roleConfig,
   stockMovements,
   workOrders,
-  workflow,
 } from './data/mockData';
 import type { Cliente, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from './types';
 
@@ -77,18 +74,22 @@ function Header({
         <p className="m-[8px_0_0] text-[14px] text-[#64748b]">{description}</p>
       </div>
       <div className="flex w-full flex-col items-center justify-end gap-2.5 md:w-auto md:flex-row">
-        <button className="min-h-10 w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50 md:w-auto" onClick={onSecondaryAction} type="button">
-          {secondaryAction}
-        </button>
-        <button className="min-h-10 w-full rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] md:w-auto" onClick={onPrimaryAction} type="button">
-          {primaryAction}
-        </button>
+        {secondaryAction && (
+          <button className="min-h-10 w-full rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50 md:w-auto" onClick={onSecondaryAction} type="button">
+            {secondaryAction}
+          </button>
+        )}
+        {primaryAction && (
+          <button className="min-h-10 w-full rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943] md:w-auto" onClick={onPrimaryAction} type="button">
+            {primaryAction}
+          </button>
+        )}
       </div>
     </header>
   );
 }
 
-function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[] }) {
+function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario, onNavigate }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[]; onNavigate: (section: string) => void }) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const selectedOrder = ordenes.find((o) => o.id === selectedOrderId) || null;
   const repuestosOrden = selectedOrder ? repuestosSolicitados.filter((r) => r.ordenTrabajo === selectedOrder.id) : [];
@@ -239,6 +240,7 @@ function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inv
             title="Todas las ordenes"
             helper="Haz clic en una fila para ver todos los detalles de la orden."
             orders={ordenes}
+            actionLabel=""
             onRowClick={(order) => setSelectedOrderId(order.id === selectedOrderId ? null : order.id)}
             selectedOrderId={selectedOrderId || undefined}
           />
@@ -303,16 +305,77 @@ function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inv
     );
   }
 
+  const activasCount = ordenes.filter((o) => !['Finalizada', 'Entregada', 'Cancelada'].includes(o.status)).length;
+  const revisionCount = ordenes.filter((o) => o.status === 'En revision').length;
+  const stockBajoCount = inventario.filter((i) => i.stock < i.minimum).length;
+
+  const dynamicAdminSummary = [
+    {
+      label: 'Ordenes activas',
+      value: activasCount.toString(),
+      helper: 'Trabajos abiertos en el taller',
+      borderClass: 'border-t-[#0f8a5f]',
+    },
+    {
+      label: 'En revision',
+      value: revisionCount.toString(),
+      helper: 'Vehiculo esperando diagnostico',
+      borderClass: 'border-t-[#d48806]',
+    },
+    {
+      label: 'Stock bajo',
+      value: stockBajoCount.toString(),
+      helper: 'Repuestos bajo el minimo definido',
+      borderClass: 'border-t-[#dc2626]',
+    },
+  ];
+
   return (
     <>
-      <SummaryCards cards={adminSummary} />
+      <SummaryCards cards={dynamicAdminSummary} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-[18px]">
-          <InventoryPanel items={inventoryItems} />
-          <WorkflowPanel items={workflow} />
+          <Panel>
+            <div className="mb-4">
+              <span className="mb-1.5 inline-block text-[12px] font-bold uppercase text-[#64748b]">Flujo de trabajo</span>
+              <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">Estado de Ordenes</h2>
+              <p className="m-[6px_0_0] text-[14px] text-[#64748b]">Monitor detallado de las ordenes segun su etapa actual.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {['Pendiente', 'En revision', 'En proceso', 'Finalizada'].map((estado) => {
+                const ordenesEstado = ordenes.filter((o) => o.status === estado);
+                return (
+                  <div key={estado} className="flex flex-col gap-2 rounded-lg border border-[#e5eaf0] bg-[#f8fafc] p-3">
+                    <div className="flex items-center justify-between border-b border-[#e5eaf0] pb-2">
+                      <strong className="text-[14px] text-[#111827]">{estado}</strong>
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[12px] font-bold text-[#64748b] border border-[#e5eaf0]">{ordenesEstado.length}</span>
+                    </div>
+                    {ordenesEstado.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {ordenesEstado.map(o => (
+                          <span key={o.id} className="inline-flex rounded bg-white px-2 py-1 text-[12px] font-bold text-[#0f6b52] border border-[#cbd5e1] shadow-sm">
+                            {o.id}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[12px] text-[#64748b] italic">Sin ordenes</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
         </div>
         <div className="grid gap-[18px]">
-          <ActionPanel actions={roleConfig.Administrador.actions} />
+          <ActionPanel
+            actions={roleConfig.Administrador.actions}
+            onAction={(action) => {
+              if (action === 'Ver ordenes') onNavigate('Ordenes');
+              else if (action === 'Ver inventario') onNavigate('Inventario');
+              else if (action === 'Gestionar usuarios') onNavigate('Clientes');
+            }}
+          />
         </div>
       </section>
     </>
@@ -950,7 +1013,7 @@ function RoleDashboard({
     );
   }
 
-  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} />;
+  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} onNavigate={onNavigate} />;
 }
 
 function App() {

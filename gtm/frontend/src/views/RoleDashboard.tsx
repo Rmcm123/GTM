@@ -1,4 +1,4 @@
-import type { CrearClientePayload } from '../api/clientesApi';
+import type { ActualizarClientePayload, CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { AlertaStockBajo, Cliente, InventarioFormulario, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from '../types';
 import { AdminView } from './AdminView';
@@ -12,10 +12,12 @@ export function RoleDashboard({
   clientes,
   errorClientes,
   guardandoCliente,
+  guardandoClienteActualizado,
   guardandoOrden,
   mensajeFormulario,
   mensajeOrden,
   onCrearCliente,
+  onActualizarCliente,
   onCrearOrden,
   ordenes,
   cargandoInventario,
@@ -42,10 +44,12 @@ export function RoleDashboard({
   clientes: Cliente[];
   errorClientes: string | null;
   guardandoCliente: boolean;
+  guardandoClienteActualizado?: boolean;
   guardandoOrden: boolean;
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
+  onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
@@ -110,5 +114,18 @@ export function RoleDashboard({
     );
   }
 
-  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} alertasStockBajo={alertasStockBajo} onNavigate={onNavigate} />;
+  return (
+    <AdminView
+      activeSection={activeSection}
+      ordenes={ordenesTrabajo}
+      repuestosSolicitados={repuestosSolicitados}
+      clientes={clientes}
+      inventario={inventario}
+      alertasStockBajo={alertasStockBajo}
+      onNavigate={onNavigate}
+      onActualizarCliente={onActualizarCliente}
+      guardandoClienteActualizado={guardandoClienteActualizado}
+      mensajeFormulario={mensajeFormulario}
+    />
+  );
 }

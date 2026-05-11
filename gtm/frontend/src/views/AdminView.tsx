@@ -6,8 +6,35 @@ import { SummaryCards } from '../components/SummaryCards';
 import { roleConfig } from '../data/mockData';
 import type { AlertaStockBajo, Cliente, InventoryItem, RepuestoSolicitado, WorkOrder } from '../types';
 
-export function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario, alertasStockBajo, onNavigate }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[]; alertasStockBajo: AlertaStockBajo[]; onNavigate: (section: string) => void }) {
+import type { ActualizarClientePayload } from '../api/clientesApi';
+
+export function AdminView({
+  activeSection,
+  ordenes,
+  repuestosSolicitados,
+  clientes,
+  inventario,
+  alertasStockBajo,
+  onNavigate,
+  onActualizarCliente,
+  guardandoClienteActualizado,
+  mensajeFormulario,
+}: {
+  activeSection: string;
+  ordenes: WorkOrder[];
+  repuestosSolicitados: RepuestoSolicitado[];
+  clientes: Cliente[];
+  inventario: InventoryItem[];
+  alertasStockBajo: AlertaStockBajo[];
+  onNavigate: (section: string) => void;
+  onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
+  guardandoClienteActualizado?: boolean;
+  mensajeFormulario?: string | null;
+}) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [editClientRut, setEditClientRut] = useState<string | null>(null);
+  const [editClientForm, setEditClientForm] = useState<ActualizarClientePayload>({});
+
   const selectedOrder = ordenes.find((o) => o.id === selectedOrderId) || null;
   const repuestosOrden = selectedOrder ? repuestosSolicitados.filter((r) => r.ordenTrabajo === selectedOrder.id) : [];
 
@@ -23,10 +50,15 @@ export function AdminView({ activeSection, ordenes, repuestosSolicitados, client
             </div>
           </div>
           <div className="w-full overflow-x-auto">
+            {mensajeFormulario && (
+              <div className={`mb-4 rounded-[7px] p-3 text-[14px] ${mensajeFormulario.includes('correctamente') ? 'bg-[#ecfdf5] text-[#047857]' : 'bg-[#fef2f2] text-[#b91c1c]'}`}>
+                {mensajeFormulario}
+              </div>
+            )}
             <table className="w-full min-w-[720px] border-collapse">
               <thead>
                 <tr>
-                  {['RUT', 'Nombre', 'Telefono', 'Correo'].map((heading) => (
+                  {['RUT', 'Nombre', 'Telefono', 'Correo', 'Acciones'].map((heading) => (
                     <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[13px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={heading}>
                       {heading}
                     </th>
@@ -36,7 +68,7 @@ export function AdminView({ activeSection, ordenes, repuestosSolicitados, client
               <tbody>
                 {clientes.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="border-b border-[#e5eaf0] p-[13px_10px] text-center text-[14px] text-[#64748b]">
+                    <td colSpan={5} className="border-b border-[#e5eaf0] p-[13px_10px] text-center text-[14px] text-[#64748b]">
                       No hay clientes registrados
                     </td>
                   </tr>
@@ -44,9 +76,79 @@ export function AdminView({ activeSection, ordenes, repuestosSolicitados, client
                   clientes.map((cliente) => (
                     <tr key={cliente.rut} className="hover:bg-slate-50">
                       <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px] font-bold text-[#111827]">{cliente.rut}</td>
-                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.nombre}</td>
-                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.telefono}</td>
-                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">{cliente.correo}</td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">
+                        {editClientRut === cliente.rut ? (
+                          <input
+                            type="text"
+                            value={editClientForm.nombre ?? cliente.nombre}
+                            onChange={(e) => setEditClientForm({ ...editClientForm, nombre: e.target.value })}
+                            className="w-full rounded border border-[#cbd5e1] p-1 text-[14px]"
+                          />
+                        ) : (
+                          cliente.nombre
+                        )}
+                      </td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">
+                        {editClientRut === cliente.rut ? (
+                          <input
+                            type="text"
+                            value={editClientForm.telefono ?? cliente.telefono}
+                            onChange={(e) => setEditClientForm({ ...editClientForm, telefono: e.target.value })}
+                            className="w-full rounded border border-[#cbd5e1] p-1 text-[14px]"
+                          />
+                        ) : (
+                          cliente.telefono
+                        )}
+                      </td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">
+                        {editClientRut === cliente.rut ? (
+                          <input
+                            type="email"
+                            value={editClientForm.correo ?? cliente.correo}
+                            onChange={(e) => setEditClientForm({ ...editClientForm, correo: e.target.value })}
+                            className="w-full rounded border border-[#cbd5e1] p-1 text-[14px]"
+                          />
+                        ) : (
+                          cliente.correo
+                        )}
+                      </td>
+                      <td className="border-b border-[#e5eaf0] p-[13px_10px] text-[14px]">
+                        {editClientRut === cliente.rut ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={async () => {
+                                if (onActualizarCliente) {
+                                  const exito = await onActualizarCliente(cliente.rut, editClientForm);
+                                  if (exito) {
+                                    setEditClientRut(null);
+                                  }
+                                }
+                              }}
+                              disabled={guardandoClienteActualizado}
+                              className="rounded bg-[#0f6872] px-2 py-1 text-white hover:bg-[#0d5861] disabled:opacity-50"
+                            >
+                              {guardandoClienteActualizado ? 'Guardando...' : 'Guardar'}
+                            </button>
+                            <button
+                              onClick={() => setEditClientRut(null)}
+                              disabled={guardandoClienteActualizado}
+                              className="rounded bg-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setEditClientRut(cliente.rut);
+                              setEditClientForm({ nombre: cliente.nombre, telefono: cliente.telefono, correo: cliente.correo });
+                            }}
+                            className="rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700 font-medium"
+                          >
+                            Modificar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

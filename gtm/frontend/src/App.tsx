@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { Header } from './components/Header';
 import { RoleDashboard } from './views/RoleDashboard';
-import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/clientesApi';
+import { actualizarCliente, crearCliente, obtenerClientes, type ActualizarClientePayload, type CrearClientePayload } from './api/clientesApi';
 import { crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
 import {
   actualizarStockInventario,
@@ -42,6 +42,7 @@ function App() {
   const [cargandoClientes, setCargandoClientes] = useState(false);
   const [errorClientes, setErrorClientes] = useState<string | null>(null);
   const [guardandoCliente, setGuardandoCliente] = useState(false);
+  const [guardandoClienteActualizado, setGuardandoClienteActualizado] = useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(null);
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
@@ -138,6 +139,23 @@ function App() {
       return false;
     } finally {
       setGuardandoCliente(false);
+    }
+  }
+
+  async function handleActualizarCliente(rut: string, cliente: ActualizarClientePayload) {
+    setGuardandoClienteActualizado(true);
+    setMensajeFormulario(null);
+
+    try {
+      await actualizarCliente(rut, cliente);
+      await recargarClientes();
+      setMensajeFormulario('Cliente actualizado correctamente');
+      return true;
+    } catch (error) {
+      setMensajeFormulario(error instanceof Error ? error.message : 'No se pudo actualizar el cliente');
+      return false;
+    } finally {
+      setGuardandoClienteActualizado(false);
     }
   }
 
@@ -400,10 +418,12 @@ function App() {
         clientes={clientes}
         errorClientes={errorClientes}
         guardandoCliente={guardandoCliente}
+        guardandoClienteActualizado={guardandoClienteActualizado}
         guardandoOrden={guardandoOrden}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         onCrearCliente={handleCrearCliente}
+        onActualizarCliente={handleActualizarCliente}
         onCrearOrden={handleCrearOrden}
         ordenes={ordenes}
         cargandoInventario={cargandoInventario}

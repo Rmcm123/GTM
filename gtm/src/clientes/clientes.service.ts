@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Cliente } from './cliente.entity';
 import { ClienteRespuestaDto } from './dto/cliente-respuesta.dto';
 import { CrearClienteDto } from './dto/crear-cliente.dto';
+import { ActualizarClienteDto } from './dto/actualizar-cliente.dto';
 
 @Injectable()
 export class ClientesService {
@@ -48,6 +49,23 @@ export class ClientesService {
     const clienteGuardado = await this.repositorioClientes.save(cliente);
 
     return this.convertirARespuesta(clienteGuardado);
+  }
+
+  async actualizar(rut: string, datosActualizar: ActualizarClienteDto): Promise<ClienteRespuestaDto> {
+    const clienteExistente = await this.repositorioClientes.findOne({
+      where: { rut },
+    });
+
+    if (!clienteExistente) {
+      throw new BadRequestException('El cliente no existe');
+    }
+
+    if (datosActualizar.nombre) clienteExistente.nombre = datosActualizar.nombre.trim();
+    if (datosActualizar.telefono) clienteExistente.telefono = datosActualizar.telefono.trim();
+    if (datosActualizar.correo) clienteExistente.correo = datosActualizar.correo.trim();
+
+    const clienteActualizado = await this.repositorioClientes.save(clienteExistente);
+    return this.convertirARespuesta(clienteActualizado);
   }
 
   private validarDatosObligatorios(datosCliente: CrearClienteDto) {

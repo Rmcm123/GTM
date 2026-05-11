@@ -347,20 +347,38 @@ Componente principal del frontend.
 
 Actualmente se encarga de:
 
-- mantener el rol activo
-- mantener la seccion activa
-- cargar clientes desde la API
-- crear clientes usando la API
-- recargar la lista despues de registrar un cliente
-- decidir que vista mostrar segun el rol
+- mantener el rol activo;
+- mantener la seccion activa;
+- cargar clientes, ordenes e inventario desde la API;
+- crear clientes y ordenes usando la API;
+- registrar movimientos de inventario;
+- pasar datos y acciones a las vistas principales.
 
-Tambien incluye la vista **AdminView**, la cual ha sido mejorada significativamente para:
-- Mostrar tarjetas de resumen dinamicas basadas en datos reales de ordenes e inventario.
-- Incluir un panel de flujo de trabajo visual para ver las ordenes activas agrupadas por estado en el Dashboard.
-- Separar la informacion estructurada en pestañas dedicadas respondiendo a la navegacion:
-  - **Ordenes**: Lista de ordenes con vista de detalle avanzado al hacer clic (informacion general, diagnostico, repuestos solicitados).
-  - **Clientes**: Directorio completo en formato tabla con la informacion de contacto.
-  - **Inventario**: Vista de tabla del stock actual mas un panel de repuestos solicitados recientemente por los mecanicos.
+Antes `App.tsx` concentraba tambien las vistas grandes del sistema, lo que hacia dificil mantenerlo. Se realizo un refactor simple para mejorar la responsabilidad unica del frontend: `App.tsx` queda como coordinador y las pantallas quedan separadas en archivos propios.
+
+### `gtm/frontend/src/components/Header.tsx`
+
+Cabecera principal del panel. Muestra titulo, descripcion y botones principales de accion segun el rol activo.
+
+### `gtm/frontend/src/views/AdminView.tsx`
+
+Vista del administrador. Muestra resumen de ordenes, alerta de stock bajo, ordenes, clientes, inventario y repuestos solicitados.
+
+### `gtm/frontend/src/views/ReceptionView.tsx`
+
+Vista de recepcion. Agrupa el dashboard de recepcion, clientes, vehiculos y ordenes de trabajo.
+
+### `gtm/frontend/src/views/MechanicView.tsx`
+
+Vista del mecanico. Permite revisar ordenes asignadas, cambiar estados, ver detalles del vehiculo y solicitar repuestos.
+
+### `gtm/frontend/src/views/InventoryView.tsx`
+
+Vista del encargado de inventario. Agrupa listado de stock, stock bajo, movimientos y repuestos solicitados.
+
+### `gtm/frontend/src/views/RoleDashboard.tsx`
+
+Componente encargado de decidir que vista mostrar segun el rol activo. Esto evita que `App.tsx` tenga que contener directamente todas las pantallas.
 
 ### `gtm/frontend/src/types.ts`
 

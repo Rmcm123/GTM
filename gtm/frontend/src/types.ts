@@ -34,6 +34,15 @@ export type Vehiculo = {
   kilometraje: number;
 };
 
+export type InventarioFormulario = {
+  nombre: string;
+  categoria: string;
+  minimo: string;
+  stock: string;
+  cantidad: string;
+  nota: string;
+};
+
 export type InventoryItem = {
   id?: string;
   name: string;

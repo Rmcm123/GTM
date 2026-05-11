@@ -18,6 +18,11 @@ export class InventarioController {
     return this.inventarioService.obtenerMovimientos();
   }
 
+  @Get('alertas-stock-bajo')
+  obtenerAlertasStockBajo() {
+    return this.inventarioService.obtenerAlertasStockBajo();
+  }
+
   @Post('actualizar-stock')
   actualizarStock(@Body() datos: ActualizarStockDto) {
     return this.inventarioService.actualizarStock(datos);

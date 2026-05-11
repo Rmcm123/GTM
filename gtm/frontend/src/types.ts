@@ -9,6 +9,7 @@ export type WorkOrder = {
   mechanic: string;
   status: OrderStatus;
   checkIn: string;
+  tipoServicio?: string;
   año?: number;
   kilometraje?: number;
   diagnosticoInicial?: string;
@@ -39,6 +40,15 @@ export type InventoryItem = {
   stock: number;
   minimum: number;
   category: string;
+};
+
+export type AlertaStockBajo = {
+  repuestoId: string;
+  nombre: string;
+  stock: number;
+  minimo: number;
+  mensaje: string;
+  creadoEn: string;
 };
 
 export type StockMovement = {

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MovimientoInventario } from './movimiento-inventario.entity';
@@ -8,6 +13,12 @@ import type { RegistrarEntradaDto } from './dto/registrar-entrada.dto';
 import type { RegistrarSalidaDto } from './dto/registrar-salida.dto';
 import type { MovimientoRespuestaDto } from './dto/movimiento-respuesta.dto';
 import type { RepuestoRespuestaDto } from './dto/repuesto-respuesta.dto';
+import {
+  OBSERVADORES_INVENTARIO,
+  type ObservadorInventario,
+} from './observadores/observador-inventario.interface';
+import { StockBajoObservador } from './observadores/stock-bajo.observador';
+import type { AlertaStockBajo } from './observadores/evento-stock-inventario';
 
 const INVENTARIO_INICIAL = [
   { nombre: 'Aceite 10W-40', categoria: 'Lubricantes', stock: 6, minimo: 8 },
@@ -22,6 +33,9 @@ export class InventarioService implements OnModuleInit {
     private readonly repositorioRepuestos: Repository<Repuesto>,
     @InjectRepository(MovimientoInventario)
     private readonly repositorioMovimientos: Repository<MovimientoInventario>,
+    @Inject(OBSERVADORES_INVENTARIO)
+    private readonly observadoresInventario: ObservadorInventario[],
+    private readonly stockBajoObservador: StockBajoObservador,
   ) {}
 
   async onModuleInit() {
@@ -84,8 +98,18 @@ export class InventarioService implements OnModuleInit {
         nota: datos.nota?.trim() || 'Actualizacion de stock',
       }),
     );
+    this.notificarCambioStock(repuestoGuardado, stockAnterior, 'Actualizacion');
 
     return this.convertirARespuesta(repuestoGuardado);
+  }
+
+  async obtenerAlertasStockBajo(): Promise<AlertaStockBajo[]> {
+    const repuestos = await this.repositorioRepuestos.find({
+      order: { nombre: 'ASC' },
+    });
+
+    this.stockBajoObservador.sincronizarConInventario(repuestos);
+    return this.stockBajoObservador.obtenerAlertas();
   }
 
   async registrarEntrada(datos: RegistrarEntradaDto): Promise<RepuestoRespuestaDto> {
@@ -114,6 +138,7 @@ export class InventarioService implements OnModuleInit {
         nota: datos.nota?.trim() || 'Entrada de inventario',
       }),
     );
+    this.notificarCambioStock(repuestoGuardado, stockAnterior, 'Entrada');
 
     return this.convertirARespuesta(repuestoGuardado);
   }
@@ -151,6 +176,7 @@ export class InventarioService implements OnModuleInit {
         nota: datos.nota?.trim() || 'Salida de inventario',
       }),
     );
+    this.notificarCambioStock(repuestoGuardado, stockAnterior, 'Salida');
 
     return this.convertirARespuesta(repuestoGuardado);
   }
@@ -231,5 +257,15 @@ export class InventarioService implements OnModuleInit {
       stock: repuesto.stock,
       minimo: repuesto.minimo,
     };
+  }
+
+  private notificarCambioStock(
+    repuesto: Repuesto,
+    stockAnterior: number,
+    tipoMovimiento: string,
+  ) {
+    for (const observador of this.observadoresInventario) {
+      observador.actualizar({ repuesto, stockAnterior, tipoMovimiento });
+    }
   }
 }

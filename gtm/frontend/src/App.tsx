@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActionPanel } from './components/ActionPanel';
 import { AppLayout } from './components/AppLayout';
-import { CapacityPanel } from './components/CapacityPanel';
 import { InventoryPanel } from './components/InventoryPanel';
 import { OrdersTable } from './components/OrdersTable';
 import { ReceptionPanel } from './components/ReceptionPanel';
@@ -13,6 +12,7 @@ import { crearCliente, obtenerClientes, type CrearClientePayload } from './api/c
 import { crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
 import {
   actualizarStockInventario,
+  obtenerAlertasStockBajo,
   obtenerInventario,
   obtenerMovimientosInventario,
   registrarEntradaInventario,
@@ -31,7 +31,7 @@ import {
   stockMovements,
   workOrders,
 } from './data/mockData';
-import type { Cliente, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from './types';
+import type { AlertaStockBajo, Cliente, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from './types';
 
 type InventarioFormulario = {
   nombre: string;
@@ -89,7 +89,7 @@ function Header({
   );
 }
 
-function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario, onNavigate }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[]; onNavigate: (section: string) => void }) {
+function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inventario, alertasStockBajo, onNavigate }: { activeSection: string; ordenes: WorkOrder[]; repuestosSolicitados: RepuestoSolicitado[]; clientes: Cliente[]; inventario: InventoryItem[]; alertasStockBajo: AlertaStockBajo[]; onNavigate: (section: string) => void }) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const selectedOrder = ordenes.find((o) => o.id === selectedOrderId) || null;
   const repuestosOrden = selectedOrder ? repuestosSolicitados.filter((r) => r.ordenTrabajo === selectedOrder.id) : [];
@@ -307,7 +307,7 @@ function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inv
 
   const activasCount = ordenes.filter((o) => !['Finalizada', 'Entregada', 'Cancelada'].includes(o.status)).length;
   const revisionCount = ordenes.filter((o) => o.status === 'En revision').length;
-  const stockBajoCount = inventario.filter((i) => i.stock < i.minimum).length;
+  const stockBajoCount = alertasStockBajo.length || inventario.filter((i) => i.stock < i.minimum).length;
 
   const dynamicAdminSummary = [
     {
@@ -333,6 +333,32 @@ function AdminView({ activeSection, ordenes, repuestosSolicitados, clientes, inv
   return (
     <>
       <SummaryCards cards={dynamicAdminSummary} />
+      {alertasStockBajo.length > 0 && (
+        <div className="mb-[18px] rounded-[8px] border border-[#fecaca] bg-[#fef2f2] p-4">
+          <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-[12px] font-extrabold uppercase text-[#b91c1c]">Alerta stock bajo</span>
+            <button
+              className="w-fit rounded-[7px] border border-[#b91c1c] bg-white px-3 py-1.5 text-[13px] font-bold text-[#b91c1c] hover:bg-[#fff7f7]"
+              onClick={() => onNavigate('Inventario')}
+              type="button"
+            >
+              Ver inventario
+            </button>
+          </div>
+          <div className="grid gap-1.5">
+            {alertasStockBajo.slice(0, 3).map((alerta) => (
+              <p className="m-0 text-[14px] font-bold text-[#111827]" key={alerta.repuestoId}>
+                {alerta.mensaje}
+              </p>
+            ))}
+            {alertasStockBajo.length > 3 && (
+              <p className="m-0 text-[13px] font-bold text-[#7f1d1d]">
+                +{alertasStockBajo.length - 3} repuestos adicionales con stock bajo
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-[18px]">
           <Panel>
@@ -925,6 +951,7 @@ function RoleDashboard({
   ordenes,
   cargandoInventario,
   inventario,
+  alertasStockBajo,
   movimientosInventario,
   mensajeInventario,
   formularioInventario,
@@ -954,6 +981,7 @@ function RoleDashboard({
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
   inventario: InventoryItem[];
+  alertasStockBajo: AlertaStockBajo[];
   movimientosInventario: StockMovement[];
   mensajeInventario: string | null;
   formularioInventario: InventarioFormulario;
@@ -1013,7 +1041,7 @@ function RoleDashboard({
     );
   }
 
-  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} onNavigate={onNavigate} />;
+  return <AdminView activeSection={activeSection} ordenes={ordenesTrabajo} repuestosSolicitados={repuestosSolicitados} clientes={clientes} inventario={inventario} alertasStockBajo={alertasStockBajo} onNavigate={onNavigate} />;
 }
 
 function App() {
@@ -1031,6 +1059,7 @@ function App() {
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
+  const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>([]);
   const [movimientosInventario, setMovimientosInventario] = useState<StockMovement[]>(stockMovements);
   const [repuestosSolicitados, setRepuestosSolicitados] = useState<RepuestoSolicitado[]>([]);
   const [cargandoInventario, setCargandoInventario] = useState(false);
@@ -1077,16 +1106,19 @@ function App() {
       setCargandoInventario(true);
 
       try {
-        const [inventarioDesdeApi, movimientosDesdeApi] = await Promise.all([
+        const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] = await Promise.all([
           obtenerInventario(),
           obtenerMovimientosInventario(),
+          obtenerAlertasStockBajo(),
         ]);
 
         setInventario(inventarioDesdeApi);
         setMovimientosInventario(movimientosDesdeApi);
+        setAlertasStockBajo(alertasDesdeApi);
       } catch {
         setInventario(inventoryItems);
         setMovimientosInventario(stockMovements);
+        setAlertasStockBajo([]);
         setMensajeInventario('Mostrando datos locales de inventario');
       } finally {
         setCargandoInventario(false);
@@ -1181,13 +1213,15 @@ function App() {
   }
 
   async function recargarInventario() {
-    const [inventarioDesdeApi, movimientosDesdeApi] = await Promise.all([
+    const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] = await Promise.all([
       obtenerInventario(),
       obtenerMovimientosInventario(),
+      obtenerAlertasStockBajo(),
     ]);
 
     setInventario(inventarioDesdeApi);
     setMovimientosInventario(movimientosDesdeApi);
+    setAlertasStockBajo(alertasDesdeApi);
   }
 
   async function handleActualizarStockInventario() {
@@ -1386,6 +1420,7 @@ function App() {
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}
         inventario={inventario}
+        alertasStockBajo={alertasStockBajo}
         mensajeInventario={mensajeInventario}
         movimientosInventario={movimientosInventario}
         onActualizarCampoInventario={actualizarCampoInventario}

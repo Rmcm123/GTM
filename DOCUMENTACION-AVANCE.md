@@ -399,3 +399,59 @@ Esto permite demostrar una API propia conectada a base de datos.
 - Conectar la pantalla de vehiculos con la API de `POST /vehiculos`.
 - Conectar recepcion con ordenes reales.
 - Cambiar `DB_SYNCHRONIZE=true` por migraciones cuando el modelo se estabilice.
+
+## Patrones de diseno agregados
+
+### Factory en ordenes de trabajo
+
+Se agrego `gtm/src/ordenes-trabajo/ordenes-trabajo.factory.ts` para centralizar la creacion de ordenes de trabajo.
+
+La factory crea una orden con los datos principales ya normalizados:
+
+- cliente asociado;
+- vehiculo asociado;
+- tipo de servicio;
+- diagnostico inicial;
+- mecanico asignado;
+- fecha de ingreso;
+- estado inicial `Pendiente`.
+
+Esto evita repetir la logica de construccion de una orden dentro del servicio y permite justificar un patron creacional dentro del proyecto.
+
+Tambien se corrigio el registro de la factory en `gtm/src/ordenes-trabajo/ordenes-trabajo.module.ts`, ya que el modulo debe importar `OrdenTrabajoFactory`, que es el nombre real exportado por el archivo.
+
+### Observer en inventario
+
+Se agrego un Observer para detectar stock bajo cuando cambia el inventario.
+
+Archivos agregados:
+
+- `gtm/src/inventario/observadores/evento-stock-inventario.ts`
+- `gtm/src/inventario/observadores/observador-inventario.interface.ts`
+- `gtm/src/inventario/observadores/stock-bajo.observador.ts`
+
+El flujo es:
+
+```text
+InventarioService actualiza stock
+        ↓
+notifica a los observadores registrados
+        ↓
+StockBajoObservador revisa si stock < minimo
+        ↓
+si corresponde, guarda una alerta de stock bajo
+```
+
+El endpoint agregado para revisar estas alertas es:
+
+```text
+GET /inventario/alertas-stock-bajo
+```
+
+El frontend tambien consume este endpoint desde `gtm/frontend/src/api/inventarioApi.ts` usando la funcion `obtenerAlertasStockBajo()`.
+
+Las alertas se muestran como notificacion en el dashboard del administrador.
+
+La seccion `Stock bajo` del rol de inventario no muestra la alerta repetida, porque esa pantalla ya lista directamente los repuestos con stock bajo.
+
+Este patron permite que el servicio de inventario no tenga que conocer todos los efectos secundarios que pueden ocurrir despues de un cambio de stock. Por ahora solo existe el observador de stock bajo, pero mas adelante se podrian agregar otros observadores, por ejemplo para notificar al administrador, registrar auditoria o generar solicitudes de compra.

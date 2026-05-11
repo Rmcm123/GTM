@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import type { InventoryItem, StockMovement } from '../types';
+import type { AlertaStockBajo, InventoryItem, StockMovement } from '../types';
 import { Panel } from './Panel';
 
 type InventoryFormState = {
@@ -14,6 +14,7 @@ type InventoryFormState = {
 type InventoryPanelProps = {
   items: InventoryItem[];
   movements?: StockMovement[];
+  alertasStockBajo?: AlertaStockBajo[];
   showMovements?: boolean;
   showStockList?: boolean;
   cargando?: boolean;
@@ -32,6 +33,7 @@ const inputClass =
 export function InventoryPanel({
   items = [],
   movements = [],
+  alertasStockBajo = [],
   showMovements = false,
   showStockList = true,
   cargando = false,
@@ -62,6 +64,20 @@ export function InventoryPanel({
           <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">{title}</h2>
         </div>
       </div>
+
+      {alertasStockBajo.length > 0 && (
+        <div className="mb-4 grid gap-2 rounded-[8px] border border-[#fed7aa] bg-[#fff7ed] p-3">
+          <span className="text-[12px] font-extrabold uppercase text-[#9a3412]">Alerta stock bajo</span>
+          {alertasStockBajo.map((alerta) => (
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between" key={`${alerta.repuestoId}-${alerta.creadoEn}`}>
+              <strong className="text-[14px] text-[#111827]">{alerta.mensaje}</strong>
+              <span className="text-[13px] font-bold text-[#9a3412]">
+                minimo {alerta.minimo}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showStockList && (
         <div className="grid">

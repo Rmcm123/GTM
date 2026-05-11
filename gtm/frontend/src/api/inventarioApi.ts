@@ -1,4 +1,4 @@
-import type { InventoryItem, StockMovement } from '../types';
+import type { AlertaStockBajo, InventoryItem, StockMovement } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -39,6 +39,15 @@ type InventarioApiMovimiento = {
   creadoEn: string;
 };
 
+type InventarioApiAlertaStockBajo = {
+  repuestoId: string;
+  nombre: string;
+  stock: number;
+  minimo: number;
+  mensaje: string;
+  creadoEn: string;
+};
+
 function formatearFecha(fecha: string) {
   return new Intl.DateTimeFormat('es-CL').format(new Date(fecha));
 }
@@ -75,6 +84,14 @@ export async function obtenerMovimientosInventario(): Promise<StockMovement[]> {
     quantity: movimiento.cantidad,
     date: formatearFecha(movimiento.creadoEn),
   }));
+}
+
+export async function obtenerAlertasStockBajo(): Promise<AlertaStockBajo[]> {
+  const respuesta = await fetch(`${API_URL}/inventario/alertas-stock-bajo`);
+  await verificarRespuesta(respuesta, 'No se pudieron cargar las alertas de stock bajo');
+  const data: InventarioApiAlertaStockBajo[] = await respuesta.json();
+
+  return data;
 }
 
 export async function actualizarStockInventario(payload: ActualizarStockPayload): Promise<InventoryItem> {

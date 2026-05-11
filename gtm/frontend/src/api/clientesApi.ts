@@ -32,3 +32,21 @@ export async function crearCliente(cliente: CrearClientePayload): Promise<Client
 
   return respuesta.json();
 }
+export type ActualizarClientePayload = Partial<Omit<CrearClientePayload, 'rut'>>;
+
+export async function actualizarCliente(rut: string, cliente: ActualizarClientePayload): Promise<Cliente> {
+  const respuesta = await fetch(`${API_URL}/clientes/${rut}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(cliente),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.message || 'Error al actualizar el cliente');
+  }
+
+  return respuesta.json();
+}

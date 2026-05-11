@@ -29,9 +29,11 @@ export function OrdersTable({ title, helper, orders, actionLabel = 'Ver ordenes'
           <h2 className="m-0 text-[20px] font-extrabold leading-[1.15] text-[#111827]">{title}</h2>
           <p className="m-[6px_0_0] text-[14px] text-[#64748b]">{helper}</p>
         </div>
-        <button className="min-h-9 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50" onClick={onActionClick} type="button">
-          {actionLabel}
-        </button>
+        {actionLabel && (
+          <button className="min-h-9 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50" onClick={onActionClick} type="button">
+            {actionLabel}
+          </button>
+        )}
       </div>
 
       <div className="w-full overflow-x-auto">

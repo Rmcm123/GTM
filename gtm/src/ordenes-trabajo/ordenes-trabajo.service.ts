@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
@@ -12,6 +12,8 @@ import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { EstadoOrdenTrabajo, OrdenTrabajo } from './orden-trabajo.entity';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
+
+const LIMITE_ORDENES_ACTIVAS = 5;
 
 @Injectable()
 export class OrdenesTrabajoService {
@@ -50,6 +52,7 @@ export class OrdenesTrabajoService {
   async crear(
     datosOrden: CrearOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
+    await this.validarCuposDisponibles();
     this.validarDatosObligatorios(datosOrden);
 
     const patenteNormalizada = datosOrden.patenteVehiculo.trim().toUpperCase();
@@ -87,6 +90,12 @@ export class OrdenesTrabajoService {
       throw new NotFoundException('No existe una orden de trabajo con ese id');
     }
 
+    if (orden.estado === EstadoOrdenTrabajo.Finalizada) {
+      throw new BadRequestException(
+        'Esta orden ya fue finalizada. Su estado es permanente y no puede ser modificado.',
+      );
+    }
+
     if (!datosActualizacion?.estado) {
       throw new BadRequestException('El estado es obligatorio');
     }
@@ -100,6 +109,24 @@ export class OrdenesTrabajoService {
     const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
 
     return this.convertirARespuesta(ordenActualizada);
+  }
+
+  private async validarCuposDisponibles(): Promise<void> {
+    const ordenesActivas = await this.repositorioOrdenesTrabajo.count({
+      where: {
+        estado: In([
+          EstadoOrdenTrabajo.Pendiente,
+          EstadoOrdenTrabajo.EnRevision,
+          EstadoOrdenTrabajo.EnProceso,
+        ]),
+      },
+    });
+
+    if (ordenesActivas >= LIMITE_ORDENES_ACTIVAS) {
+      throw new BadRequestException(
+        'No hay cupos disponibles. El límite de 5 órdenes activas ha sido alcanzado.',
+      );
+    }
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {

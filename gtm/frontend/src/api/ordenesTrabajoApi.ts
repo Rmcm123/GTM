@@ -68,3 +68,20 @@ export async function crearOrdenTrabajo(orden: CrearOrdenTrabajoPayload): Promis
 
   return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
 }
+
+export async function actualizarEstadoOrden(id: number, estado: string): Promise<WorkOrder> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/estado`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ estado }),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo actualizar el estado de la orden');
+  }
+
+  return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}

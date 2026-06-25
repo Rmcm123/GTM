@@ -18,6 +18,8 @@ export function MechanicView({
   onSolicitarRepuesto?: (nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) => void;
 }) {
   const mechanicOrders = ordenes.filter((order) => order.mechanic === 'Camila Torres');
+  const ordenesActivas = mechanicOrders.filter((order) => order.status !== 'Finalizada');
+  const ordenesFinalizadas = mechanicOrders.filter((order) => order.status === 'Finalizada');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const selectedOrder = mechanicOrders.find((o) => o.id === selectedOrderId) || null;
   const [mostrarPista, setMostrarPista] = useState(false);
@@ -134,9 +136,9 @@ export function MechanicView({
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-[18px]">
           <OrdersTable
-            title="Mis ordenes asignadas"
-            helper="Trabajos que el mecanico debe revisar o actualizar."
-            orders={mechanicOrders}
+            title="Mis ordenes activas"
+            helper="Trabajos pendientes que debes revisar o actualizar."
+            orders={ordenesActivas}
             actionLabel="Ver detalle"
             onActionClick={() => {
               if (!selectedOrder) setMostrarPista(true);
@@ -242,6 +244,22 @@ export function MechanicView({
                 </div>
               </div>
             </Panel>
+          )}
+
+          {ordenesFinalizadas.length > 0 && (
+            <OrdersTable
+              title="Historial de ordenes finalizadas"
+              helper="Ordenes completadas que ya no pueden ser modificadas."
+              orders={ordenesFinalizadas}
+              actionLabel="Ver detalle"
+              onActionClick={() => {}}
+              onRowClick={(order) => {
+                setSelectedOrderId(order.id);
+                setMostrarPista(false);
+                setMensajeDetalle(null);
+              }}
+              selectedOrderId={selectedOrderId || undefined}
+            />
           )}
         </div>
         <div className="grid gap-[18px]">

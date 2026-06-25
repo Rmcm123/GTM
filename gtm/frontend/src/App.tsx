@@ -3,7 +3,7 @@ import { AppLayout } from './components/AppLayout';
 import { Header } from './components/Header';
 import { RoleDashboard } from './views/RoleDashboard';
 import { actualizarCliente, crearCliente, obtenerClientes, type ActualizarClientePayload, type CrearClientePayload } from './api/clientesApi';
-import { crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
+import { actualizarEstadoOrden, crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
 import {
   actualizarStockInventario,
   obtenerAlertasStockBajo,
@@ -377,10 +377,15 @@ function App() {
     }
   }
 
-  function handleActualizarEstadoOT(id: string, nuevoEstado: WorkOrder['status']) {
-    setOrdenesTrabajo((actuales) =>
-      actuales.map((ot) => (ot.id === id ? { ...ot, status: nuevoEstado } : ot))
-    );
+  async function handleActualizarEstadoOT(id: string, nuevoEstado: WorkOrder['status']) {
+    const idNumerico = parseInt(id.replace('OT-', ''), 10);
+    try {
+      await actualizarEstadoOrden(idNumerico, nuevoEstado);
+      await recargarOrdenes();
+    } catch (error) {
+      console.error('Error al actualizar estado:', error);
+      alert(error instanceof Error ? error.message : 'No se pudo actualizar el estado de la orden');
+    }
   }
 
   function handleSolicitarRepuesto(nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) {

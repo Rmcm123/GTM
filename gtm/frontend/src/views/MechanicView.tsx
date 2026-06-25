@@ -166,7 +166,11 @@ export function MechanicView({
                   <label className="text-[11px] font-bold uppercase text-[#64748b]">Cambiar estado</label>
                   <div className="relative inline-flex items-center">
                     <select
-                      className={`appearance-none rounded-full border border-transparent pl-3 pr-8 py-1.5 text-[12px] font-extrabold outline-none cursor-pointer hover:opacity-80 focus:border-[#cbd5e1] ${
+                      className={`appearance-none rounded-full border border-transparent pl-3 pr-8 py-1.5 text-[12px] font-extrabold outline-none ${
+                        selectedOrder.status === 'Finalizada'
+                          ? 'cursor-not-allowed opacity-60'
+                          : 'cursor-pointer hover:opacity-80'
+                      } focus:border-[#cbd5e1] ${
                         selectedOrder.status === 'En proceso'
                           ? 'bg-[#e8f7ef] text-[#0d6848]'
                           : selectedOrder.status === 'Finalizada'
@@ -176,6 +180,7 @@ export function MechanicView({
                           : 'bg-[#fff7ed] text-[#9a4b00]'
                       }`}
                       value={selectedOrder.status}
+                      disabled={selectedOrder.status === 'Finalizada'}
                       onChange={(e) => onActualizarEstado(selectedOrder.id, e.target.value as WorkOrder['status'])}
                     >
                       <option value="Pendiente">Pendiente</option>

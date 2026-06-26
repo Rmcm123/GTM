@@ -4,4 +4,6 @@ export type CrearOrdenTrabajoDto = {
   diagnosticoInicial: string;
   mecanicoAsignado?: string;
   fechaIngreso: string;
+  costoManoObra?: number;
+  costoRepuestos?: number;
 };

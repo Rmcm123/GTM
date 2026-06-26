@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { CrearVehiculoDto } from './dto/crear-vehiculo.dto';
-import { Vehiculo } from './vehiculo.entity';
 import { VehiculoRespuestaDto } from './dto/vehiculo-respuesta.dto';
+import { Vehiculo } from './vehiculo.entity';
 
 @Injectable()
 export class VehiculosService {

@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClientesModule } from './clientes/clientes.module';
 import { DatabaseModule } from './database/database.module';
+import { DescuentosModule } from './descuentos/descuentos.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { OrdenesTrabajoModule } from './ordenes-trabajo/ordenes-trabajo.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
@@ -19,6 +20,7 @@ import { VehiculosModule } from './vehiculos/vehiculos.module';
     ClientesModule,
     UsuariosModule,
     AutenticacionModule,
+    DescuentosModule,
     InventarioModule,
     VehiculosModule,
     OrdenesTrabajoModule,

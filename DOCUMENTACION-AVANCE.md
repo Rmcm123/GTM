@@ -565,3 +565,34 @@ Cambios de comportamiento:
 - Se bloquea el cambio manual de rol en el sidebar.
 - Las llamadas a clientes, vehiculos, ordenes e inventario envian el header `Authorization: Bearer`.
 - El sidebar muestra usuario activo y boton para cerrar sesion.
+
+### Presupuesto de orden y descuentos
+
+Se comenzo el bloque financiero agregando campos de presupuesto a las ordenes de trabajo:
+
+- Costo de mano de obra.
+- Costo de repuestos.
+- Subtotal.
+- Porcentaje y monto de descuento aplicado.
+- Motivo del descuento.
+- Total final.
+- Adelanto requerido del 40%.
+- Total pagado.
+- Saldo pendiente.
+- Estado de pago.
+
+Tambien se agregaron datos comerciales al cliente para poder aplicar reglas de descuento:
+
+- Cliente regular.
+- Porcentaje de descuento por cliente regular.
+- Membresia: Ninguna, Bronce, Plata u Oro.
+
+El calculo de descuentos se implemento en el modulo `descuentos` usando el patron Strategy. Cada regla de descuento esta separada en una estrategia:
+
+- `DescuentoMarcaStrategy`: aplica 5% si el vehiculo es Toyota o Mitsubishi.
+- `DescuentoClienteRegularStrategy`: aplica el porcentaje configurado para clientes regulares.
+- `DescuentoMembresiaStrategy`: aplica Bronce 10%, Plata 12.5% u Oro 15%.
+
+El servicio `DescuentosService` evalua todas las estrategias y selecciona solo el descuento mas alto, cumpliendo la regla de negocio BR-4: los descuentos no se acumulan.
+
+Con esto, al crear una orden de trabajo, el backend calcula automaticamente el presupuesto inicial y el adelanto minimo requerido.

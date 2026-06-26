@@ -1,4 +1,4 @@
-import { EstadoOrdenTrabajo } from '../orden-trabajo.entity';
+import { EstadoOrdenTrabajo, EstadoPagoOrden } from '../orden-trabajo.entity';
 
 export type OrdenTrabajoRespuestaDto = {
   id: number;
@@ -15,4 +15,15 @@ export type OrdenTrabajoRespuestaDto = {
   fechaIngreso: string;
   año?: number;
   kilometraje?: number;
+  costoManoObra: number;
+  costoRepuestos: number;
+  subtotal: number;
+  porcentajeDescuento: number;
+  montoDescuento: number;
+  motivoDescuento: string;
+  total: number;
+  adelantoRequerido: number;
+  totalPagado: number;
+  saldoPendiente: number;
+  estadoPago: EstadoPagoOrden;
 };

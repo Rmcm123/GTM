@@ -1,8 +1,14 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Roles } from '../autenticacion/decorators/roles.decorator';
+import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
+import { RolesGuard } from '../autenticacion/guards/roles.guard';
+import { RolUsuario } from '../usuarios/usuario.entity';
 import { VehiculosService } from './vehiculos.service';
 import type { CrearVehiculoDto } from './dto/crear-vehiculo.dto';
 import type { VehiculoRespuestaDto } from './dto/vehiculo-respuesta.dto';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)
 @Controller('vehiculos')
 export class VehiculosController {
   constructor(private readonly vehiculosService: VehiculosService) {}

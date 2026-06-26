@@ -51,7 +51,10 @@ export class ClientesService {
     return this.convertirARespuesta(clienteGuardado);
   }
 
-  async actualizar(rut: string, datosActualizar: ActualizarClienteDto): Promise<ClienteRespuestaDto> {
+  async actualizar(
+    rut: string,
+    datosActualizar: ActualizarClienteDto,
+  ): Promise<ClienteRespuestaDto> {
     const clienteExistente = await this.repositorioClientes.findOne({
       where: { rut },
     });
@@ -60,11 +63,15 @@ export class ClientesService {
       throw new BadRequestException('El cliente no existe');
     }
 
-    if (datosActualizar.nombre) clienteExistente.nombre = datosActualizar.nombre.trim();
-    if (datosActualizar.telefono) clienteExistente.telefono = datosActualizar.telefono.trim();
-    if (datosActualizar.correo) clienteExistente.correo = datosActualizar.correo.trim();
+    if (datosActualizar.nombre)
+      clienteExistente.nombre = datosActualizar.nombre.trim();
+    if (datosActualizar.telefono)
+      clienteExistente.telefono = datosActualizar.telefono.trim();
+    if (datosActualizar.correo)
+      clienteExistente.correo = datosActualizar.correo.trim();
 
-    const clienteActualizado = await this.repositorioClientes.save(clienteExistente);
+    const clienteActualizado =
+      await this.repositorioClientes.save(clienteExistente);
     return this.convertirARespuesta(clienteActualizado);
   }
 

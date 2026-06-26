@@ -513,3 +513,37 @@ inventario@gtm.cl / Inventario1234
 ```
 
 Este avance deja lista la base para proteger posteriormente clientes, vehiculos, ordenes, inventario y pagos segun rol.
+
+### Proteccion de endpoints por rol
+
+Se aplicaron `JwtAuthGuard`, `RolesGuard` y el decorador `@Roles()` en los modulos principales del backend.
+
+Permisos actuales:
+
+```text
+Clientes:
+- Administrador
+- Recepcionista
+
+Vehiculos:
+- Administrador
+- Recepcionista
+
+Ordenes de trabajo:
+- Ver ordenes: Administrador, Recepcionista, Mecanico
+- Crear ordenes: Administrador, Recepcionista
+- Actualizar estado: Administrador, Recepcionista, Mecanico
+
+Inventario:
+- Administrador
+- Inventario
+```
+
+Con esto, los endpoints principales ya no quedan abiertos publicamente: requieren un access token valido enviado en el header `Authorization: Bearer`.
+
+Los endpoints de autenticacion siguen siendo publicos para permitir login y renovacion de sesion:
+
+```text
+POST /auth/login
+POST /auth/refresh
+```

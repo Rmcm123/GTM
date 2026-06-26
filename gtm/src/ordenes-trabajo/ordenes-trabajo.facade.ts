@@ -9,9 +9,7 @@ import { OrdenesTrabajoService } from './ordenes-trabajo.service';
  */
 @Injectable()
 export class OrdenesTrabajoFacade {
-  constructor(
-    private readonly ordenesService: OrdenesTrabajoService,
-  ) {}
+  constructor(private readonly ordenesService: OrdenesTrabajoService) {}
 
   /**
    * Crea una orden de trabajo de forma simplificada
@@ -52,6 +50,8 @@ export class OrdenesTrabajoFacade {
     id: number,
     nuevoEstado: string,
   ): Promise<OrdenTrabajoRespuestaDto> {
-    return this.ordenesService.actualizarEstado(id, { estado: nuevoEstado as any });
+    return this.ordenesService.actualizarEstado(id, {
+      estado: nuevoEstado as any,
+    });
   }
 }

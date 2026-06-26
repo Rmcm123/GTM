@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { DescuentosModule } from './descuentos/descuentos.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { OrdenesTrabajoModule } from './ordenes-trabajo/ordenes-trabajo.module';
+import { PagosModule } from './pagos/pagos.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { VehiculosModule } from './vehiculos/vehiculos.module';
@@ -24,6 +25,7 @@ import { VehiculosModule } from './vehiculos/vehiculos.module';
     InventarioModule,
     VehiculosModule,
     OrdenesTrabajoModule,
+    PagosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

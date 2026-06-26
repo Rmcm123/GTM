@@ -96,9 +96,12 @@ export class OrdenesTrabajoService {
       throw new NotFoundException('No existe una orden de trabajo con ese id');
     }
 
-    if (orden.estado === EstadoOrdenTrabajo.Finalizada) {
+    if (
+      orden.estado === EstadoOrdenTrabajo.Finalizada &&
+      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada
+    ) {
       throw new BadRequestException(
-        'Esta orden ya fue finalizada. Su estado es permanente y no puede ser modificado.',
+        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada.',
       );
     }
 
@@ -110,6 +113,8 @@ export class OrdenesTrabajoService {
     if (!estadosValidos.includes(datosActualizacion.estado)) {
       throw new BadRequestException('El estado indicado no es valido');
     }
+
+    this.validarCambioEstado(orden, datosActualizacion.estado);
 
     orden.estado = datosActualizacion.estado;
     const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
@@ -148,6 +153,38 @@ export class OrdenesTrabajoService {
     ) {
       throw new BadRequestException(
         'Los datos principales de la orden de trabajo son obligatorios',
+      );
+    }
+  }
+
+  private validarCambioEstado(
+    orden: OrdenTrabajo,
+    nuevoEstado: EstadoOrdenTrabajo,
+  ) {
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.EnProceso &&
+      orden.totalPagado < orden.adelantoRequerido
+    ) {
+      throw new BadRequestException(
+        'La orden no puede pasar a En proceso sin pagar el adelanto requerido del 40%',
+      );
+    }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.Entregada &&
+      orden.saldoPendiente > 0
+    ) {
+      throw new BadRequestException(
+        'La orden no puede marcarse como Entregada si existe saldo pendiente',
+      );
+    }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.Entregada &&
+      orden.estado !== EstadoOrdenTrabajo.Finalizada
+    ) {
+      throw new BadRequestException(
+        'La orden debe estar Finalizada antes de marcarse como Entregada',
       );
     }
   }

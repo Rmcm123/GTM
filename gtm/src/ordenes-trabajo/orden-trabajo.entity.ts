@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
+import { Pago } from '../pagos/pago.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 
 export enum EstadoOrdenTrabajo {
@@ -104,6 +106,9 @@ export class OrdenTrabajo {
     type: 'enum',
   })
   estadoPago: EstadoPagoOrden;
+
+  @OneToMany(() => Pago, (pago) => pago.ordenTrabajo)
+  pagos: Pago[];
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

@@ -596,3 +596,35 @@ El calculo de descuentos se implemento en el modulo `descuentos` usando el patro
 El servicio `DescuentosService` evalua todas las estrategias y selecciona solo el descuento mas alto, cumpliendo la regla de negocio BR-4: los descuentos no se acumulan.
 
 Con esto, al crear una orden de trabajo, el backend calcula automaticamente el presupuesto inicial y el adelanto minimo requerido.
+
+### Gestion de pagos y cierre de ordenes
+
+Se agrego el modulo `pagos` para registrar pagos asociados a una orden de trabajo.
+
+Archivos principales:
+
+- `gtm/src/pagos/pago.entity.ts`: representa la tabla `pagos`.
+- `gtm/src/pagos/pagos.service.ts`: valida y registra pagos, actualizando el saldo de la orden.
+- `gtm/src/pagos/pagos.controller.ts`: expone los endpoints del modulo.
+- `gtm/src/pagos/dto/registrar-pago.dto.ts`: define los datos necesarios para registrar un pago.
+- `gtm/src/pagos/dto/pago-respuesta.dto.ts`: define la respuesta entregada por la API.
+
+Endpoints agregados:
+
+```text
+GET /pagos/orden/:ordenTrabajoId
+POST /pagos
+```
+
+Reglas implementadas:
+
+- El monto del pago debe ser mayor a cero.
+- No se puede pagar una orden ya pagada.
+- El pago no puede superar el saldo pendiente.
+- El pago final debe cubrir todo el saldo pendiente.
+- El primer pago debe cubrir al menos el adelanto requerido del 40%.
+- Una orden no puede pasar a `En proceso` si no tiene pagado el adelanto.
+- Una orden no puede pasar a `Entregada` si tiene saldo pendiente.
+- Una orden debe estar `Finalizada` antes de marcarse como `Entregada`.
+
+Con esto se avanza en las reglas BR-5 y BR-6, relacionadas con adelanto obligatorio y pago total antes de la entrega.

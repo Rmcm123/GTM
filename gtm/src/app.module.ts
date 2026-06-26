@@ -6,6 +6,8 @@ import { ClientesModule } from './clientes/clientes.module';
 import { DatabaseModule } from './database/database.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { OrdenesTrabajoModule } from './ordenes-trabajo/ordenes-trabajo.module';
+import { AutenticacionModule } from './autenticacion/autenticacion.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 import { VehiculosModule } from './vehiculos/vehiculos.module';
 
 @Module({
@@ -15,6 +17,8 @@ import { VehiculosModule } from './vehiculos/vehiculos.module';
     }),
     DatabaseModule,
     ClientesModule,
+    UsuariosModule,
+    AutenticacionModule,
     InventarioModule,
     VehiculosModule,
     OrdenesTrabajoModule,

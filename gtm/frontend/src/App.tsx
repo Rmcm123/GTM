@@ -2,8 +2,21 @@ import { useEffect, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { Header } from './components/Header';
 import { RoleDashboard } from './views/RoleDashboard';
-import { actualizarCliente, crearCliente, obtenerClientes, type ActualizarClientePayload, type CrearClientePayload } from './api/clientesApi';
-import { actualizarEstadoOrden, crearOrdenTrabajo, obtenerOrdenesTrabajo, type CrearOrdenTrabajoPayload } from './api/ordenesTrabajoApi';
+import { cerrarSesion } from './api/autenticacionApi';
+import {
+  actualizarCliente,
+  crearCliente,
+  obtenerClientes,
+  type ActualizarClientePayload,
+  type CrearClientePayload,
+} from './api/clientesApi';
+import {
+  actualizarEstadoOrden,
+  crearOrdenTrabajo,
+  obtenerOrdenesTrabajo,
+  type CrearOrdenTrabajoPayload,
+} from './api/ordenesTrabajoApi';
+import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
 import {
   actualizarStockInventario,
   obtenerAlertasStockBajo,
@@ -22,7 +35,17 @@ import {
   stockMovements,
   workOrders,
 } from './data/mockData';
-import type { AlertaStockBajo, Cliente, InventarioFormulario, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from './types';
+import type {
+  AlertaStockBajo,
+  Cliente,
+  InventarioFormulario,
+  InventoryItem,
+  RepuestoSolicitado,
+  StockMovement,
+  UserRole,
+  WorkOrder,
+} from './types';
+import { LoginView } from './views/LoginView';
 
 const formularioInventarioInicial: InventarioFormulario = {
   nombre: '',
@@ -34,29 +57,52 @@ const formularioInventarioInicial: InventarioFormulario = {
 };
 
 function App() {
-  const [activeRole, setActiveRole] = useState<UserRole>('Administrador');
+  const [usuarioSesion, setUsuarioSesion] = useState<UsuarioSesion | null>(() =>
+    obtenerUsuarioGuardado(),
+  );
+  const [activeRole, setActiveRole] = useState<UserRole>(
+    usuarioSesion?.rol ?? 'Administrador',
+  );
   const currentRole = roleConfig[activeRole];
-  const navItemsFiltrados = currentRole.navItems.filter((item) => !(activeRole === 'Mecanico' && (item === 'Estados' || item === 'Estado')));
+  const navItemsFiltrados = currentRole.navItems.filter(
+    (item) =>
+      !(activeRole === 'Mecanico' && (item === 'Estados' || item === 'Estado')),
+  );
   const [activeSection, setActiveSection] = useState(navItemsFiltrados[0]);
   const [clientes, setClientes] = useState<Cliente[]>(clientesMock);
   const [cargandoClientes, setCargandoClientes] = useState(false);
   const [errorClientes, setErrorClientes] = useState<string | null>(null);
   const [guardandoCliente, setGuardandoCliente] = useState(false);
-  const [guardandoClienteActualizado, setGuardandoClienteActualizado] = useState(false);
+  const [guardandoClienteActualizado, setGuardandoClienteActualizado] =
+    useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
-  const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(null);
+  const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(
+    null,
+  );
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
-  const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>([]);
-  const [movimientosInventario, setMovimientosInventario] = useState<StockMovement[]>(stockMovements);
-  const [repuestosSolicitados, setRepuestosSolicitados] = useState<RepuestoSolicitado[]>([]);
+  const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>(
+    [],
+  );
+  const [movimientosInventario, setMovimientosInventario] =
+    useState<StockMovement[]>(stockMovements);
+  const [repuestosSolicitados, setRepuestosSolicitados] = useState<
+    RepuestoSolicitado[]
+  >([]);
   const [cargandoInventario, setCargandoInventario] = useState(false);
-  const [mensajeInventario, setMensajeInventario] = useState<string | null>(null);
-  const [formularioInventario, setFormularioInventario] = useState<InventarioFormulario>(formularioInventarioInicial);
+  const [mensajeInventario, setMensajeInventario] = useState<string | null>(
+    null,
+  );
+  const [formularioInventario, setFormularioInventario] =
+    useState<InventarioFormulario>(formularioInventarioInicial);
 
   useEffect(() => {
+    if (!usuarioSesion) {
+      return;
+    }
+
     async function cargarClientes() {
       setCargandoClientes(true);
       setErrorClientes(null);
@@ -74,9 +120,13 @@ function App() {
     }
 
     void cargarClientes();
-  }, []);
+  }, [usuarioSesion]);
 
   useEffect(() => {
+    if (!usuarioSesion) {
+      return;
+    }
+
     async function cargarOrdenes() {
       try {
         const ordenesDesdeApi = await obtenerOrdenesTrabajo();
@@ -89,18 +139,23 @@ function App() {
     }
 
     void cargarOrdenes();
-  }, []);
+  }, [usuarioSesion]);
 
   useEffect(() => {
+    if (!usuarioSesion) {
+      return;
+    }
+
     async function cargarInventario() {
       setCargandoInventario(true);
 
       try {
-        const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] = await Promise.all([
-          obtenerInventario(),
-          obtenerMovimientosInventario(),
-          obtenerAlertasStockBajo(),
-        ]);
+        const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] =
+          await Promise.all([
+            obtenerInventario(),
+            obtenerMovimientosInventario(),
+            obtenerAlertasStockBajo(),
+          ]);
 
         setInventario(inventarioDesdeApi);
         setMovimientosInventario(movimientosDesdeApi);
@@ -116,7 +171,7 @@ function App() {
     }
 
     void cargarInventario();
-  }, []);
+  }, [usuarioSesion]);
 
   async function recargarClientes() {
     const clientesDesdeApi = await obtenerClientes();
@@ -135,14 +190,21 @@ function App() {
       setMensajeFormulario('Cliente registrado correctamente');
       return true;
     } catch (error) {
-      setMensajeFormulario(error instanceof Error ? error.message : 'No se pudo registrar el cliente');
+      setMensajeFormulario(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo registrar el cliente',
+      );
       return false;
     } finally {
       setGuardandoCliente(false);
     }
   }
 
-  async function handleActualizarCliente(rut: string, cliente: ActualizarClientePayload) {
+  async function handleActualizarCliente(
+    rut: string,
+    cliente: ActualizarClientePayload,
+  ) {
     setGuardandoClienteActualizado(true);
     setMensajeFormulario(null);
 
@@ -152,7 +214,11 @@ function App() {
       setMensajeFormulario('Cliente actualizado correctamente');
       return true;
     } catch (error) {
-      setMensajeFormulario(error instanceof Error ? error.message : 'No se pudo actualizar el cliente');
+      setMensajeFormulario(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo actualizar el cliente',
+      );
       return false;
     } finally {
       setGuardandoClienteActualizado(false);
@@ -175,14 +241,21 @@ function App() {
       setMensajeOrden('Orden de trabajo creada correctamente');
       return true;
     } catch (error) {
-      setMensajeOrden(error instanceof Error ? error.message : 'No se pudo crear la orden de trabajo');
+      setMensajeOrden(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo crear la orden de trabajo',
+      );
       return false;
     } finally {
       setGuardandoOrden(false);
     }
   }
 
-  function actualizarCampoInventario(campo: keyof InventarioFormulario, valor: string) {
+  function actualizarCampoInventario(
+    campo: keyof InventarioFormulario,
+    valor: string,
+  ) {
     setFormularioInventario((actual) => ({
       ...actual,
       [campo]: valor,
@@ -197,15 +270,26 @@ function App() {
       return null;
     }
 
-    const stock = formularioInventario.stock.trim().length > 0 ? Number(formularioInventario.stock) : 0;
-    const minimo = formularioInventario.minimo.trim().length > 0 ? Number(formularioInventario.minimo) : undefined;
+    const stock =
+      formularioInventario.stock.trim().length > 0
+        ? Number(formularioInventario.stock)
+        : 0;
+    const minimo =
+      formularioInventario.minimo.trim().length > 0
+        ? Number(formularioInventario.minimo)
+        : undefined;
 
     if (!Number.isInteger(stock) || stock < 0) {
-      setMensajeInventario('El stock nuevo debe ser un numero mayor o igual a 0');
+      setMensajeInventario(
+        'El stock nuevo debe ser un numero mayor o igual a 0',
+      );
       return null;
     }
 
-    if (typeof minimo === 'number' && (!Number.isInteger(minimo) || minimo < 0)) {
+    if (
+      typeof minimo === 'number' &&
+      (!Number.isInteger(minimo) || minimo < 0)
+    ) {
       setMensajeInventario('El minimo debe ser un numero mayor o igual a 0');
       return null;
     }
@@ -220,11 +304,12 @@ function App() {
   }
 
   async function recargarInventario() {
-    const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] = await Promise.all([
-      obtenerInventario(),
-      obtenerMovimientosInventario(),
-      obtenerAlertasStockBajo(),
-    ]);
+    const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] =
+      await Promise.all([
+        obtenerInventario(),
+        obtenerMovimientosInventario(),
+        obtenerAlertasStockBajo(),
+      ]);
 
     setInventario(inventarioDesdeApi);
     setMovimientosInventario(movimientosDesdeApi);
@@ -247,7 +332,11 @@ function App() {
       setMensajeInventario('Repuesto creado correctamente');
       setFormularioInventario(formularioInventarioInicial);
     } catch (error) {
-      setMensajeInventario(error instanceof Error ? error.message : 'No se pudo actualizar el stock');
+      setMensajeInventario(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo actualizar el stock',
+      );
     } finally {
       setCargandoInventario(false);
     }
@@ -256,7 +345,10 @@ function App() {
   async function handleRegistrarEntradaInventario() {
     const nombre = formularioInventario.nombre.trim();
     const cantidad = Number(formularioInventario.cantidad);
-    const minimo = formularioInventario.minimo.trim().length > 0 ? Number(formularioInventario.minimo) : undefined;
+    const minimo =
+      formularioInventario.minimo.trim().length > 0
+        ? Number(formularioInventario.minimo)
+        : undefined;
 
     if (!nombre) {
       setMensajeInventario('Ingresa el nombre del repuesto');
@@ -268,7 +360,10 @@ function App() {
       return;
     }
 
-    if (typeof minimo === 'number' && (!Number.isInteger(minimo) || minimo < 0)) {
+    if (
+      typeof minimo === 'number' &&
+      (!Number.isInteger(minimo) || minimo < 0)
+    ) {
       setMensajeInventario('El minimo debe ser un numero mayor o igual a 0');
       return;
     }
@@ -290,7 +385,11 @@ function App() {
       setMensajeInventario('Repuesto reponido correctamente');
       setFormularioInventario(formularioInventarioInicial);
     } catch (error) {
-      setMensajeInventario(error instanceof Error ? error.message : 'No se pudo registrar la entrada');
+      setMensajeInventario(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo registrar la entrada',
+      );
     } finally {
       setCargandoInventario(false);
     }
@@ -325,7 +424,11 @@ function App() {
       setMensajeInventario('Salida registrada correctamente');
       setFormularioInventario(formularioInventarioInicial);
     } catch (error) {
-      setMensajeInventario(error instanceof Error ? error.message : 'No se pudo registrar la salida');
+      setMensajeInventario(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo registrar la salida',
+      );
     } finally {
       setCargandoInventario(false);
     }
@@ -350,9 +453,36 @@ function App() {
   }
 
   function handleRoleChange(role: UserRole) {
+    if (usuarioSesion) {
+      return;
+    }
+
     setActiveRole(role);
-    const navs = roleConfig[role].navItems.filter((item) => !(role === 'Mecanico' && (item === 'Estados' || item === 'Estado')));
+    const navs = roleConfig[role].navItems.filter(
+      (item) =>
+        !(role === 'Mecanico' && (item === 'Estados' || item === 'Estado')),
+    );
     setActiveSection(navs[0]);
+  }
+
+  function handleLogin(usuario: UsuarioSesion) {
+    setUsuarioSesion(usuario);
+    setActiveRole(usuario.rol);
+    const navs = roleConfig[usuario.rol].navItems.filter(
+      (item) =>
+        !(
+          usuario.rol === 'Mecanico' &&
+          (item === 'Estados' || item === 'Estado')
+        ),
+    );
+    setActiveSection(navs[0]);
+  }
+
+  async function handleLogout() {
+    await cerrarSesion();
+    setUsuarioSesion(null);
+    setActiveRole('Administrador');
+    setActiveSection(roleConfig.Administrador.navItems[0]);
   }
 
   function handlePrimaryAction() {
@@ -377,18 +507,31 @@ function App() {
     }
   }
 
-  async function handleActualizarEstadoOT(id: string, nuevoEstado: WorkOrder['status']) {
+  async function handleActualizarEstadoOT(
+    id: string,
+    nuevoEstado: WorkOrder['status'],
+  ) {
     const idNumerico = parseInt(id.replace('OT-', ''), 10);
     try {
       await actualizarEstadoOrden(idNumerico, nuevoEstado);
       await recargarOrdenes();
     } catch (error) {
       console.error('Error al actualizar estado:', error);
-      alert(error instanceof Error ? error.message : 'No se pudo actualizar el estado de la orden');
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo actualizar el estado de la orden',
+      );
     }
   }
 
-  function handleSolicitarRepuesto(nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) {
+  function handleSolicitarRepuesto(
+    nombre: string,
+    cantidad: number,
+    mecanico: string,
+    ordenTrabajo: string,
+    observaciones?: string,
+  ) {
     const nuevoRepuesto: RepuestoSolicitado = {
       id: `REQ-${Date.now()}`,
       nombre,
@@ -401,6 +544,10 @@ function App() {
     setRepuestosSolicitados((actuales) => [...actuales, nuevoRepuesto]);
   }
 
+  if (!usuarioSesion) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
   return (
     <AppLayout
       activeRole={activeRole}
@@ -408,6 +555,9 @@ function App() {
       navItems={navItemsFiltrados}
       onNavChange={setActiveSection}
       onRoleChange={handleRoleChange}
+      bloquearCambioRol
+      nombreUsuario={usuarioSesion.nombre}
+      onLogout={handleLogout}
     >
       <Header
         title={currentRole.title}

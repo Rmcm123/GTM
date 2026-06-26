@@ -547,3 +547,21 @@ Los endpoints de autenticacion siguen siendo publicos para permitir login y reno
 POST /auth/login
 POST /auth/refresh
 ```
+
+### Login en frontend
+
+Se agrego una pantalla de login en React para usar los usuarios reales creados en backend.
+
+Archivos principales:
+
+- `gtm/frontend/src/views/LoginView.tsx`: formulario de inicio de sesion y accesos de prueba por rol.
+- `gtm/frontend/src/api/autenticacionApi.ts`: consumo de `POST /auth/login`, `POST /auth/refresh` y `POST /auth/logout`.
+- `gtm/frontend/src/api/sesionApi.ts`: almacenamiento de access token, refresh token y usuario autenticado.
+
+Cambios de comportamiento:
+
+- Si no existe usuario autenticado, la aplicacion muestra el login.
+- Al iniciar sesion, el rol visual se fija segun el rol real del usuario.
+- Se bloquea el cambio manual de rol en el sidebar.
+- Las llamadas a clientes, vehiculos, ordenes e inventario envian el header `Authorization: Bearer`.
+- El sidebar muestra usuario activo y boton para cerrar sesion.

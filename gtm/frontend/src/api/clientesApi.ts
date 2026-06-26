@@ -1,4 +1,5 @@
 import type { Cliente } from '../types';
+import { crearHeadersAutenticados } from './sesionApi';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -7,7 +8,9 @@ export type CrearClientePayload = Omit<Cliente, 'id'>;
 export async function obtenerClientes(): Promise<Cliente[]> {
   // Punto unico para pedir clientes al backend. Si cambia la URL de la API,
   // se actualiza aqui y no en cada componente.
-  const respuesta = await fetch(`${API_URL}/clientes`);
+  const respuesta = await fetch(`${API_URL}/clientes`, {
+    headers: crearHeadersAutenticados(),
+  });
 
   if (!respuesta.ok) {
     throw new Error('No se pudo cargar la lista de clientes');
@@ -16,12 +19,14 @@ export async function obtenerClientes(): Promise<Cliente[]> {
   return respuesta.json();
 }
 
-export async function crearCliente(cliente: CrearClientePayload): Promise<Cliente> {
+export async function crearCliente(
+  cliente: CrearClientePayload,
+): Promise<Cliente> {
   const respuesta = await fetch(`${API_URL}/clientes`, {
     method: 'POST',
-    headers: {
+    headers: crearHeadersAutenticados({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(cliente),
   });
 
@@ -32,14 +37,19 @@ export async function crearCliente(cliente: CrearClientePayload): Promise<Client
 
   return respuesta.json();
 }
-export type ActualizarClientePayload = Partial<Omit<CrearClientePayload, 'rut'>>;
+export type ActualizarClientePayload = Partial<
+  Omit<CrearClientePayload, 'rut'>
+>;
 
-export async function actualizarCliente(rut: string, cliente: ActualizarClientePayload): Promise<Cliente> {
+export async function actualizarCliente(
+  rut: string,
+  cliente: ActualizarClientePayload,
+): Promise<Cliente> {
   const respuesta = await fetch(`${API_URL}/clientes/${rut}`, {
     method: 'PATCH',
-    headers: {
+    headers: crearHeadersAutenticados({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(cliente),
   });
 

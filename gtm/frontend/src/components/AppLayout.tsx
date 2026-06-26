@@ -9,48 +9,91 @@ type AppLayoutProps = {
   children: ReactNode;
   onNavChange: (item: string) => void;
   onRoleChange: (role: UserRole) => void;
+  bloquearCambioRol?: boolean;
+  nombreUsuario?: string;
+  onLogout?: () => void;
 };
 
-export function AppLayout({ activeRole, activeNavItem, navItems, children, onNavChange, onRoleChange }: AppLayoutProps) {
+export function AppLayout({
+  activeRole,
+  activeNavItem,
+  navItems,
+  children,
+  onNavChange,
+  onRoleChange,
+  bloquearCambioRol = false,
+  nombreUsuario,
+  onLogout,
+}: AppLayoutProps) {
   return (
     <div className="grid min-h-screen grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="sticky top-0 z-10 flex flex-col gap-3.5 bg-[#17211f] px-[18px] py-3.5 text-[#f7faf8] xl:min-h-screen xl:gap-[26px] xl:p-[24px_18px]" aria-label="Navegacion principal">
+      <aside
+        className="sticky top-0 z-10 flex flex-col gap-3.5 bg-[#17211f] px-[18px] py-3.5 text-[#f7faf8] xl:min-h-screen xl:gap-[26px] xl:p-[24px_18px]"
+        aria-label="Navegacion principal"
+      >
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#f4c95d] text-[18px] font-extrabold text-[#17211f] xl:h-[50px] xl:w-[50px]">GTM</span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#f4c95d] text-[18px] font-extrabold text-[#17211f] xl:h-[50px] xl:w-[50px]">
+            GTM
+          </span>
           <div>
-            <strong className="block text-[16px] leading-[1.2]">Taller Mecanico</strong>
-            <span className="block text-[13px] text-[#b8c6c0]">Gestion de taller</span>
+            <strong className="block text-[16px] leading-[1.2]">
+              Taller Mecanico
+            </strong>
+            <span className="block text-[13px] text-[#b8c6c0]">
+              Gestion de taller
+            </span>
           </div>
         </div>
 
         <div className="grid gap-2">
           <span className="text-[13px] text-[#b8c6c0]">Cambiar vista</span>
-          <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
-            {roleOptions.map((option) => (
-              <button
-                className={`min-h-10 rounded-[7px] border px-2.5 py-2 text-left text-[13px] transition-colors ${
-                  activeRole === option.role
-                    ? 'border-[#f4c95d] bg-[#f4c95d] text-[#17211f]'
-                    : 'border-white/10 bg-white/5 text-[#d9e3de] hover:bg-white/10'
-                }`}
-                key={option.role}
-                onClick={() => onRoleChange(option.role)}
-                type="button"
-              >
-                <strong className="block text-[13px] leading-tight">{option.role}</strong>
-                <span className={activeRole === option.role ? 'text-[12px] text-[#3d3520]' : 'text-[12px] text-[#b8c6c0]'}>
-                  {option.description}
-                </span>
-              </button>
-            ))}
-          </div>
+          {bloquearCambioRol ? (
+            <div className="rounded-[7px] border border-[#f4c95d] bg-[#f4c95d] px-2.5 py-2 text-[#17211f]">
+              <strong className="block text-[13px] leading-tight">
+                {activeRole}
+              </strong>
+              <span className="text-[12px] text-[#3d3520]">
+                Rol asignado por login
+              </span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+              {roleOptions.map((option) => (
+                <button
+                  className={`min-h-10 rounded-[7px] border px-2.5 py-2 text-left text-[13px] transition-colors ${
+                    activeRole === option.role
+                      ? 'border-[#f4c95d] bg-[#f4c95d] text-[#17211f]'
+                      : 'border-white/10 bg-white/5 text-[#d9e3de] hover:bg-white/10'
+                  }`}
+                  key={option.role}
+                  onClick={() => onRoleChange(option.role)}
+                  type="button"
+                >
+                  <strong className="block text-[13px] leading-tight">
+                    {option.role}
+                  </strong>
+                  <span
+                    className={
+                      activeRole === option.role
+                        ? 'text-[12px] text-[#3d3520]'
+                        : 'text-[12px] text-[#b8c6c0]'
+                    }
+                  >
+                    {option.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <nav className="flex overflow-x-auto pb-0.5 xl:grid xl:gap-1.5">
           {navItems.map((item) => (
             <button
               className={`w-auto min-w-[104px] flex-none rounded-[7px] border-0 bg-transparent px-3 py-2.5 text-center text-[14px] text-[#d9e3de] transition-colors hover:bg-white/10 hover:text-white xl:min-h-[42px] xl:w-full xl:text-left ${
-                item === activeNavItem ? 'bg-white/10 text-white shadow-[inset_0_-4px_0_#f4c95d] xl:shadow-[inset_4px_0_0_#f4c95d]' : ''
+                item === activeNavItem
+                  ? 'bg-white/10 text-white shadow-[inset_0_-4px_0_#f4c95d] xl:shadow-[inset_4px_0_0_#f4c95d]'
+                  : ''
               }`}
               key={item}
               onClick={() => onNavChange(item)}
@@ -62,9 +105,25 @@ export function AppLayout({ activeRole, activeNavItem, navItems, children, onNav
         </nav>
 
         <div className="mt-auto hidden rounded-lg border border-white/10 bg-white/5 p-3.5 xl:block">
-          <span className="block text-[13px] text-[#b8c6c0]">Rol activo</span>
+          <span className="block text-[13px] text-[#b8c6c0]">
+            Usuario activo
+          </span>
+          {nombreUsuario && (
+            <strong className="my-1 block text-[15px]">{nombreUsuario}</strong>
+          )}
           <strong className="my-1 block text-[15px]">{activeRole}</strong>
-          <small className="block text-[13px] text-[#b8c6c0]">Vista inicial por rol</small>
+          <small className="block text-[13px] text-[#b8c6c0]">
+            Acceso autenticado
+          </small>
+          {onLogout && (
+            <button
+              className="mt-3 w-full rounded-[7px] border border-white/10 bg-white/10 px-3 py-2 text-left text-[13px] font-bold text-white hover:bg-white/15"
+              onClick={onLogout}
+              type="button"
+            >
+              Cerrar sesion
+            </button>
+          )}
         </div>
       </aside>
 

@@ -1,11 +1,14 @@
 import type { Vehiculo } from '../types';
+import { crearHeadersAutenticados } from './sesionApi';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 export type CrearVehiculoPayload = Omit<Vehiculo, 'id'>;
 
 export async function obtenerVehiculos(): Promise<Vehiculo[]> {
-  const respuesta = await fetch(`${API_URL}/vehiculos`);
+  const respuesta = await fetch(`${API_URL}/vehiculos`, {
+    headers: crearHeadersAutenticados(),
+  });
 
   if (!respuesta.ok) {
     throw new Error('No se pudo cargar la lista de vehículos');
@@ -14,12 +17,14 @@ export async function obtenerVehiculos(): Promise<Vehiculo[]> {
   return respuesta.json();
 }
 
-export async function crearVehiculo(vehiculo: CrearVehiculoPayload): Promise<Vehiculo> {
+export async function crearVehiculo(
+  vehiculo: CrearVehiculoPayload,
+): Promise<Vehiculo> {
   const respuesta = await fetch(`${API_URL}/vehiculos`, {
     method: 'POST',
-    headers: {
+    headers: crearHeadersAutenticados({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(vehiculo),
   });
 

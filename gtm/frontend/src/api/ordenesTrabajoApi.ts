@@ -15,6 +15,17 @@ type OrdenTrabajoApi = {
   diagnosticoInicial?: string;
   año?: number;
   kilometraje?: number;
+  costoManoObra?: number;
+  costoRepuestos?: number;
+  subtotal?: number;
+  porcentajeDescuento?: number;
+  montoDescuento?: number;
+  motivoDescuento?: string;
+  total?: number;
+  adelantoRequerido?: number;
+  totalPagado?: number;
+  saldoPendiente?: number;
+  estadoPago?: string;
 };
 
 export type CrearOrdenTrabajoPayload = {
@@ -23,6 +34,8 @@ export type CrearOrdenTrabajoPayload = {
   diagnosticoInicial: string;
   mecanicoAsignado?: string;
   fechaIngreso: string;
+  costoManoObra?: number;
+  costoRepuestos?: number;
 };
 
 function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
@@ -37,6 +50,17 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     diagnosticoInicial: orden.diagnosticoInicial,
     año: orden.año,
     kilometraje: orden.kilometraje,
+    costoManoObra: orden.costoManoObra,
+    costoRepuestos: orden.costoRepuestos,
+    subtotal: orden.subtotal,
+    porcentajeDescuento: orden.porcentajeDescuento,
+    montoDescuento: orden.montoDescuento,
+    motivoDescuento: orden.motivoDescuento,
+    total: orden.total,
+    adelantoRequerido: orden.adelantoRequerido,
+    totalPagado: orden.totalPagado,
+    saldoPendiente: orden.saldoPendiente,
+    estadoPago: orden.estadoPago,
   };
 }
 
@@ -57,7 +81,6 @@ export async function obtenerOrdenesTrabajo(): Promise<WorkOrder[]> {
 export async function crearOrdenTrabajo(
   orden: CrearOrdenTrabajoPayload,
 ): Promise<WorkOrder> {
-  // ✅ Usa el Facade en el backend (orquestación simplificada)
   const respuesta = await fetch(`${API_URL}/ordenes-trabajo`, {
     method: 'POST',
     headers: crearHeadersAutenticados({

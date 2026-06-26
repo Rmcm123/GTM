@@ -16,6 +16,8 @@ type FormularioOrden = {
   tipoServicio: string;
   mecanico: string;
   fechaIngreso: string;
+  costoManoObra: string;
+  costoRepuestos: string;
 };
 
 const formularioInicial: FormularioOrden = {
@@ -24,6 +26,8 @@ const formularioInicial: FormularioOrden = {
   tipoServicio: '',
   mecanico: '',
   fechaIngreso: '',
+  costoManoObra: '',
+  costoRepuestos: '',
 };
 
 const mecanicos = ['Camila Torres', 'Matias Rojas', 'Diego Silva'];
@@ -31,6 +35,12 @@ const tiposServicio = ['Revision general', 'Mantencion', 'Reparacion', 'Cambio d
 
 const inputClass =
   'min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[14px] text-[#111827] outline-none focus:border-[#0f6b52]';
+
+const formatoMoneda = new Intl.NumberFormat('es-CL', {
+  currency: 'CLP',
+  maximumFractionDigits: 0,
+  style: 'currency',
+});
 
 const estadoClass: Record<WorkOrder['status'], string> = {
   Pendiente: 'bg-[#fff7ed] text-[#9a4b00]',
@@ -63,6 +73,8 @@ export function WorkOrdersPanel({ guardandoOrden, mensajeOrden, onCrearOrden, or
       diagnosticoInicial: formulario.diagnostico,
       mecanicoAsignado: formulario.mecanico || undefined,
       fechaIngreso: formulario.fechaIngreso,
+      costoManoObra: Number(formulario.costoManoObra || 0),
+      costoRepuestos: Number(formulario.costoRepuestos || 0),
     });
 
     if (ordenCreada) {
@@ -76,7 +88,7 @@ export function WorkOrdersPanel({ guardandoOrden, mensajeOrden, onCrearOrden, or
         <table className="w-full min-w-[680px] border-collapse">
           <thead>
             <tr>
-            {['OT', 'Cliente', 'Vehiculo', 'Mecanico', 'Estado', 'Ingreso'].map((columna) => (
+            {['OT', 'Cliente', 'Vehiculo', 'Mecanico', 'Estado', 'Saldo', 'Ingreso'].map((columna) => (
                 <th className="border-b border-[#e5eaf0] bg-[#f8fafc] p-[12px_10px] text-left text-[12px] font-extrabold uppercase text-[#516071]" key={columna}>
                   {columna}
                 </th>
@@ -93,6 +105,7 @@ export function WorkOrdersPanel({ guardandoOrden, mensajeOrden, onCrearOrden, or
                 <td className="border-b border-[#e5eaf0] p-[12px_10px] text-[14px]">
                   <span className={`inline-flex w-fit rounded-full px-2.5 py-1.5 text-[12px] font-extrabold ${estadoClass[orden.status]}`}>{orden.status}</span>
                 </td>
+                <td className="border-b border-[#e5eaf0] p-[12px_10px] text-[14px] font-bold">{formatoMoneda.format(orden.saldoPendiente ?? 0)}</td>
                 <td className="border-b border-[#e5eaf0] p-[12px_10px] text-[14px]">{orden.checkIn}</td>
               </tr>
             ))}
@@ -154,6 +167,30 @@ export function WorkOrdersPanel({ guardandoOrden, mensajeOrden, onCrearOrden, or
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
                 Fecha de ingreso
                 <input className={inputClass} onChange={(evento) => actualizarCampo('fechaIngreso', evento.target.value)} type="date" value={formulario.fechaIngreso} />
+              </label>
+
+              <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                Costo mano de obra
+                <input
+                  className={inputClass}
+                  min="0"
+                  onChange={(evento) => actualizarCampo('costoManoObra', evento.target.value)}
+                  placeholder="Ej: 50000"
+                  type="number"
+                  value={formulario.costoManoObra}
+                />
+              </label>
+
+              <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                Costo repuestos
+                <input
+                  className={inputClass}
+                  min="0"
+                  onChange={(evento) => actualizarCampo('costoRepuestos', evento.target.value)}
+                  placeholder="Ej: 40000"
+                  type="number"
+                  value={formulario.costoRepuestos}
+                />
               </label>
 
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569] md:col-span-2">

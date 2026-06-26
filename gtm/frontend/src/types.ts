@@ -1,6 +1,16 @@
-export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada' | 'Entregada' | 'Cancelada';
+export type OrderStatus =
+  | 'Pendiente'
+  | 'En revision'
+  | 'En proceso'
+  | 'Finalizada'
+  | 'Entregada'
+  | 'Cancelada';
 
-export type UserRole = 'Administrador' | 'Recepcionista' | 'Mecanico' | 'Inventario';
+export type UserRole =
+  | 'Administrador'
+  | 'Recepcionista'
+  | 'Mecanico'
+  | 'Inventario';
 
 export type WorkOrder = {
   id: string;
@@ -13,6 +23,17 @@ export type WorkOrder = {
   año?: number;
   kilometraje?: number;
   diagnosticoInicial?: string;
+  costoManoObra?: number;
+  costoRepuestos?: number;
+  subtotal?: number;
+  porcentajeDescuento?: number;
+  montoDescuento?: number;
+  motivoDescuento?: string;
+  total?: number;
+  adelantoRequerido?: number;
+  totalPagado?: number;
+  saldoPendiente?: number;
+  estadoPago?: string;
 };
 
 export type Cliente = {

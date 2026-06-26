@@ -628,3 +628,5 @@ Reglas implementadas:
 - Una orden debe estar `Finalizada` antes de marcarse como `Entregada`.
 
 Con esto se avanza en las reglas BR-5 y BR-6, relacionadas con adelanto obligatorio y pago total antes de la entrega.
+
+En frontend se agrego la seccion `Pagos` para el rol Recepcionista. Desde esta vista se puede seleccionar una orden con saldo pendiente, registrar adelanto, pago parcial o pago final, y ver total, adelanto requerido, pagado y saldo pendiente. Ademas, el formulario de apertura de orden ahora permite ingresar costo de mano de obra y costo de repuestos para que el presupuesto se calcule desde el backend.

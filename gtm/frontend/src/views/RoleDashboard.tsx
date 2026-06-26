@@ -1,5 +1,6 @@
 import type { ActualizarClientePayload, CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
+import type { RegistrarPagoPayload } from '../api/pagosApi';
 import type { AlertaStockBajo, Cliente, InventarioFormulario, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from '../types';
 import { AdminView } from './AdminView';
 import { InventoryView } from './InventoryView';
@@ -14,11 +15,14 @@ export function RoleDashboard({
   guardandoCliente,
   guardandoClienteActualizado,
   guardandoOrden,
+  guardandoPago,
   mensajeFormulario,
   mensajeOrden,
+  mensajePago,
   onCrearCliente,
   onActualizarCliente,
   onCrearOrden,
+  onRegistrarPago,
   ordenes,
   cargandoInventario,
   inventario,
@@ -46,11 +50,14 @@ export function RoleDashboard({
   guardandoCliente: boolean;
   guardandoClienteActualizado?: boolean;
   guardandoOrden: boolean;
+  guardandoPago: boolean;
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
+  mensajePago: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
+  onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
   inventario: InventoryItem[];
@@ -79,11 +86,14 @@ export function RoleDashboard({
         clientes={clientes}
         errorClientes={errorClientes}
         guardandoCliente={guardandoCliente}
+        guardandoPago={guardandoPago}
         guardandoOrden={guardandoOrden}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
+        mensajePago={mensajePago}
         onCrearCliente={onCrearCliente}
         onCrearOrden={onCrearOrden}
+        onRegistrarPago={onRegistrarPago}
         ordenes={ordenes}
         onNavigate={onNavigate}
       />

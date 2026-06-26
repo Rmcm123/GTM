@@ -16,6 +16,7 @@ import {
   obtenerOrdenesTrabajo,
   type CrearOrdenTrabajoPayload,
 } from './api/ordenesTrabajoApi';
+import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
 import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
 import {
   actualizarStockInventario,
@@ -76,11 +77,13 @@ function App() {
   const [guardandoClienteActualizado, setGuardandoClienteActualizado] =
     useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
+  const [guardandoPago, setGuardandoPago] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(
     null,
   );
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
+  const [mensajePago, setMensajePago] = useState<string | null>(null);
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>(
@@ -249,6 +252,25 @@ function App() {
       return false;
     } finally {
       setGuardandoOrden(false);
+    }
+  }
+
+  async function handleRegistrarPago(pago: RegistrarPagoPayload) {
+    setGuardandoPago(true);
+    setMensajePago(null);
+
+    try {
+      await registrarPago(pago);
+      await recargarOrdenes();
+      setMensajePago('Pago registrado correctamente');
+      return true;
+    } catch (error) {
+      setMensajePago(
+        error instanceof Error ? error.message : 'No se pudo registrar el pago',
+      );
+      return false;
+    } finally {
+      setGuardandoPago(false);
     }
   }
 
@@ -575,11 +597,14 @@ function App() {
         guardandoCliente={guardandoCliente}
         guardandoClienteActualizado={guardandoClienteActualizado}
         guardandoOrden={guardandoOrden}
+        guardandoPago={guardandoPago}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
+        mensajePago={mensajePago}
         onCrearCliente={handleCrearCliente}
         onActualizarCliente={handleActualizarCliente}
         onCrearOrden={handleCrearOrden}
+        onRegistrarPago={handleRegistrarPago}
         ordenes={ordenes}
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}

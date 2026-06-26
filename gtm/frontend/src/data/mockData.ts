@@ -27,12 +27,12 @@ export const roleConfig: Record<
     actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios'],
   },
   Recepcionista: {
-    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes'],
+    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes', 'Pagos'],
     title: 'Panel de recepcion',
     description: 'Ingreso de clientes, vehiculos y nuevas ordenes de trabajo.',
     primaryAction: 'Abrir OT',
     secondaryAction: 'Registrar cliente',
-    actions: ['Registrar cliente', 'Registrar vehiculo', 'Abrir OT', 'Consultar cupos'],
+    actions: ['Registrar cliente', 'Registrar vehiculo', 'Abrir OT', 'Registrar pago'],
   },
   Mecanico: {
     navItems: ['Mis ordenes', 'Estados', 'Vehiculos'],

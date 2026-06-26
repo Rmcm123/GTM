@@ -473,3 +473,43 @@ Las alertas se muestran como notificacion en el dashboard del administrador.
 La seccion `Stock bajo` del rol de inventario no muestra la alerta repetida, porque esa pantalla ya lista directamente los repuestos con stock bajo.
 
 Este patron permite que el servicio de inventario no tenga que conocer todos los efectos secundarios que pueden ocurrir despues de un cambio de stock. Por ahora solo existe el observador de stock bajo, pero mas adelante se podrian agregar otros observadores, por ejemplo para notificar al administrador, registrar auditoria o generar solicitudes de compra.
+
+## Entrega 2 - Base de autenticacion y roles
+
+Se inicio el bloque de seguridad creando la rama `feature/seguridad-finanzas-cierre`.
+
+Dependencias agregadas:
+
+- `@nestjs/jwt`: permite firmar y verificar tokens JWT.
+- `bcryptjs`: permite guardar contrasenas y refresh tokens como hash, evitando guardar valores sensibles en texto plano.
+
+Archivos principales agregados:
+
+- `gtm/src/usuarios/usuario.entity.ts`: entidad `Usuario`, con nombre, correo, contrasena hasheada, rol, estado activo y refresh token hasheado.
+- `gtm/src/usuarios/usuarios.service.ts`: administra busqueda de usuarios, validacion de contrasenas, almacenamiento de refresh tokens y usuarios iniciales.
+- `gtm/src/usuarios/usuarios.module.ts`: registra el modulo de usuarios.
+- `gtm/src/autenticacion/autenticacion.controller.ts`: expone endpoints de autenticacion.
+- `gtm/src/autenticacion/autenticacion.service.ts`: contiene la logica de login, refresh token, perfil y logout.
+- `gtm/src/autenticacion/guards/jwt-auth.guard.ts`: valida el access token enviado en `Authorization: Bearer`.
+- `gtm/src/autenticacion/guards/roles.guard.ts`: base para restringir endpoints segun rol.
+- `gtm/src/autenticacion/decorators/roles.decorator.ts`: decorador `@Roles()` para declarar roles permitidos.
+
+Endpoints agregados:
+
+```text
+POST /auth/login
+POST /auth/refresh
+GET /auth/perfil
+POST /auth/logout
+```
+
+Usuarios iniciales para desarrollo:
+
+```text
+admin@gtm.cl / Admin1234
+recepcion@gtm.cl / Recepcion1234
+mecanico@gtm.cl / Mecanico1234
+inventario@gtm.cl / Inventario1234
+```
+
+Este avance deja lista la base para proteger posteriormente clientes, vehiculos, ordenes, inventario y pagos segun rol.

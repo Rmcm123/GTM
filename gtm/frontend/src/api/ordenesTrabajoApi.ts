@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 type OrdenTrabajoApi = {
   id: number;
+  rutCliente: string;
   nombreCliente: string;
   patenteVehiculo: string;
   vehiculo: string;
@@ -48,7 +49,9 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
   return {
     id: `OT-${String(orden.id).padStart(3, '0')}`,
     client: orden.nombreCliente,
+    rutCliente: orden.rutCliente,
     vehicle: `${orden.patenteVehiculo} - ${orden.vehiculo}`,
+    patenteVehiculo: orden.patenteVehiculo,
     mechanic: orden.mecanicoAsignado ?? 'Sin asignar',
     status: orden.estado,
     checkIn: orden.fechaIngreso,

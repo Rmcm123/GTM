@@ -15,7 +15,9 @@ export type UserRole =
 export type WorkOrder = {
   id: string;
   client: string;
+  rutCliente?: string;
   vehicle: string;
+  patenteVehiculo?: string;
   mechanic: string;
   status: OrderStatus;
   checkIn: string;

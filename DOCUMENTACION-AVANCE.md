@@ -637,6 +637,8 @@ Se mejoro la visualizacion del presupuesto en frontend: la tabla de ordenes mues
 
 Se completo el flujo visual de cierre: cuando una orden esta `Finalizada` y sin saldo pendiente, la vista de pagos permite marcarla como `Entregada` desde recepcion.
 
+Se amplio la vista de caja para que el recepcionista pueda buscar ordenes por numero de OT, RUT, patente o nombre del cliente. Al seleccionar una orden se muestra el resumen financiero completo, el estado del adelanto, el saldo pendiente, acciones rapidas para completar el adelanto o pagar el saldo final, y el historial de pagos registrados para esa orden. Esto hace mas claro el flujo de cierre y facilita demostrar las reglas BR-5 y BR-6 en la interfaz.
+
 Se ajusto el presupuesto de repuestos para que deje de ser manual. El inventario ahora maneja `precioUnitario` por repuesto y, al abrir una orden de trabajo, recepcion puede seleccionar repuestos y cantidades. El frontend calcula automaticamente el costo total de repuestos y lo envia al backend como parte del presupuesto de la orden. La mano de obra se mantiene manual por ahora, ya que mas adelante puede calcularse mediante tarifas por tipo de servicio o por horas trabajadas.
 
 Se completo la integracion entre ordenes e inventario: al crear una orden con repuestos seleccionados, el backend calcula el costo de repuestos usando los precios del inventario y registra salidas automaticas para descontar el stock. Esto evita que el costo dependa de un valor escrito manualmente y deja trazabilidad en los movimientos de inventario.

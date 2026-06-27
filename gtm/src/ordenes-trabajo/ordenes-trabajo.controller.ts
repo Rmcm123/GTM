@@ -101,4 +101,14 @@ export class OrdenesTrabajoController {
   ) {
     return this.facade.detenerTiempoTrabajo(id, request.usuario!.id);
   }
+
+  @Roles(
+    RolUsuario.Administrador,
+    RolUsuario.Recepcionista,
+    RolUsuario.Mecanico,
+  )
+  @Get(':id/tiempos')
+  obtenerHistorialTiempos(@Param('id', ParseIntPipe) id: number) {
+    return this.facade.obtenerHistorialTiempos(id);
+  }
 }

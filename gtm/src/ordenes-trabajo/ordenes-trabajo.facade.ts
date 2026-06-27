@@ -58,4 +58,8 @@ export class OrdenesTrabajoFacade {
   ): Promise<RegistroTiempo> {
     return this.ordenesService.detenerTiempoTrabajo(ordenId, mecanicoId);
   }
+
+  async obtenerHistorialTiempos(ordenId: number) {
+    return this.ordenesService.obtenerHistorialTiempos(ordenId);
+  }
 }

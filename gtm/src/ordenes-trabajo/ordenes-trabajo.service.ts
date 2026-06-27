@@ -245,6 +245,40 @@ export class OrdenesTrabajoService {
     return this.repositorioRegistrosTiempo.save(tareaActiva);
   }
 
+  async obtenerHistorialTiempos(ordenId: number) {
+    const historial = await this.repositorioRegistrosTiempo.find({
+      where: { ordenTrabajoId: ordenId },
+      order: { fechaInicio: 'ASC' },
+      relations: ['mecanico'],
+    });
+
+    let tiempoTotalMinutos = 0;
+    historial.forEach((registro) => {
+      if (registro.fechaFin) {
+        const diffMs = registro.fechaFin.getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      } else {
+        // Si está en curso, sumamos hasta ahora
+        const diffMs = new Date().getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      }
+    });
+
+    return {
+      historial: historial.map((reg) => ({
+        id: reg.id,
+        mecanico: reg.mecanico.nombre,
+        descripcion: reg.descripcion,
+        fechaInicio: reg.fechaInicio,
+        fechaFin: reg.fechaFin,
+        minutosTrabajados: reg.fechaFin 
+          ? Math.floor((reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000)
+          : Math.floor((new Date().getTime() - reg.fechaInicio.getTime()) / 60000),
+      })),
+      tiempoTotalMinutos,
+    };
+  }
+
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {
     const camposObligatorios = [
       datosOrden.patenteVehiculo,

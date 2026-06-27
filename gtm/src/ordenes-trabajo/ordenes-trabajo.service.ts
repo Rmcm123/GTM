@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, IsNull } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
@@ -203,7 +203,7 @@ export class OrdenesTrabajoService {
     const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
       where: {
         mecanicoId: mecanicoId,
-        fechaFin: null as any,
+        fechaFin: IsNull(),
       },
     });
 
@@ -231,7 +231,7 @@ export class OrdenesTrabajoService {
       where: {
         ordenTrabajoId: ordenId,
         mecanicoId: mecanicoId,
-        fechaFin: null as any,
+        fechaFin: IsNull(),
       },
     });
 

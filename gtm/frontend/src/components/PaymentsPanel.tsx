@@ -78,6 +78,30 @@ function obtenerEstadoCaja(orden: WorkOrder): {
   };
 }
 
+function obtenerAvisoFormulario(
+  formulario: FormularioPago,
+  saldoPendiente: number,
+): string | null {
+  const monto = Number(formulario.monto);
+
+  if (
+    formulario.tipoPago === 'Final' &&
+    monto > 0 &&
+    monto !== saldoPendiente
+  ) {
+    return 'El pago final debe cubrir exactamente el saldo pendiente.';
+  }
+
+  if (
+    formulario.medioPago === 'Electronico' &&
+    formulario.referenciaTransaccion.trim().length === 0
+  ) {
+    return 'Los pagos electronicos necesitan referencia de transaccion.';
+  }
+
+  return null;
+}
+
 export function PaymentsPanel({
   guardandoPago,
   mensajePago,
@@ -243,6 +267,7 @@ export function PaymentsPanel({
   const saldoPendiente = ordenSeleccionada?.saldoPendiente ?? 0;
   const puedeEntregar =
     ordenSeleccionada?.status === 'Finalizada' && saldoPendiente === 0;
+  const avisoFormulario = obtenerAvisoFormulario(formulario, saldoPendiente);
 
   return (
     <div className="grid gap-[18px]">
@@ -303,7 +328,7 @@ export function PaymentsPanel({
                       {orden.client}
                     </span>
                     <span className="block text-[12px] text-[#64748b]">
-                      {orden.rutCliente ?? 'RUT no disponible'} ·{' '}
+                      {orden.rutCliente ?? 'RUT no disponible'} -{' '}
                       {orden.patenteVehiculo ?? orden.vehicle}
                     </span>
                     <span className="mt-1 block text-[12px] font-bold text-[#b91c1c]">
@@ -330,10 +355,10 @@ export function PaymentsPanel({
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h3 className="m-0 text-[18px] font-extrabold text-[#111827]">
-                      {ordenSeleccionada.id} · {ordenSeleccionada.client}
+                      {ordenSeleccionada.id} - {ordenSeleccionada.client}
                     </h3>
                     <p className="m-[4px_0_0] text-[13px] text-[#64748b]">
-                      {ordenSeleccionada.vehicle} · Estado:{' '}
+                      {ordenSeleccionada.vehicle} - Estado:{' '}
                       {ordenSeleccionada.status}
                     </p>
                   </div>
@@ -394,13 +419,13 @@ export function PaymentsPanel({
                         ordenSeleccionada.costoManoObra ?? 0,
                       )}
                     </strong>{' '}
-                    · Repuestos:{' '}
+                    - Repuestos:{' '}
                     <strong>
                       {formatoMoneda.format(
                         ordenSeleccionada.costoRepuestos ?? 0,
                       )}
                     </strong>{' '}
-                    · Descuento:{' '}
+                    - Descuento:{' '}
                     <strong>
                       {ordenSeleccionada.porcentajeDescuento ?? 0}% (
                       {ordenSeleccionada.motivoDescuento ?? 'Sin descuento'})
@@ -512,7 +537,12 @@ export function PaymentsPanel({
                       evento.target.value,
                     )
                   }
-                  placeholder="Opcional para pago electronico"
+                  placeholder={
+                    formulario.medioPago === 'Electronico'
+                      ? 'Obligatoria para pago electronico'
+                      : 'Opcional para efectivo'
+                  }
+                  required={formulario.medioPago === 'Electronico'}
                   type="text"
                   value={formulario.referenciaTransaccion}
                 />
@@ -522,6 +552,12 @@ export function PaymentsPanel({
             {mensajePago && (
               <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">
                 {mensajePago}
+              </p>
+            )}
+
+            {ordenSeleccionada && avisoFormulario && (
+              <p className="m-0 rounded-[7px] bg-[#fff7ed] p-3 text-[14px] font-bold text-[#9a3412]">
+                {avisoFormulario}
               </p>
             )}
 
@@ -539,7 +575,8 @@ export function PaymentsPanel({
                   guardandoPago ||
                   !ordenSeleccionada ||
                   !formulario.monto ||
-                  Number(formulario.monto) <= 0
+                  Number(formulario.monto) <= 0 ||
+                  Boolean(avisoFormulario)
                 }
                 type="submit"
               >

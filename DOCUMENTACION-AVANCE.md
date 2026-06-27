@@ -650,3 +650,5 @@ Se ajusto el presupuesto de repuestos para que deje de ser manual. El inventario
 Se completo la integracion entre ordenes e inventario: al crear una orden con repuestos seleccionados, el backend calcula el costo de repuestos usando los precios del inventario y registra salidas automaticas para descontar el stock. Esto evita que el costo dependa de un valor escrito manualmente y deja trazabilidad en los movimientos de inventario.
 
 Se reforzo la consistencia de datos usando transacciones en operaciones criticas. El registro de pagos ahora actualiza el saldo de la orden y guarda el pago dentro de una misma transaccion. La creacion de ordenes tambien guarda la OT y descuenta repuestos del inventario dentro de una misma transaccion, evitando que queden ordenes creadas sin el movimiento de stock correspondiente si ocurre un error.
+
+Se reforzaron las validaciones de caja: los pagos electronicos ahora requieren referencia de transaccion tanto en frontend como en backend, y la interfaz avisa cuando un pago final no cubre exactamente el saldo pendiente antes de enviar la solicitud.

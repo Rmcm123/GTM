@@ -12,7 +12,7 @@ import {
 } from '../ordenes-trabajo/orden-trabajo.entity';
 import type { PagoRespuestaDto } from './dto/pago-respuesta.dto';
 import type { RegistrarPagoDto } from './dto/registrar-pago.dto';
-import { Pago, TipoPago } from './pago.entity';
+import { MedioPago, Pago, TipoPago } from './pago.entity';
 
 @Injectable()
 export class PagosService {
@@ -129,6 +129,16 @@ export class PagosService {
 
     if (!datosPago.medioPago) {
       throw new BadRequestException('El medio de pago es obligatorio');
+    }
+
+    if (
+      datosPago.medioPago === MedioPago.Electronico &&
+      (!datosPago.referenciaTransaccion ||
+        datosPago.referenciaTransaccion.trim().length === 0)
+    ) {
+      throw new BadRequestException(
+        'La referencia de transaccion es obligatoria para pagos electronicos',
+      );
     }
   }
 

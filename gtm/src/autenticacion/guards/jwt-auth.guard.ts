@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import type { RolUsuario } from '../../usuarios/usuario.entity';
+import { UsuariosService } from '../../usuarios/usuarios.service';
 
 export type UsuarioAutenticado = {
   id: string;
@@ -31,6 +32,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly usuariosService: UsuariosService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -53,10 +55,16 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Token de acceso invalido');
       }
 
+      const usuario = await this.usuariosService.buscarPorId(payload.sub);
+
+      if (!usuario || !usuario.activo) {
+        throw new UnauthorizedException('Usuario no autorizado');
+      }
+
       request.usuario = {
-        id: payload.sub,
-        correo: payload.correo,
-        rol: payload.rol,
+        id: usuario.id,
+        correo: usuario.correo,
+        rol: usuario.rol,
       };
 
       return true;

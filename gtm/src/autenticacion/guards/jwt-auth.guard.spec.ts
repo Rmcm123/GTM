@@ -18,7 +18,15 @@ function crearContexto(authorization?: string) {
 }
 
 describe('JwtAuthGuard', () => {
-  function crearGuard(payload = { tipo: 'access' }) {
+  function crearGuard(
+    payload = { tipo: 'access' },
+    usuario = {
+      activo: true,
+      correo: 'admin@gtm.cl',
+      id: 'usuario-1',
+      rol: RolUsuario.Administrador,
+    },
+  ) {
     const jwtService = {
       verifyAsync: jest.fn().mockResolvedValue({
         correo: 'admin@gtm.cl',
@@ -32,9 +40,16 @@ describe('JwtAuthGuard', () => {
         (_clave: string, valorPorDefecto: string) => valorPorDefecto,
       ),
     };
-    const guard = new JwtAuthGuard(jwtService as never, configService as never);
+    const usuariosService = {
+      buscarPorId: jest.fn().mockResolvedValue(usuario),
+    };
+    const guard = new JwtAuthGuard(
+      jwtService as never,
+      configService as never,
+      usuariosService as never,
+    );
 
-    return { guard, jwtService };
+    return { guard, jwtService, usuariosService };
   }
 
   it('rechaza peticiones sin token', async () => {
@@ -67,5 +82,22 @@ describe('JwtAuthGuard', () => {
         rol: RolUsuario.Administrador,
       },
     });
+  });
+
+  it('rechaza el token si el usuario fue desactivado', async () => {
+    const { guard } = crearGuard(
+      { tipo: 'access' },
+      {
+        activo: false,
+        correo: 'admin@gtm.cl',
+        id: 'usuario-1',
+        rol: RolUsuario.Administrador,
+      },
+    );
+    const contexto = crearContexto('Bearer token-access');
+
+    await expect(guard.canActivate(contexto as never)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 });

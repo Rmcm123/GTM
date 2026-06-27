@@ -6,14 +6,17 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../autenticacion/decorators/roles.decorator';
 import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
+import type { RequestConUsuario } from '../autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from '../autenticacion/guards/roles.guard';
 import { RolUsuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
+import type { IniciarTiempoDto } from './dto/iniciar-tiempo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { OrdenesTrabajoFacade } from './ordenes-trabajo.facade';
 
@@ -78,5 +81,34 @@ export class OrdenesTrabajoController {
     @Body() datosActualizacion: ActualizarEstadoOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.facade.actualizarEstado(id, datosActualizacion.estado);
+  }
+
+  @Roles(RolUsuario.Mecanico)
+  @Post(':id/tiempos/iniciar')
+  iniciarTiempoTrabajo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: IniciarTiempoDto,
+    @Req() request: RequestConUsuario,
+  ) {
+    return this.facade.iniciarTiempoTrabajo(id, request.usuario!.id, body.descripcion);
+  }
+
+  @Roles(RolUsuario.Mecanico)
+  @Patch(':id/tiempos/detener')
+  detenerTiempoTrabajo(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: RequestConUsuario,
+  ) {
+    return this.facade.detenerTiempoTrabajo(id, request.usuario!.id);
+  }
+
+  @Roles(
+    RolUsuario.Administrador,
+    RolUsuario.Recepcionista,
+    RolUsuario.Mecanico,
+  )
+  @Get(':id/tiempos')
+  obtenerHistorialTiempos(@Param('id', ParseIntPipe) id: number) {
+    return this.facade.obtenerHistorialTiempos(id);
   }
 }

@@ -3,6 +3,7 @@ import { ActionPanel } from '../components/ActionPanel';
 import { OrdersTable } from '../components/OrdersTable';
 import { Panel } from '../components/Panel';
 import { SummaryCards } from '../components/SummaryCards';
+import { TimeTracker } from '../components/TimeTracker';
 import { mechanicSummary, roleConfig } from '../data/mockData';
 import type { WorkOrder } from '../types';
 
@@ -243,6 +244,7 @@ export function MechanicView({
                 </div>
                 </div>
               </div>
+              <TimeTracker ordenId={selectedOrder.id} />
             </Panel>
           )}
 

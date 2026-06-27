@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +10,7 @@ import { In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
+import { Usuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
@@ -17,6 +20,7 @@ import {
   OrdenTrabajo,
 } from './orden-trabajo.entity';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 const LIMITE_ORDENES_ACTIVAS = 5;
 
@@ -25,13 +29,17 @@ export class OrdenesTrabajoService {
   constructor(
     @InjectRepository(OrdenTrabajo)
     private readonly repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
+    @InjectRepository(RegistroTiempo)
+    private readonly repositorioRegistrosTiempo: Repository<RegistroTiempo>,
+    @InjectRepository(Usuario)
+    private readonly repositorioUsuarios: Repository<Usuario>,
     @InjectRepository(Cliente)
     private readonly repositorioClientes: Repository<Cliente>,
     @InjectRepository(Vehiculo)
     private readonly repositorioVehiculos: Repository<Vehiculo>,
     private readonly factory: OrdenTrabajoFactory,
     private readonly descuentosService: DescuentosService,
-  ) {}
+  ) { }
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
     const ordenes = await this.repositorioOrdenesTrabajo.find({
@@ -173,6 +181,102 @@ export class OrdenesTrabajoService {
     const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
 
     return this.convertirARespuesta(ordenActualizada);
+  }
+
+  async iniciarTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+    descripcion?: string,
+  ): Promise<RegistroTiempo> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id: ordenId },
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    const usuario = await this.repositorioUsuarios.findOne({
+      where: { id: mecanicoId }
+    });
+
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
+      where: {
+        mecanicoId: mecanicoId,
+        fechaFin: null as any,
+      },
+    });
+
+    if (tareaActiva) {
+      throw new ConflictException(
+        `Ya tienes una tarea en curso (Orden ID: ${tareaActiva.ordenTrabajoId}). Detenla antes de iniciar una nueva.`,
+      );
+    }
+
+    const nuevoRegistro = this.repositorioRegistrosTiempo.create({
+      ordenTrabajoId: ordenId,
+      mecanicoId: mecanicoId,
+      descripcion,
+      fechaInicio: new Date(),
+    });
+
+    return this.repositorioRegistrosTiempo.save(nuevoRegistro);
+  }
+
+  async detenerTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+  ): Promise<RegistroTiempo> {
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
+      where: {
+        ordenTrabajoId: ordenId,
+        mecanicoId: mecanicoId,
+        fechaFin: null as any,
+      },
+    });
+
+    if (!tareaActiva) {
+      throw new NotFoundException(
+        'No tienes ninguna tarea activa en esta orden de trabajo',
+      );
+    }
+
+    tareaActiva.fechaFin = new Date();
+    return this.repositorioRegistrosTiempo.save(tareaActiva);
+  }
+
+  async obtenerHistorialTiempos(ordenId: number) {
+    const historial = await this.repositorioRegistrosTiempo.find({
+      where: { ordenTrabajoId: ordenId },
+      order: { fechaInicio: 'ASC' },
+      relations: ['mecanico'],
+    });
+
+    let tiempoTotalMinutos = 0;
+    historial.forEach((registro) => {
+      if (registro.fechaFin) {
+        const diffMs = registro.fechaFin.getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      } else {
+        // Si está en curso, sumamos hasta ahora
+        const diffMs = new Date().getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      }
+    });
+
+    return {
+      historial: historial.map((reg) => ({
+        id: reg.id,
+        mecanico: reg.mecanico.nombre,
+        descripcion: reg.descripcion,
+        fechaInicio: reg.fechaInicio,
+        fechaFin: reg.fechaFin,
+        minutosTrabajados: reg.fechaFin
+          ? Math.floor((reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000)
+          : Math.floor((new Date().getTime() - reg.fechaInicio.getTime()) / 60000),
+      })),
+      tiempoTotalMinutos,
+    };
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {

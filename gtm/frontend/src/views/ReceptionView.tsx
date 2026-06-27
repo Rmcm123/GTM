@@ -54,6 +54,7 @@ export function ReceptionView({
   mensajePago,
   onCrearCliente,
   onCrearOrden,
+  onEntregarOrden,
   onRegistrarPago,
   ordenes,
   onNavigate,
@@ -70,6 +71,7 @@ export function ReceptionView({
   mensajePago: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
+  onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   onNavigate: (section: string) => void;
@@ -100,6 +102,7 @@ export function ReceptionView({
       <PaymentsPanel
         guardandoPago={guardandoPago}
         mensajePago={mensajePago}
+        onEntregarOrden={onEntregarOrden}
         onRegistrarPago={onRegistrarPago}
         ordenes={ordenes}
       />

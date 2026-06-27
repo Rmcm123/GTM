@@ -6,6 +6,7 @@ import { Panel } from './Panel';
 type PaymentsPanelProps = {
   guardandoPago: boolean;
   mensajePago: string | null;
+  onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
 };
@@ -42,13 +43,19 @@ function obtenerIdNumerico(ordenId: string): number {
 export function PaymentsPanel({
   guardandoPago,
   mensajePago,
+  onEntregarOrden,
   onRegistrarPago,
   ordenes,
 }: PaymentsPanelProps) {
   const [formulario, setFormulario] = useState<FormularioPago>(formularioInicial);
 
-  const ordenesConSaldo = useMemo(
-    () => ordenes.filter((orden) => (orden.saldoPendiente ?? 0) > 0),
+  const ordenesParaCaja = useMemo(
+    () =>
+      ordenes.filter(
+        (orden) =>
+          (orden.saldoPendiente ?? 0) > 0 ||
+          (orden.status === 'Finalizada' && (orden.saldoPendiente ?? 0) === 0),
+      ),
     [ordenes],
   );
 
@@ -114,10 +121,10 @@ export function PaymentsPanel({
                 required
                 value={formulario.ordenId}
               >
-                <option value="">Seleccionar orden con saldo</option>
-                {ordenesConSaldo.map((orden) => (
+                <option value="">Seleccionar orden</option>
+                {ordenesParaCaja.map((orden) => (
                   <option key={orden.id} value={orden.id}>
-                    {orden.id} - {orden.client} - {formatoMoneda.format(orden.saldoPendiente ?? 0)}
+                    {orden.id} - {orden.client} - saldo {formatoMoneda.format(orden.saldoPendiente ?? 0)}
                   </option>
                 ))}
               </select>
@@ -246,6 +253,16 @@ export function PaymentsPanel({
                 >
                   Pagar saldo final
                 </button>
+                {ordenSeleccionada.status === 'Finalizada' &&
+                  (ordenSeleccionada.saldoPendiente ?? 0) === 0 && (
+                    <button
+                      className="min-h-9 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3 text-[13px] font-bold text-white hover:bg-[#0c5943]"
+                      onClick={() => onEntregarOrden(ordenSeleccionada.id)}
+                      type="button"
+                    >
+                      Marcar entregada
+                    </button>
+                  )}
               </div>
             </div>
           )}

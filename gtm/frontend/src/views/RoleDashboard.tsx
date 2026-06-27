@@ -22,6 +22,7 @@ export function RoleDashboard({
   onCrearCliente,
   onActualizarCliente,
   onCrearOrden,
+  onEntregarOrden,
   onRegistrarPago,
   ordenes,
   cargandoInventario,
@@ -57,6 +58,7 @@ export function RoleDashboard({
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
+  onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
@@ -93,6 +95,7 @@ export function RoleDashboard({
         mensajePago={mensajePago}
         onCrearCliente={onCrearCliente}
         onCrearOrden={onCrearOrden}
+        onEntregarOrden={onEntregarOrden}
         onRegistrarPago={onRegistrarPago}
         ordenes={ordenes}
         onNavigate={onNavigate}

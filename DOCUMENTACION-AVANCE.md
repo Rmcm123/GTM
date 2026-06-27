@@ -634,3 +634,5 @@ En frontend se agrego la seccion `Pagos` para el rol Recepcionista. Desde esta v
 Tambien se actualizo el formulario de clientes para registrar datos comerciales usados por las reglas de descuento: cliente regular, porcentaje de descuento regular y membresia. Esto permite demostrar desde la interfaz que el presupuesto de una orden aplica automaticamente el descuento mas alto disponible.
 
 Se mejoro la visualizacion del presupuesto en frontend: la tabla de ordenes muestra total, descuento aplicado, estado de pago, monto pagado y saldo pendiente. La vista de pagos tambien muestra descuento y estado de pago al seleccionar una orden.
+
+Se completo el flujo visual de cierre: cuando una orden esta `Finalizada` y sin saldo pendiente, la vista de pagos permite marcarla como `Entregada` desde recepcion.

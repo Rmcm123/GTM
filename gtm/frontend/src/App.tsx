@@ -274,6 +274,22 @@ function App() {
     }
   }
 
+  async function handleEntregarOrden(ordenId: string) {
+    const idNumerico = parseInt(ordenId.replace('OT-', ''), 10);
+
+    try {
+      await actualizarEstadoOrden(idNumerico, 'Entregada');
+      await recargarOrdenes();
+      setMensajePago('Orden marcada como entregada');
+    } catch (error) {
+      setMensajePago(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo entregar la orden',
+      );
+    }
+  }
+
   function actualizarCampoInventario(
     campo: keyof InventarioFormulario,
     valor: string,
@@ -604,6 +620,7 @@ function App() {
         onCrearCliente={handleCrearCliente}
         onActualizarCliente={handleActualizarCliente}
         onCrearOrden={handleCrearOrden}
+        onEntregarOrden={handleEntregarOrden}
         onRegistrarPago={handleRegistrarPago}
         ordenes={ordenes}
         cargandoInventario={cargandoInventario}

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import {
   OrdenTrabajo,
 } from './orden-trabajo.entity';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 const LIMITE_ORDENES_ACTIVAS = 5;
 
@@ -25,6 +28,8 @@ export class OrdenesTrabajoService {
   constructor(
     @InjectRepository(OrdenTrabajo)
     private readonly repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
+    @InjectRepository(RegistroTiempo)
+    private readonly repositorioRegistrosTiempo: Repository<RegistroTiempo>,
     @InjectRepository(Cliente)
     private readonly repositorioClientes: Repository<Cliente>,
     @InjectRepository(Vehiculo)
@@ -173,6 +178,71 @@ export class OrdenesTrabajoService {
     const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
 
     return this.convertirARespuesta(ordenActualizada);
+  }
+
+  async iniciarTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+    descripcion?: string,
+  ): Promise<RegistroTiempo> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id: ordenId },
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    if (orden.mecanicoAsignado !== mecanicoId) {
+      throw new ForbiddenException(
+        'No puedes registrar tiempos en una orden que no tienes asignada',
+      );
+    }
+
+    // Verificar que el mecánico no tenga otra tarea activa
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
+      where: {
+        mecanicoId: mecanicoId,
+        fechaFin: null as any,
+      },
+    });
+
+    if (tareaActiva) {
+      throw new ConflictException(
+        `Ya tienes una tarea en curso (Orden ID: ${tareaActiva.ordenTrabajoId}). Detenla antes de iniciar una nueva.`,
+      );
+    }
+
+    const nuevoRegistro = this.repositorioRegistrosTiempo.create({
+      ordenTrabajoId: ordenId,
+      mecanicoId: mecanicoId,
+      descripcion,
+      fechaInicio: new Date(),
+    });
+
+    return this.repositorioRegistrosTiempo.save(nuevoRegistro);
+  }
+
+  async detenerTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+  ): Promise<RegistroTiempo> {
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
+      where: {
+        ordenTrabajoId: ordenId,
+        mecanicoId: mecanicoId,
+        fechaFin: null as any,
+      },
+    });
+
+    if (!tareaActiva) {
+      throw new NotFoundException(
+        'No tienes ninguna tarea activa en esta orden de trabajo',
+      );
+    }
+
+    tareaActiva.fechaFin = new Date();
+    return this.repositorioRegistrosTiempo.save(tareaActiva);
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {

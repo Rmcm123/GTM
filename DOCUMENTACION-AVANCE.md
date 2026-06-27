@@ -654,3 +654,5 @@ Se reforzo la consistencia de datos usando transacciones en operaciones criticas
 Se reforzaron las validaciones de caja: los pagos electronicos ahora requieren referencia de transaccion tanto en frontend como en backend, y la interfaz avisa cuando un pago final no cubre exactamente el saldo pendiente antes de enviar la solicitud.
 
 Se separo el concepto de proveedor de pago y referencia de transaccion. Para pagos electronicos, el sistema permite indicar el proveedor usado, por ejemplo Mercado Pago, transferencia bancaria o Transbank, y ademas guardar el comprobante o codigo de transaccion. Esto mejora la trazabilidad de pagos y facilita justificar el uso de una API o integracion de pagos en una etapa futura.
+
+Se agregaron pruebas unitarias del bloque financiero. `descuentos.service.spec.ts` valida que el sistema aplique la estrategia correcta y mantenga solo el descuento mas alto. `pagos.service.spec.ts` valida reglas criticas como exigir referencia en pagos electronicos, rechazar adelantos inferiores al 40% y actualizar saldo/estado de pago correctamente.

@@ -641,6 +641,8 @@ Se amplio la vista de caja para que el recepcionista pueda buscar ordenes por nu
 
 Se reforzo la seguridad del frontend agregando un helper comun para llamadas autenticadas. Las APIs de clientes, vehiculos, ordenes, inventario y pagos ahora intentan renovar automaticamente el access token usando el refresh token cuando reciben una respuesta `401`. Si la renovacion falla, la sesion local se limpia y el usuario vuelve al login. Esto hace mas estable el flujo con JWT + refresh tokens.
 
+Se agrego gestion basica de usuarios para el rol Administrador. El backend expone endpoints protegidos para listar usuarios, crear nuevas cuentas y activar/desactivar accesos. En el frontend se agrego la seccion `Usuarios` en el panel administrador, permitiendo crear usuarios internos con rol Administrador, Recepcionista, Mecanico o Inventario. Esto fortalece el requisito de autenticacion y acceso por rol.
+
 Tambien se agrego una validacion de cierre en el backend de pagos: no se pueden registrar pagos en ordenes `Entregada` o `Cancelada`. Con esto se evita modificar financieramente ordenes que ya terminaron su ciclo operativo.
 
 Se ajusto el presupuesto de repuestos para que deje de ser manual. El inventario ahora maneja `precioUnitario` por repuesto y, al abrir una orden de trabajo, recepcion puede seleccionar repuestos y cantidades. El frontend calcula automaticamente el costo total de repuestos y lo envia al backend como parte del presupuesto de la orden. La mano de obra se mantiene manual por ahora, ya que mas adelante puede calcularse mediante tarifas por tipo de servicio o por horas trabajadas.

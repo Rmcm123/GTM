@@ -26,7 +26,7 @@ export const roleConfig: Record<
   }
 > = {
   Administrador: {
-    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario'],
+    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario', 'Usuarios'],
     title: 'Dashboard administrador',
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: '',

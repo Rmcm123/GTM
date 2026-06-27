@@ -1,8 +1,14 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { RolUsuario, Usuario } from './usuario.entity';
+import type { CrearUsuarioDto } from './dto/crear-usuario.dto';
 import type { UsuarioRespuestaDto } from './dto/usuario-respuesta.dto';
 
 const USUARIOS_INICIALES = [
@@ -59,6 +65,56 @@ export class UsuariosService implements OnModuleInit {
     return this.repositorioUsuarios.findOne({
       where: { correo: this.normalizarCorreo(correo) },
     });
+  }
+
+  async crear(datosUsuario: CrearUsuarioDto): Promise<UsuarioRespuestaDto> {
+    this.validarDatosUsuario(datosUsuario);
+
+    const correoNormalizado = this.normalizarCorreo(datosUsuario.correo);
+    const usuarioExistente = await this.buscarPorCorreo(correoNormalizado);
+
+    if (usuarioExistente) {
+      throw new BadRequestException('Ya existe un usuario con ese correo');
+    }
+
+    const usuario = this.repositorioUsuarios.create({
+      nombre: datosUsuario.nombre.trim(),
+      correo: correoNormalizado,
+      contrasenaHash: await hash(datosUsuario.contrasena, 10),
+      rol: datosUsuario.rol,
+      activo: true,
+    });
+
+    const usuarioGuardado = await this.repositorioUsuarios.save(usuario);
+
+    return this.convertirARespuesta(usuarioGuardado);
+  }
+
+  async actualizarEstado(
+    usuarioId: string,
+    activo: boolean,
+  ): Promise<UsuarioRespuestaDto> {
+    if (typeof activo !== 'boolean') {
+      throw new BadRequestException(
+        'El estado activo debe ser verdadero o falso',
+      );
+    }
+
+    const usuario = await this.buscarPorId(usuarioId);
+
+    if (!usuario) {
+      throw new NotFoundException('No existe un usuario con ese id');
+    }
+
+    usuario.activo = activo;
+
+    if (!activo) {
+      usuario.refreshTokenHash = null;
+    }
+
+    const usuarioGuardado = await this.repositorioUsuarios.save(usuario);
+
+    return this.convertirARespuesta(usuarioGuardado);
   }
 
   async validarContrasena(
@@ -128,5 +184,32 @@ export class UsuariosService implements OnModuleInit {
 
   private normalizarCorreo(correo: string): string {
     return correo.trim().toLowerCase();
+  }
+
+  private validarDatosUsuario(datosUsuario: CrearUsuarioDto) {
+    if (
+      !datosUsuario?.nombre ||
+      !datosUsuario.correo ||
+      !datosUsuario.contrasena ||
+      !datosUsuario.rol
+    ) {
+      throw new BadRequestException(
+        'Nombre, correo, contrasena y rol son obligatorios',
+      );
+    }
+
+    if (!datosUsuario.correo.includes('@')) {
+      throw new BadRequestException('El correo del usuario debe ser valido');
+    }
+
+    if (datosUsuario.contrasena.length < 8) {
+      throw new BadRequestException(
+        'La contrasena debe tener al menos 8 caracteres',
+      );
+    }
+
+    if (!Object.values(RolUsuario).includes(datosUsuario.rol)) {
+      throw new BadRequestException('El rol indicado no es valido');
+    }
   }
 }

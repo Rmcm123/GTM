@@ -20,6 +20,12 @@ import {
 import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
 import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
 import {
+  actualizarEstadoUsuario,
+  crearUsuario,
+  obtenerUsuarios,
+  type CrearUsuarioPayload,
+} from './api/usuariosApi';
+import {
   actualizarStockInventario,
   obtenerAlertasStockBajo,
   obtenerInventario,
@@ -45,6 +51,7 @@ import type {
   RepuestoSolicitado,
   StockMovement,
   UserRole,
+  UsuarioSistema,
   WorkOrder,
 } from './types';
 import { LoginView } from './views/LoginView';
@@ -80,13 +87,17 @@ function App() {
     useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [guardandoPago, setGuardandoPago] = useState(false);
+  const [guardandoUsuario, setGuardandoUsuario] = useState(false);
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(
     null,
   );
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
   const [mensajePago, setMensajePago] = useState<string | null>(null);
+  const [mensajeUsuarios, setMensajeUsuarios] = useState<string | null>(null);
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
+  const [usuarios, setUsuarios] = useState<UsuarioSistema[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>(
     [],
@@ -208,6 +219,33 @@ function App() {
     void cargarInventario();
   }, [usuarioSesion]);
 
+  useEffect(() => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'Administrador') {
+      setUsuarios([]);
+      return;
+    }
+
+    async function cargarUsuarios() {
+      setCargandoUsuarios(true);
+      setMensajeUsuarios(null);
+
+      try {
+        const usuariosDesdeApi = await obtenerUsuarios();
+        setUsuarios(usuariosDesdeApi);
+      } catch (error) {
+        setMensajeUsuarios(
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los usuarios',
+        );
+      } finally {
+        setCargandoUsuarios(false);
+      }
+    }
+
+    void cargarUsuarios();
+  }, [usuarioSesion]);
+
   async function recargarClientes() {
     const clientesDesdeApi = await obtenerClientes();
     setClientes(clientesDesdeApi);
@@ -264,6 +302,55 @@ function App() {
     const ordenesDesdeApi = await obtenerOrdenesTrabajo();
     setOrdenes(ordenesDesdeApi);
     setOrdenesTrabajo(ordenesDesdeApi);
+  }
+
+  async function recargarUsuarios() {
+    const usuariosDesdeApi = await obtenerUsuarios();
+    setUsuarios(usuariosDesdeApi);
+  }
+
+  async function handleCrearUsuario(usuario: CrearUsuarioPayload) {
+    setGuardandoUsuario(true);
+    setMensajeUsuarios(null);
+
+    try {
+      await crearUsuario(usuario);
+      await recargarUsuarios();
+      setMensajeUsuarios('Usuario creado correctamente');
+      return true;
+    } catch (error) {
+      setMensajeUsuarios(
+        error instanceof Error ? error.message : 'No se pudo crear el usuario',
+      );
+      return false;
+    } finally {
+      setGuardandoUsuario(false);
+    }
+  }
+
+  async function handleActualizarEstadoUsuario(
+    usuarioId: string,
+    activo: boolean,
+  ) {
+    setMensajeUsuarios(null);
+
+    try {
+      await actualizarEstadoUsuario(usuarioId, activo);
+      await recargarUsuarios();
+      setMensajeUsuarios(
+        activo
+          ? 'Usuario activado correctamente'
+          : 'Usuario desactivado correctamente',
+      );
+      return true;
+    } catch (error) {
+      setMensajeUsuarios(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo actualizar el usuario',
+      );
+      return false;
+    }
   }
 
   async function handleCrearOrden(orden: CrearOrdenTrabajoPayload) {
@@ -585,7 +672,7 @@ function App() {
 
   function handlePrimaryAction() {
     if (activeRole === 'Administrador') {
-      setActiveSection('Ordenes');
+      setActiveSection('Usuarios');
     }
     if (activeRole === 'Recepcionista') {
       setActiveSection('Ordenes');
@@ -674,15 +761,21 @@ function App() {
         guardandoClienteActualizado={guardandoClienteActualizado}
         guardandoOrden={guardandoOrden}
         guardandoPago={guardandoPago}
+        guardandoUsuario={guardandoUsuario}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
+        mensajeUsuarios={mensajeUsuarios}
         onCrearCliente={handleCrearCliente}
         onActualizarCliente={handleActualizarCliente}
         onCrearOrden={handleCrearOrden}
         onEntregarOrden={handleEntregarOrden}
         onRegistrarPago={handleRegistrarPago}
+        onCrearUsuario={handleCrearUsuario}
+        onActualizarEstadoUsuario={handleActualizarEstadoUsuario}
         ordenes={ordenes}
+        cargandoUsuarios={cargandoUsuarios}
+        usuarios={usuarios}
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}
         inventario={inventario}

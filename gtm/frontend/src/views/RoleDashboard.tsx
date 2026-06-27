@@ -4,6 +4,7 @@ import type {
 } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
+import type { CrearUsuarioPayload } from '../api/usuariosApi';
 import type {
   AlertaStockBajo,
   Cliente,
@@ -12,6 +13,7 @@ import type {
   RepuestoSolicitado,
   StockMovement,
   UserRole,
+  UsuarioSistema,
   WorkOrder,
 } from '../types';
 import { AdminView } from './AdminView';
@@ -28,16 +30,22 @@ export function RoleDashboard({
   guardandoClienteActualizado,
   guardandoOrden,
   guardandoPago,
+  guardandoUsuario,
   mensajeFormulario,
   mensajeOrden,
   mensajePago,
+  mensajeUsuarios,
   onCrearCliente,
   onActualizarCliente,
   onCrearOrden,
   onEntregarOrden,
   onRegistrarPago,
+  onCrearUsuario,
+  onActualizarEstadoUsuario,
   ordenes,
   cargandoInventario,
+  cargandoUsuarios,
+  usuarios,
   inventario,
   alertasStockBajo,
   movimientosInventario,
@@ -64,9 +72,11 @@ export function RoleDashboard({
   guardandoClienteActualizado?: boolean;
   guardandoOrden: boolean;
   guardandoPago: boolean;
+  guardandoUsuario: boolean;
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   mensajePago: string | null;
+  mensajeUsuarios: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onActualizarCliente?: (
     rut: string,
@@ -75,8 +85,15 @@ export function RoleDashboard({
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
+  onCrearUsuario: (usuario: CrearUsuarioPayload) => Promise<boolean>;
+  onActualizarEstadoUsuario: (
+    usuarioId: string,
+    activo: boolean,
+  ) => Promise<boolean>;
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
+  cargandoUsuarios: boolean;
+  usuarios: UsuarioSistema[];
   inventario: InventoryItem[];
   alertasStockBajo: AlertaStockBajo[];
   movimientosInventario: StockMovement[];
@@ -171,6 +188,12 @@ export function RoleDashboard({
       onActualizarCliente={onActualizarCliente}
       guardandoClienteActualizado={guardandoClienteActualizado}
       mensajeFormulario={mensajeFormulario}
+      cargandoUsuarios={cargandoUsuarios}
+      guardandoUsuario={guardandoUsuario}
+      mensajeUsuarios={mensajeUsuarios}
+      onActualizarEstadoUsuario={onActualizarEstadoUsuario}
+      onCrearUsuario={onCrearUsuario}
+      usuarios={usuarios}
     />
   );
 }

@@ -99,8 +99,10 @@ export class PagosService {
         monto: Math.round(datosPago.monto),
         tipoPago: datosPago.tipoPago,
         medioPago: datosPago.medioPago,
-        referenciaTransaccion:
-          datosPago.referenciaTransaccion?.trim() || undefined,
+        proveedorPago: this.normalizarTextoOpcional(datosPago.proveedorPago),
+        referenciaTransaccion: this.normalizarTextoOpcional(
+          datosPago.referenciaTransaccion,
+        ),
       });
 
       await repositorioOrdenesTrabajo.save(orden);
@@ -133,6 +135,15 @@ export class PagosService {
 
     if (
       datosPago.medioPago === MedioPago.Electronico &&
+      (!datosPago.proveedorPago || datosPago.proveedorPago.trim().length === 0)
+    ) {
+      throw new BadRequestException(
+        'El proveedor de pago es obligatorio para pagos electronicos',
+      );
+    }
+
+    if (
+      datosPago.medioPago === MedioPago.Electronico &&
       (!datosPago.referenciaTransaccion ||
         datosPago.referenciaTransaccion.trim().length === 0)
     ) {
@@ -140,6 +151,13 @@ export class PagosService {
         'La referencia de transaccion es obligatoria para pagos electronicos',
       );
     }
+  }
+
+  private normalizarTextoOpcional(valor?: string): string | undefined {
+    const valorNormalizado = valor?.trim();
+    return valorNormalizado && valorNormalizado.length > 0
+      ? valorNormalizado
+      : undefined;
   }
 
   private calcularEstadoPago(orden: OrdenTrabajo): EstadoPagoOrden {
@@ -161,6 +179,7 @@ export class PagosService {
       monto: pago.monto,
       tipoPago: pago.tipoPago,
       medioPago: pago.medioPago,
+      proveedorPago: pago.proveedorPago,
       referenciaTransaccion: pago.referenciaTransaccion,
       totalPagadoOrden: pago.ordenTrabajo.totalPagado,
       saldoPendienteOrden: pago.ordenTrabajo.saldoPendiente,

@@ -7,6 +7,7 @@ export type PagoRespuestaDto = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
   totalPagadoOrden: number;
   saldoPendienteOrden: number;

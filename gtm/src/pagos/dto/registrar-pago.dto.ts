@@ -5,5 +5,6 @@ export type RegistrarPagoDto = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
 };

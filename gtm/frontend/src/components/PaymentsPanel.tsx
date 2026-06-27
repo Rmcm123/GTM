@@ -22,6 +22,7 @@ type FormularioPago = {
   monto: string;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago: string;
   referenciaTransaccion: string;
 };
 
@@ -30,6 +31,7 @@ const formularioInicial: FormularioPago = {
   monto: '',
   tipoPago: 'Adelanto',
   medioPago: 'Efectivo',
+  proveedorPago: '',
   referenciaTransaccion: '',
 };
 
@@ -90,6 +92,13 @@ function obtenerAvisoFormulario(
     monto !== saldoPendiente
   ) {
     return 'El pago final debe cubrir exactamente el saldo pendiente.';
+  }
+
+  if (
+    formulario.medioPago === 'Electronico' &&
+    formulario.proveedorPago.trim().length === 0
+  ) {
+    return 'Selecciona el proveedor del pago electronico.';
   }
 
   if (
@@ -196,6 +205,9 @@ export function PaymentsPanel({
     setFormulario((actual) => ({
       ...actual,
       [campo]: valor,
+      ...(campo === 'medioPago' && valor === 'Efectivo'
+        ? { proveedorPago: '', referenciaTransaccion: '' }
+        : {}),
     }));
   }
 
@@ -244,6 +256,7 @@ export function PaymentsPanel({
       monto: Number(formulario.monto),
       tipoPago: formulario.tipoPago,
       medioPago: formulario.medioPago,
+      proveedorPago: formulario.proveedorPago.trim() || undefined,
       referenciaTransaccion:
         formulario.referenciaTransaccion.trim() || undefined,
     });
@@ -526,8 +539,31 @@ export function PaymentsPanel({
                 </select>
               </label>
 
+              {formulario.medioPago === 'Electronico' && (
+                <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                  Proveedor de pago
+                  <select
+                    className={inputClass}
+                    disabled={!ordenSeleccionada}
+                    onChange={(evento) =>
+                      actualizarCampo('proveedorPago', evento.target.value)
+                    }
+                    required
+                    value={formulario.proveedorPago}
+                  >
+                    <option value="">Seleccionar proveedor</option>
+                    <option value="Mercado Pago">Mercado Pago</option>
+                    <option value="Transferencia bancaria">
+                      Transferencia bancaria
+                    </option>
+                    <option value="Transbank">Transbank</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </label>
+              )}
+
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-                Referencia de transaccion
+                Comprobante o referencia
                 <input
                   className={inputClass}
                   disabled={!ordenSeleccionada}
@@ -539,7 +575,7 @@ export function PaymentsPanel({
                   }
                   placeholder={
                     formulario.medioPago === 'Electronico'
-                      ? 'Obligatoria para pago electronico'
+                      ? 'Ej: MP-123456, transferencia 98421'
                       : 'Opcional para efectivo'
                   }
                   required={formulario.medioPago === 'Electronico'}
@@ -632,6 +668,7 @@ export function PaymentsPanel({
                   <th className="py-3 pr-3">Fecha</th>
                   <th className="py-3 pr-3">Tipo</th>
                   <th className="py-3 pr-3">Medio</th>
+                  <th className="py-3 pr-3">Proveedor</th>
                   <th className="py-3 pr-3">Monto</th>
                   <th className="py-3 pr-3">Saldo posterior</th>
                   <th className="py-3 pr-3">Referencia</th>
@@ -648,6 +685,9 @@ export function PaymentsPanel({
                     </td>
                     <td className="py-3 pr-3 font-bold">{pago.tipoPago}</td>
                     <td className="py-3 pr-3">{pago.medioPago}</td>
+                    <td className="py-3 pr-3">
+                      {pago.proveedorPago ?? 'No aplica'}
+                    </td>
                     <td className="py-3 pr-3 font-bold text-[#111827]">
                       {formatoMoneda.format(pago.monto)}
                     </td>

@@ -10,6 +10,7 @@ export type RegistrarPagoPayload = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
 };
 
@@ -19,6 +20,7 @@ export type PagoRespuesta = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
   totalPagadoOrden: number;
   saldoPendienteOrden: number;

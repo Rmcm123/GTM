@@ -652,3 +652,5 @@ Se completo la integracion entre ordenes e inventario: al crear una orden con re
 Se reforzo la consistencia de datos usando transacciones en operaciones criticas. El registro de pagos ahora actualiza el saldo de la orden y guarda el pago dentro de una misma transaccion. La creacion de ordenes tambien guarda la OT y descuenta repuestos del inventario dentro de una misma transaccion, evitando que queden ordenes creadas sin el movimiento de stock correspondiente si ocurre un error.
 
 Se reforzaron las validaciones de caja: los pagos electronicos ahora requieren referencia de transaccion tanto en frontend como en backend, y la interfaz avisa cuando un pago final no cubre exactamente el saldo pendiente antes de enviar la solicitud.
+
+Se separo el concepto de proveedor de pago y referencia de transaccion. Para pagos electronicos, el sistema permite indicar el proveedor usado, por ejemplo Mercado Pago, transferencia bancaria o Transbank, y ademas guardar el comprobante o codigo de transaccion. Esto mejora la trazabilidad de pagos y facilita justificar el uso de una API o integracion de pagos en una etapa futura.

@@ -52,6 +52,7 @@ const formularioInventarioInicial: InventarioFormulario = {
   nombre: '',
   categoria: '',
   minimo: '',
+  precioUnitario: '',
   stock: '',
   cantidad: '',
   nota: '',
@@ -149,10 +150,20 @@ function App() {
       return;
     }
 
+    const usuarioActual = usuarioSesion;
+
     async function cargarInventario() {
       setCargandoInventario(true);
 
       try {
+        if (usuarioActual.rol === 'Recepcionista') {
+          const inventarioDesdeApi = await obtenerInventario();
+          setInventario(inventarioDesdeApi);
+          setMovimientosInventario(stockMovements);
+          setAlertasStockBajo([]);
+          return;
+        }
+
         const [inventarioDesdeApi, movimientosDesdeApi, alertasDesdeApi] =
           await Promise.all([
             obtenerInventario(),
@@ -283,9 +294,7 @@ function App() {
       setMensajePago('Orden marcada como entregada');
     } catch (error) {
       setMensajePago(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo entregar la orden',
+        error instanceof Error ? error.message : 'No se pudo entregar la orden',
       );
     }
   }
@@ -316,6 +325,10 @@ function App() {
       formularioInventario.minimo.trim().length > 0
         ? Number(formularioInventario.minimo)
         : undefined;
+    const precioUnitario =
+      formularioInventario.precioUnitario.trim().length > 0
+        ? Number(formularioInventario.precioUnitario)
+        : undefined;
 
     if (!Number.isInteger(stock) || stock < 0) {
       setMensajeInventario(
@@ -332,10 +345,21 @@ function App() {
       return null;
     }
 
+    if (
+      typeof precioUnitario === 'number' &&
+      (!Number.isInteger(precioUnitario) || precioUnitario < 0)
+    ) {
+      setMensajeInventario(
+        'El precio unitario debe ser un numero mayor o igual a 0',
+      );
+      return null;
+    }
+
     return {
       nombre,
       categoria: formularioInventario.categoria.trim() || undefined,
       minimo,
+      precioUnitario,
       stock,
       nota: formularioInventario.nota.trim() || undefined,
     };
@@ -387,6 +411,10 @@ function App() {
       formularioInventario.minimo.trim().length > 0
         ? Number(formularioInventario.minimo)
         : undefined;
+    const precioUnitario =
+      formularioInventario.precioUnitario.trim().length > 0
+        ? Number(formularioInventario.precioUnitario)
+        : undefined;
 
     if (!nombre) {
       setMensajeInventario('Ingresa el nombre del repuesto');
@@ -406,10 +434,21 @@ function App() {
       return;
     }
 
+    if (
+      typeof precioUnitario === 'number' &&
+      (!Number.isInteger(precioUnitario) || precioUnitario < 0)
+    ) {
+      setMensajeInventario(
+        'El precio unitario debe ser un numero mayor o igual a 0',
+      );
+      return;
+    }
+
     const payload: RegistrarEntradaPayload = {
       nombre,
       categoria: formularioInventario.categoria.trim() || undefined,
       minimo,
+      precioUnitario,
       cantidad,
       nota: formularioInventario.nota.trim() || undefined,
     };

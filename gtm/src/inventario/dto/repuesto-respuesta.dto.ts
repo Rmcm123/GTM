@@ -4,4 +4,5 @@ export type RepuestoRespuestaDto = {
   categoria?: string;
   stock: number;
   minimo: number;
+  precioUnitario: number;
 };

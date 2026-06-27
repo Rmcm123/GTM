@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
-import type { WorkOrder } from '../types';
+import type { InventoryItem, WorkOrder } from '../types';
 import { Panel } from './Panel';
 
 type WorkOrdersPanelProps = {
@@ -8,6 +8,7 @@ type WorkOrdersPanelProps = {
   mensajeOrden: string | null;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
+  inventario: InventoryItem[];
 };
 
 type FormularioOrden = {
@@ -17,7 +18,6 @@ type FormularioOrden = {
   mecanico: string;
   fechaIngreso: string;
   costoManoObra: string;
-  costoRepuestos: string;
 };
 
 const formularioInicial: FormularioOrden = {
@@ -27,7 +27,12 @@ const formularioInicial: FormularioOrden = {
   mecanico: '',
   fechaIngreso: '',
   costoManoObra: '',
-  costoRepuestos: '',
+};
+
+type RepuestoOrden = {
+  nombre: string;
+  cantidad: number;
+  precioUnitario: number;
 };
 
 const mecanicos = ['Camila Torres', 'Matias Rojas', 'Diego Silva'];
@@ -64,7 +69,9 @@ const estadoPagoClass: Record<string, string> = {
 };
 
 function obtenerClaseEstadoPago(estadoPago?: string) {
-  return estadoPagoClass[estadoPago ?? 'Sin pago'] ?? estadoPagoClass['Sin pago'];
+  return (
+    estadoPagoClass[estadoPago ?? 'Sin pago'] ?? estadoPagoClass['Sin pago']
+  );
 }
 
 export function WorkOrdersPanel({
@@ -72,9 +79,13 @@ export function WorkOrdersPanel({
   mensajeOrden,
   onCrearOrden,
   ordenes,
+  inventario,
 }: WorkOrdersPanelProps) {
   const [formulario, setFormulario] =
     useState<FormularioOrden>(formularioInicial);
+  const [repuestoSeleccionado, setRepuestoSeleccionado] = useState('');
+  const [cantidadRepuesto, setCantidadRepuesto] = useState('1');
+  const [repuestosOrden, setRepuestosOrden] = useState<RepuestoOrden[]>([]);
 
   const ordenesActivas = ordenes.filter(
     (orden) => !['Finalizada', 'Entregada', 'Cancelada'].includes(orden.status),
@@ -82,12 +93,58 @@ export function WorkOrdersPanel({
   const ordenesFinalizadas = ordenes.filter(
     (orden) => orden.status === 'Finalizada' || orden.status === 'Entregada',
   );
+  const costoRepuestosCalculado = repuestosOrden.reduce(
+    (total, repuesto) => total + repuesto.cantidad * repuesto.precioUnitario,
+    0,
+  );
 
   function actualizarCampo(campo: keyof FormularioOrden, valor: string) {
     setFormulario((actual) => ({
       ...actual,
       [campo]: valor,
     }));
+  }
+
+  function agregarRepuesto() {
+    const repuesto = inventario.find(
+      (item) => item.name === repuestoSeleccionado,
+    );
+    const cantidad = Number(cantidadRepuesto);
+
+    if (!repuesto || !Number.isInteger(cantidad) || cantidad <= 0) {
+      return;
+    }
+
+    setRepuestosOrden((actuales) => {
+      const repuestoExistente = actuales.find(
+        (item) => item.nombre === repuesto.name,
+      );
+
+      if (repuestoExistente) {
+        return actuales.map((item) =>
+          item.nombre === repuesto.name
+            ? { ...item, cantidad: item.cantidad + cantidad }
+            : item,
+        );
+      }
+
+      return [
+        ...actuales,
+        {
+          nombre: repuesto.name,
+          cantidad,
+          precioUnitario: repuesto.unitPrice,
+        },
+      ];
+    });
+    setRepuestoSeleccionado('');
+    setCantidadRepuesto('1');
+  }
+
+  function quitarRepuesto(nombre: string) {
+    setRepuestosOrden((actuales) =>
+      actuales.filter((repuesto) => repuesto.nombre !== nombre),
+    );
   }
 
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
@@ -100,11 +157,12 @@ export function WorkOrdersPanel({
       mecanicoAsignado: formulario.mecanico || undefined,
       fechaIngreso: formulario.fechaIngreso,
       costoManoObra: Number(formulario.costoManoObra || 0),
-      costoRepuestos: Number(formulario.costoRepuestos || 0),
+      costoRepuestos: costoRepuestosCalculado,
     });
 
     if (ordenCreada) {
       setFormulario(formularioInicial);
+      setRepuestosOrden([]);
     }
   }
 
@@ -284,20 +342,6 @@ export function WorkOrdersPanel({
                 />
               </label>
 
-              <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
-                Costo repuestos
-                <input
-                  className={inputClass}
-                  min="0"
-                  onChange={(evento) =>
-                    actualizarCampo('costoRepuestos', evento.target.value)
-                  }
-                  placeholder="Ej: 40000"
-                  type="number"
-                  value={formulario.costoRepuestos}
-                />
-              </label>
-
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569] md:col-span-2">
                 Diagnostico inicial
                 <textarea
@@ -309,6 +353,102 @@ export function WorkOrdersPanel({
                   value={formulario.diagnostico}
                 />
               </label>
+            </div>
+
+            <div className="grid gap-3 rounded-[7px] border border-[#dbe6ef] bg-[#f8fafc] p-4">
+              <div>
+                <p className="m-0 text-[13px] font-extrabold uppercase text-[#475569]">
+                  Repuestos para presupuesto
+                </p>
+                <p className="m-[4px_0_0] text-[13px] text-[#64748b]">
+                  El costo de repuestos se calcula automaticamente segun el
+                  precio unitario del inventario.
+                </p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_140px_auto]">
+                <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                  Repuesto
+                  <select
+                    className={inputClass}
+                    onChange={(evento) =>
+                      setRepuestoSeleccionado(evento.target.value)
+                    }
+                    value={repuestoSeleccionado}
+                  >
+                    <option value="">Seleccionar repuesto</option>
+                    {inventario.map((item) => (
+                      <option key={item.id ?? item.name} value={item.name}>
+                        {item.name} - {formatoMoneda.format(item.unitPrice)} (
+                        {item.stock} disponibles)
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+                  Cantidad
+                  <input
+                    className={inputClass}
+                    min="1"
+                    onChange={(evento) =>
+                      setCantidadRepuesto(evento.target.value)
+                    }
+                    type="number"
+                    value={cantidadRepuesto}
+                  />
+                </label>
+
+                <button
+                  className="mt-auto min-h-10 rounded-[7px] border border-[#0f5b46] bg-[#0f6b52] px-3.5 text-[14px] font-bold text-white hover:bg-[#0c5943]"
+                  onClick={agregarRepuesto}
+                  type="button"
+                >
+                  Agregar
+                </button>
+              </div>
+
+              {repuestosOrden.length > 0 && (
+                <div className="grid gap-2">
+                  {repuestosOrden.map((repuesto) => (
+                    <div
+                      className="flex flex-col gap-2 rounded-[7px] bg-white p-3 md:flex-row md:items-center md:justify-between"
+                      key={repuesto.nombre}
+                    >
+                      <div>
+                        <strong className="block text-[14px] text-[#111827]">
+                          {repuesto.nombre}
+                        </strong>
+                        <span className="text-[13px] text-[#64748b]">
+                          {repuesto.cantidad} x{' '}
+                          {formatoMoneda.format(repuesto.precioUnitario)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <strong className="text-[14px] text-[#111827]">
+                          {formatoMoneda.format(
+                            repuesto.cantidad * repuesto.precioUnitario,
+                          )}
+                        </strong>
+                        <button
+                          className="rounded-[7px] border border-[#fecaca] bg-[#fef2f2] px-3 py-1 text-[13px] font-bold text-[#b91c1c]"
+                          onClick={() => quitarRepuesto(repuesto.nombre)}
+                          type="button"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end border-t border-[#e5eaf0] pt-3">
+                <strong className="text-[15px] text-[#111827]">
+                  Total repuestos:{' '}
+                  {formatoMoneda.format(costoRepuestosCalculado)}
+                </strong>
+              </div>
             </div>
 
             {mensajeOrden && (

@@ -62,6 +62,7 @@ export type InventarioFormulario = {
   nombre: string;
   categoria: string;
   minimo: string;
+  precioUnitario: string;
   stock: string;
   cantidad: string;
   nota: string;
@@ -72,6 +73,7 @@ export type InventoryItem = {
   name: string;
   stock: number;
   minimum: number;
+  unitPrice: number;
   category: string;
 };
 

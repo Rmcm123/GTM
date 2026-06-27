@@ -7,6 +7,7 @@ export type ActualizarStockPayload = {
   nombre: string;
   categoria?: string;
   minimo?: number;
+  precioUnitario?: number;
   stock: number;
   nota?: string;
 };
@@ -15,6 +16,7 @@ export type RegistrarEntradaPayload = {
   nombre: string;
   categoria?: string;
   minimo?: number;
+  precioUnitario?: number;
   cantidad: number;
   nota?: string;
 };
@@ -31,6 +33,7 @@ type InventarioApiItem = {
   categoria?: string;
   stock: number;
   minimo: number;
+  precioUnitario: number;
 };
 
 type InventarioApiMovimiento = {
@@ -73,6 +76,7 @@ export async function obtenerInventario(): Promise<InventoryItem[]> {
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   }));
 }
 
@@ -124,6 +128,7 @@ export async function actualizarStockInventario(
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }
 
@@ -147,6 +152,7 @@ export async function registrarEntradaInventario(
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }
 
@@ -170,5 +176,6 @@ export async function registrarSalidaInventario(
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }

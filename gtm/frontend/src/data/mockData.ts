@@ -1,4 +1,11 @@
-import type { Cliente, InventoryItem, StockMovement, SummaryCardData, UserRole, WorkOrder } from '../types';
+import type {
+  Cliente,
+  InventoryItem,
+  StockMovement,
+  SummaryCardData,
+  UserRole,
+  WorkOrder,
+} from '../types';
 
 export const roleOptions: { role: UserRole; description: string }[] = [
   { role: 'Administrador', description: 'Vista general del taller' },
@@ -32,23 +39,44 @@ export const roleConfig: Record<
     description: 'Ingreso de clientes, vehiculos y nuevas ordenes de trabajo.',
     primaryAction: 'Abrir OT',
     secondaryAction: 'Registrar cliente',
-    actions: ['Registrar cliente', 'Registrar vehiculo', 'Abrir OT', 'Registrar pago'],
+    actions: [
+      'Registrar cliente',
+      'Registrar vehiculo',
+      'Abrir OT',
+      'Registrar pago',
+    ],
   },
   Mecanico: {
     navItems: ['Mis ordenes', 'Estados', 'Vehiculos'],
     title: 'Panel mecanico',
-    description: 'Ordenes asignadas para revisar, avanzar y finalizar trabajos.',
+    description:
+      'Ordenes asignadas para revisar, avanzar y finalizar trabajos.',
     primaryAction: 'Cambiar estado',
     secondaryAction: 'Ver detalle OT',
-    actions: ['Iniciar revision', 'Pasar a proceso', 'Finalizar OT', 'Solicitar repuesto'],
+    actions: [
+      'Iniciar revision',
+      'Pasar a proceso',
+      'Finalizar OT',
+      'Solicitar repuesto',
+    ],
   },
   Inventario: {
-    navItems: ['Inventario', 'Stock bajo', 'Movimientos', 'Repuestos solicitados'],
+    navItems: [
+      'Inventario',
+      'Stock bajo',
+      'Movimientos',
+      'Repuestos solicitados',
+    ],
     title: 'Panel de inventario',
     description: 'Control de repuestos, entradas, salidas y stock bajo.',
     primaryAction: 'Actualizar stock',
     secondaryAction: 'Reponer repuesto',
-    actions: ['Reponer repuesto', 'Registrar salida', 'Revisar stock bajo', 'Crear repuesto'],
+    actions: [
+      'Reponer repuesto',
+      'Registrar salida',
+      'Revisar stock bajo',
+      'Crear repuesto',
+    ],
   },
 };
 
@@ -197,9 +225,27 @@ export const clientes: Cliente[] = [
 ];
 
 export const inventoryItems: InventoryItem[] = [
-  { name: 'Aceite 10W-40', category: 'Lubricantes', stock: 6, minimum: 8 },
-  { name: 'Filtro de aire', category: 'Filtros', stock: 3, minimum: 6 },
-  { name: 'Bujias', category: 'Encendido', stock: 14, minimum: 10 },
+  {
+    name: 'Aceite 10W-40',
+    category: 'Lubricantes',
+    stock: 6,
+    minimum: 8,
+    unitPrice: 18000,
+  },
+  {
+    name: 'Filtro de aire',
+    category: 'Filtros',
+    stock: 3,
+    minimum: 6,
+    unitPrice: 12000,
+  },
+  {
+    name: 'Bujias',
+    category: 'Encendido',
+    stock: 14,
+    minimum: 10,
+    unitPrice: 4500,
+  },
 ];
 
 export const stockMovements: StockMovement[] = [

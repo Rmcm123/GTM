@@ -1,7 +1,19 @@
-import type { ActualizarClientePayload, CrearClientePayload } from '../api/clientesApi';
+import type {
+  ActualizarClientePayload,
+  CrearClientePayload,
+} from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
-import type { AlertaStockBajo, Cliente, InventarioFormulario, InventoryItem, RepuestoSolicitado, StockMovement, UserRole, WorkOrder } from '../types';
+import type {
+  AlertaStockBajo,
+  Cliente,
+  InventarioFormulario,
+  InventoryItem,
+  RepuestoSolicitado,
+  StockMovement,
+  UserRole,
+  WorkOrder,
+} from '../types';
 import { AdminView } from './AdminView';
 import { InventoryView } from './InventoryView';
 import { MechanicView } from './MechanicView';
@@ -56,7 +68,10 @@ export function RoleDashboard({
   mensajeOrden: string | null;
   mensajePago: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
-  onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
+  onActualizarCliente?: (
+    rut: string,
+    cliente: ActualizarClientePayload,
+  ) => Promise<boolean>;
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
@@ -67,7 +82,10 @@ export function RoleDashboard({
   movimientosInventario: StockMovement[];
   mensajeInventario: string | null;
   formularioInventario: InventarioFormulario;
-  onActualizarCampoInventario: (campo: keyof InventarioFormulario, valor: string) => void;
+  onActualizarCampoInventario: (
+    campo: keyof InventarioFormulario,
+    valor: string,
+  ) => void;
   onActualizarStockInventario: () => Promise<void>;
   onRegistrarEntradaInventario: () => Promise<void>;
   onRegistrarSalidaInventario: () => Promise<void>;
@@ -76,7 +94,13 @@ export function RoleDashboard({
   ordenesTrabajo: WorkOrder[];
   repuestosSolicitados: RepuestoSolicitado[];
   onActualizarEstadoOT: (id: string, estado: WorkOrder['status']) => void;
-  onSolicitarRepuesto: (nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) => void;
+  onSolicitarRepuesto: (
+    nombre: string,
+    cantidad: number,
+    mecanico: string,
+    ordenTrabajo: string,
+    observaciones?: string,
+  ) => void;
   onNavigate: (section: string) => void;
   role: UserRole;
 }) {
@@ -90,6 +114,7 @@ export function RoleDashboard({
         guardandoCliente={guardandoCliente}
         guardandoPago={guardandoPago}
         guardandoOrden={guardandoOrden}
+        inventario={inventario}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
@@ -104,7 +129,14 @@ export function RoleDashboard({
   }
 
   if (role === 'Mecanico') {
-    return <MechanicView activeSection={activeSection} ordenes={ordenesTrabajo} onActualizarEstado={onActualizarEstadoOT} onSolicitarRepuesto={onSolicitarRepuesto} />;
+    return (
+      <MechanicView
+        activeSection={activeSection}
+        ordenes={ordenesTrabajo}
+        onActualizarEstado={onActualizarEstadoOT}
+        onSolicitarRepuesto={onSolicitarRepuesto}
+      />
+    );
   }
 
   if (role === 'Inventario') {

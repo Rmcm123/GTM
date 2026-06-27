@@ -18,6 +18,7 @@ import {
   type CrearOrdenTrabajoPayload,
 } from './api/ordenesTrabajoApi';
 import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
+import { obtenerPerfil } from './api/perfilApi';
 import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
 import {
   actualizarEstadoUsuario,
@@ -136,6 +137,41 @@ function App() {
       );
     };
   }, []);
+
+  useEffect(() => {
+    if (!usuarioSesion) {
+      return;
+    }
+
+    let componenteActivo = true;
+
+    async function validarSesionActual() {
+      try {
+        const perfil = await obtenerPerfil();
+
+        if (!componenteActivo) {
+          return;
+        }
+
+        setUsuarioSesion(perfil);
+        setActiveRole(perfil.rol);
+      } catch {
+        if (!componenteActivo) {
+          return;
+        }
+
+        setUsuarioSesion(null);
+        setActiveRole('Administrador');
+        setActiveSection(roleConfig.Administrador.navItems[0]);
+      }
+    }
+
+    void validarSesionActual();
+
+    return () => {
+      componenteActivo = false;
+    };
+  }, [usuarioSesion?.id]);
 
   useEffect(() => {
     if (!usuarioSesion) {

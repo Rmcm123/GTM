@@ -36,6 +36,12 @@ export type CrearOrdenTrabajoPayload = {
   fechaIngreso: string;
   costoManoObra?: number;
   costoRepuestos?: number;
+  repuestos?: RepuestoOrdenPayload[];
+};
+
+export type RepuestoOrdenPayload = {
+  nombre: string;
+  cantidad: number;
 };
 
 function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {

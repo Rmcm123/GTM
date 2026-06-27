@@ -238,6 +238,50 @@ export class InventarioService implements OnModuleInit {
     return this.convertirARespuesta(repuestoGuardado);
   }
 
+  async calcularCostoRepuestos(
+    repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
+  ): Promise<number> {
+    let total = 0;
+
+    for (const repuestoSolicitado of repuestosSolicitados) {
+      this.validarNombre(repuestoSolicitado.nombre);
+      this.validarCantidadPositiva(repuestoSolicitado.cantidad);
+
+      const repuesto = await this.repositorioRepuestos.findOne({
+        where: { nombre: repuestoSolicitado.nombre.trim() },
+      });
+
+      if (!repuesto) {
+        throw new BadRequestException(
+          `El repuesto ${repuestoSolicitado.nombre} no existe en inventario`,
+        );
+      }
+
+      if (Number(repuestoSolicitado.cantidad) > repuesto.stock) {
+        throw new BadRequestException(
+          `No hay stock suficiente para ${repuesto.nombre}`,
+        );
+      }
+
+      total += repuesto.precioUnitario * Number(repuestoSolicitado.cantidad);
+    }
+
+    return total;
+  }
+
+  async registrarSalidasPorOrden(
+    ordenTrabajoId: number,
+    repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
+  ) {
+    for (const repuestoSolicitado of repuestosSolicitados) {
+      await this.registrarSalida({
+        nombre: repuestoSolicitado.nombre,
+        cantidad: repuestoSolicitado.cantidad,
+        nota: `Salida asociada a OT-${String(ordenTrabajoId).padStart(3, '0')}`,
+      });
+    }
+  }
+
   private async sembrarInventarioInicial() {
     const cantidadRepuestos = await this.repositorioRepuestos.count();
 

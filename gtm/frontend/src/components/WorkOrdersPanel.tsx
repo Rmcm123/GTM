@@ -147,6 +147,13 @@ export function WorkOrdersPanel({
     );
   }
 
+  function limpiarFormulario() {
+    setFormulario(formularioInicial);
+    setRepuestoSeleccionado('');
+    setCantidadRepuesto('1');
+    setRepuestosOrden([]);
+  }
+
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
@@ -158,11 +165,14 @@ export function WorkOrdersPanel({
       fechaIngreso: formulario.fechaIngreso,
       costoManoObra: Number(formulario.costoManoObra || 0),
       costoRepuestos: costoRepuestosCalculado,
+      repuestos: repuestosOrden.map((repuesto) => ({
+        nombre: repuesto.nombre,
+        cantidad: repuesto.cantidad,
+      })),
     });
 
     if (ordenCreada) {
-      setFormulario(formularioInicial);
-      setRepuestosOrden([]);
+      limpiarFormulario();
     }
   }
 
@@ -460,7 +470,7 @@ export function WorkOrdersPanel({
             <div className="flex flex-col gap-2 md:flex-row md:justify-end">
               <button
                 className="min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50"
-                onClick={() => setFormulario(formularioInicial)}
+                onClick={limpiarFormulario}
                 type="button"
               >
                 Limpiar

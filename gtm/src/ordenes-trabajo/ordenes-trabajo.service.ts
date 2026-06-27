@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
+import { InventarioService } from '../inventario/inventario.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
@@ -31,6 +32,7 @@ export class OrdenesTrabajoService {
     private readonly repositorioVehiculos: Repository<Vehiculo>,
     private readonly factory: OrdenTrabajoFactory,
     private readonly descuentosService: DescuentosService,
+    private readonly inventarioService: InventarioService,
   ) {}
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
@@ -75,10 +77,22 @@ export class OrdenesTrabajoService {
 
     const cliente = vehiculo.cliente;
     const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
+    const costoRepuestosCalculado =
+      await this.inventarioService.calcularCostoRepuestos(datosOrden.repuestos);
 
-    this.aplicarPresupuesto(orden, datosOrden, cliente, vehiculo);
+    this.aplicarPresupuesto(
+      orden,
+      datosOrden,
+      cliente,
+      vehiculo,
+      costoRepuestosCalculado,
+    );
 
     const ordenGuardada = await this.repositorioOrdenesTrabajo.save(orden);
+    await this.inventarioService.registrarSalidasPorOrden(
+      ordenGuardada.id,
+      datosOrden.repuestos,
+    );
 
     return this.convertirARespuesta(ordenGuardada);
   }
@@ -194,9 +208,13 @@ export class OrdenesTrabajoService {
     datosOrden: CrearOrdenTrabajoDto,
     cliente: Cliente,
     vehiculo: Vehiculo,
+    costoRepuestosCalculado: number,
   ) {
     const costoManoObra = this.normalizarMonto(datosOrden.costoManoObra);
-    const costoRepuestos = this.normalizarMonto(datosOrden.costoRepuestos);
+    const costoRepuestos =
+      datosOrden.repuestos && datosOrden.repuestos.length > 0
+        ? costoRepuestosCalculado
+        : this.normalizarMonto(datosOrden.costoRepuestos);
     const subtotal = costoManoObra + costoRepuestos;
     const descuento = this.descuentosService.calcularMejorDescuento(
       cliente,

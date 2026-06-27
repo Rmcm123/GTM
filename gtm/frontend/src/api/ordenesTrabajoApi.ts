@@ -1,4 +1,4 @@
-import type { WorkOrder } from '../types';
+import type { HistorialTiemposResponse, RegistroTiempo, WorkOrder } from '../types';
 import { crearHeadersAutenticados } from './sesionApi';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -149,4 +149,47 @@ export async function activarOrdenDesdeEspera(id: number): Promise<WorkOrder> {
   }
 
   return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}
+
+export async function iniciarTiempoTrabajo(id: number, descripcion?: string): Promise<RegistroTiempo> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/tiempos/iniciar`, {
+    method: 'POST',
+    headers: crearHeadersAutenticados({
+      'Content-Type': 'application/json',
+    }),
+    body: JSON.stringify({ descripcion }),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo iniciar el tiempo de trabajo');
+  }
+
+  return respuesta.json();
+}
+
+export async function detenerTiempoTrabajo(id: number): Promise<RegistroTiempo> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/tiempos/detener`, {
+    method: 'PATCH',
+    headers: crearHeadersAutenticados(),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo detener el tiempo de trabajo');
+  }
+
+  return respuesta.json();
+}
+
+export async function obtenerHistorialTiempos(id: number): Promise<HistorialTiemposResponse> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/tiempos`, {
+    headers: crearHeadersAutenticados(),
+  });
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar el historial de tiempos');
+  }
+
+  return respuesta.json();
 }

@@ -111,3 +111,17 @@ export type SummaryCardData = {
   helper: string;
   borderClass: string;
 };
+
+export type RegistroTiempo = {
+  id: string;
+  mecanico: string;
+  descripcion?: string;
+  fechaInicio: string;
+  fechaFin: string | null;
+  minutosTrabajados: number;
+};
+
+export type HistorialTiemposResponse = {
+  historial: RegistroTiempo[];
+  tiempoTotalMinutos: number;
+};

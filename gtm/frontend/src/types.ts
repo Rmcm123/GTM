@@ -42,6 +42,9 @@ export type Cliente = {
   nombre: string;
   telefono: string;
   correo: string;
+  esRegular?: boolean;
+  porcentajeDescuentoRegular?: number;
+  membresia?: 'Ninguna' | 'Bronce' | 'Plata' | 'Oro';
 };
 
 export type Vehiculo = {

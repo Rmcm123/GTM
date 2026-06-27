@@ -8,11 +8,13 @@ import type { WorkOrder } from '../types';
 
 export function MechanicView({
   activeSection,
+  mensajeEstadoOrden,
   ordenes,
   onActualizarEstado,
   onSolicitarRepuesto,
 }: {
   activeSection: string;
+  mensajeEstadoOrden: string | null;
   ordenes: WorkOrder[];
   onActualizarEstado: (id: string, estado: WorkOrder['status']) => void;
   onSolicitarRepuesto?: (nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) => void;
@@ -27,6 +29,7 @@ export function MechanicView({
   const [mostrarModalRepuesto, setMostrarModalRepuesto] = useState(false);
   const [repuestoSolicitado, setRepuestoSolicitado] = useState('');
   const [mensajeAccion, setMensajeAccion] = useState<string | null>(null);
+  const mensajeVisible = mensajeEstadoOrden ?? mensajeAccion;
 
   function handleAccionBotonesMecanico(accion: string) {
     if (!selectedOrder) {
@@ -263,9 +266,9 @@ export function MechanicView({
           )}
         </div>
         <div className="grid gap-[18px]">
-          {mensajeAccion && (
+          {mensajeVisible && (
             <div className="rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">
-              {mensajeAccion}
+              {mensajeVisible}
             </div>
           )}
           <ActionPanel actions={roleConfig.Mecanico.actions} onAction={handleAccionBotonesMecanico} />

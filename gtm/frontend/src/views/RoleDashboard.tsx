@@ -34,6 +34,7 @@ export function RoleDashboard({
   mensajeFormulario,
   mensajeOrden,
   mensajePago,
+  mensajeEstadoOrden,
   mensajeUsuarios,
   onCrearCliente,
   onActualizarCliente,
@@ -76,6 +77,7 @@ export function RoleDashboard({
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   mensajePago: string | null;
+  mensajeEstadoOrden: string | null;
   mensajeUsuarios: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onActualizarCliente?: (
@@ -149,6 +151,7 @@ export function RoleDashboard({
     return (
       <MechanicView
         activeSection={activeSection}
+        mensajeEstadoOrden={mensajeEstadoOrden}
         ordenes={ordenesTrabajo}
         onActualizarEstado={onActualizarEstadoOT}
         onSolicitarRepuesto={onSolicitarRepuesto}

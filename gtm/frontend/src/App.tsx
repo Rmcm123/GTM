@@ -96,6 +96,9 @@ function App() {
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
   const [mensajePago, setMensajePago] = useState<string | null>(null);
   const [mensajeUsuarios, setMensajeUsuarios] = useState<string | null>(null);
+  const [mensajeEstadoOrden, setMensajeEstadoOrden] = useState<string | null>(
+    null,
+  );
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [usuarios, setUsuarios] = useState<UsuarioSistema[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
@@ -697,12 +700,14 @@ function App() {
     nuevoEstado: WorkOrder['status'],
   ) {
     const idNumerico = parseInt(id.replace('OT-', ''), 10);
+    setMensajeEstadoOrden(null);
+
     try {
       await actualizarEstadoOrden(idNumerico, nuevoEstado);
       await recargarOrdenes();
+      setMensajeEstadoOrden('Estado actualizado correctamente.');
     } catch (error) {
-      console.error('Error al actualizar estado:', error);
-      alert(
+      setMensajeEstadoOrden(
         error instanceof Error
           ? error.message
           : 'No se pudo actualizar el estado de la orden',
@@ -765,6 +770,7 @@ function App() {
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
+        mensajeEstadoOrden={mensajeEstadoOrden}
         mensajeUsuarios={mensajeUsuarios}
         onCrearCliente={handleCrearCliente}
         onActualizarCliente={handleActualizarCliente}

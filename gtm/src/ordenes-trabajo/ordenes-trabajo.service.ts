@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
 import { InventarioService } from '../inventario/inventario.service';
@@ -33,6 +33,7 @@ export class OrdenesTrabajoService {
     private readonly factory: OrdenTrabajoFactory,
     private readonly descuentosService: DescuentosService,
     private readonly inventarioService: InventarioService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
@@ -60,41 +61,55 @@ export class OrdenesTrabajoService {
   async crear(
     datosOrden: CrearOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
-    await this.validarCuposDisponibles();
     this.validarDatosObligatorios(datosOrden);
 
-    const patenteNormalizada = datosOrden.patenteVehiculo.trim().toUpperCase();
-    const vehiculo = await this.repositorioVehiculos.findOne({
-      where: { patente: patenteNormalizada },
-      relations: ['cliente'],
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const repositorioOrdenesTrabajo = manager.getRepository(OrdenTrabajo);
+      const repositorioVehiculos = manager.getRepository(Vehiculo);
 
-    if (!vehiculo) {
-      throw new NotFoundException(
-        'No existe un vehiculo registrado con esa patente',
+      await this.validarCuposDisponiblesConRepositorio(
+        repositorioOrdenesTrabajo,
       );
-    }
 
-    const cliente = vehiculo.cliente;
-    const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
-    const costoRepuestosCalculado =
-      await this.inventarioService.calcularCostoRepuestos(datosOrden.repuestos);
+      const patenteNormalizada = datosOrden.patenteVehiculo
+        .trim()
+        .toUpperCase();
+      const vehiculo = await repositorioVehiculos.findOne({
+        where: { patente: patenteNormalizada },
+        relations: ['cliente'],
+      });
 
-    this.aplicarPresupuesto(
-      orden,
-      datosOrden,
-      cliente,
-      vehiculo,
-      costoRepuestosCalculado,
-    );
+      if (!vehiculo) {
+        throw new NotFoundException(
+          'No existe un vehiculo registrado con esa patente',
+        );
+      }
 
-    const ordenGuardada = await this.repositorioOrdenesTrabajo.save(orden);
-    await this.inventarioService.registrarSalidasPorOrden(
-      ordenGuardada.id,
-      datosOrden.repuestos,
-    );
+      const cliente = vehiculo.cliente;
+      const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
+      const costoRepuestosCalculado =
+        await this.inventarioService.calcularCostoRepuestosConManager(
+          manager,
+          datosOrden.repuestos,
+        );
 
-    return this.convertirARespuesta(ordenGuardada);
+      this.aplicarPresupuesto(
+        orden,
+        datosOrden,
+        cliente,
+        vehiculo,
+        costoRepuestosCalculado,
+      );
+
+      const ordenGuardada = await repositorioOrdenesTrabajo.save(orden);
+      await this.inventarioService.registrarSalidasPorOrdenConManager(
+        manager,
+        ordenGuardada.id,
+        datosOrden.repuestos,
+      );
+
+      return this.convertirARespuesta(ordenGuardada);
+    });
   }
 
   async actualizarEstado(
@@ -137,7 +152,15 @@ export class OrdenesTrabajoService {
   }
 
   private async validarCuposDisponibles(): Promise<void> {
-    const ordenesActivas = await this.repositorioOrdenesTrabajo.count({
+    await this.validarCuposDisponiblesConRepositorio(
+      this.repositorioOrdenesTrabajo,
+    );
+  }
+
+  private async validarCuposDisponiblesConRepositorio(
+    repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
+  ): Promise<void> {
+    const ordenesActivas = await repositorioOrdenesTrabajo.count({
       where: {
         estado: In([
           EstadoOrdenTrabajo.Pendiente,

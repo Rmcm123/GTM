@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   EstadoOrdenTrabajo,
   EstadoPagoOrden,
@@ -21,6 +21,7 @@ export class PagosService {
     private readonly repositorioPagos: Repository<Pago>,
     @InjectRepository(OrdenTrabajo)
     private readonly repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async buscarPorOrden(ordenTrabajoId: number): Promise<PagoRespuestaDto[]> {
@@ -36,71 +37,78 @@ export class PagosService {
   async registrar(datosPago: RegistrarPagoDto): Promise<PagoRespuestaDto> {
     this.validarDatosPago(datosPago);
 
-    const orden = await this.repositorioOrdenesTrabajo.findOne({
-      where: { id: Number(datosPago.ordenTrabajoId) },
+    return this.dataSource.transaction(async (manager) => {
+      const repositorioOrdenesTrabajo = manager.getRepository(OrdenTrabajo);
+      const repositorioPagos = manager.getRepository(Pago);
+
+      const orden = await repositorioOrdenesTrabajo.findOne({
+        where: { id: Number(datosPago.ordenTrabajoId) },
+      });
+
+      if (!orden) {
+        throw new NotFoundException(
+          'No existe una orden de trabajo con ese id',
+        );
+      }
+
+      if (
+        orden.estado === EstadoOrdenTrabajo.Entregada ||
+        orden.estado === EstadoOrdenTrabajo.Cancelada
+      ) {
+        throw new BadRequestException(
+          'No se pueden registrar pagos en una orden cerrada o cancelada',
+        );
+      }
+
+      if (orden.saldoPendiente <= 0) {
+        throw new BadRequestException('La orden ya se encuentra pagada');
+      }
+
+      if (datosPago.monto > orden.saldoPendiente) {
+        throw new BadRequestException(
+          'El monto del pago no puede superar el saldo pendiente',
+        );
+      }
+
+      if (
+        datosPago.tipoPago === TipoPago.Final &&
+        datosPago.monto < orden.saldoPendiente
+      ) {
+        throw new BadRequestException(
+          'El pago final debe cubrir todo el saldo pendiente',
+        );
+      }
+
+      const totalPagadoAnterior = orden.totalPagado;
+      orden.totalPagado += Math.round(datosPago.monto);
+      orden.saldoPendiente = Math.max(orden.total - orden.totalPagado, 0);
+      orden.estadoPago = this.calcularEstadoPago(orden);
+
+      if (
+        totalPagadoAnterior < orden.adelantoRequerido &&
+        orden.totalPagado < orden.adelantoRequerido
+      ) {
+        throw new BadRequestException(
+          'El primer pago debe cubrir al menos el adelanto requerido del 40%',
+        );
+      }
+
+      const pago = repositorioPagos.create({
+        ordenTrabajoId: orden.id,
+        ordenTrabajo: orden,
+        monto: Math.round(datosPago.monto),
+        tipoPago: datosPago.tipoPago,
+        medioPago: datosPago.medioPago,
+        referenciaTransaccion:
+          datosPago.referenciaTransaccion?.trim() || undefined,
+      });
+
+      await repositorioOrdenesTrabajo.save(orden);
+      const pagoGuardado = await repositorioPagos.save(pago);
+
+      pagoGuardado.ordenTrabajo = orden;
+      return this.convertirARespuesta(pagoGuardado);
     });
-
-    if (!orden) {
-      throw new NotFoundException('No existe una orden de trabajo con ese id');
-    }
-
-    if (
-      orden.estado === EstadoOrdenTrabajo.Entregada ||
-      orden.estado === EstadoOrdenTrabajo.Cancelada
-    ) {
-      throw new BadRequestException(
-        'No se pueden registrar pagos en una orden cerrada o cancelada',
-      );
-    }
-
-    if (orden.saldoPendiente <= 0) {
-      throw new BadRequestException('La orden ya se encuentra pagada');
-    }
-
-    if (datosPago.monto > orden.saldoPendiente) {
-      throw new BadRequestException(
-        'El monto del pago no puede superar el saldo pendiente',
-      );
-    }
-
-    if (
-      datosPago.tipoPago === TipoPago.Final &&
-      datosPago.monto < orden.saldoPendiente
-    ) {
-      throw new BadRequestException(
-        'El pago final debe cubrir todo el saldo pendiente',
-      );
-    }
-
-    const totalPagadoAnterior = orden.totalPagado;
-    orden.totalPagado += Math.round(datosPago.monto);
-    orden.saldoPendiente = Math.max(orden.total - orden.totalPagado, 0);
-    orden.estadoPago = this.calcularEstadoPago(orden);
-
-    if (
-      totalPagadoAnterior < orden.adelantoRequerido &&
-      orden.totalPagado < orden.adelantoRequerido
-    ) {
-      throw new BadRequestException(
-        'El primer pago debe cubrir al menos el adelanto requerido del 40%',
-      );
-    }
-
-    const pago = this.repositorioPagos.create({
-      ordenTrabajoId: orden.id,
-      ordenTrabajo: orden,
-      monto: Math.round(datosPago.monto),
-      tipoPago: datosPago.tipoPago,
-      medioPago: datosPago.medioPago,
-      referenciaTransaccion:
-        datosPago.referenciaTransaccion?.trim() || undefined,
-    });
-
-    await this.repositorioOrdenesTrabajo.save(orden);
-    const pagoGuardado = await this.repositorioPagos.save(pago);
-
-    pagoGuardado.ordenTrabajo = orden;
-    return this.convertirARespuesta(pagoGuardado);
   }
 
   private validarDatosPago(datosPago: RegistrarPagoDto) {

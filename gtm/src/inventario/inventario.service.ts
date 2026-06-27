@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { MovimientoInventario } from './movimiento-inventario.entity';
 import { Repuesto } from './repuesto.entity';
 import type { ActualizarStockDto } from './dto/actualizar-stock.dto';
@@ -241,13 +241,24 @@ export class InventarioService implements OnModuleInit {
   async calcularCostoRepuestos(
     repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
   ): Promise<number> {
+    return this.calcularCostoRepuestosConManager(
+      this.repositorioRepuestos.manager,
+      repuestosSolicitados,
+    );
+  }
+
+  async calcularCostoRepuestosConManager(
+    manager: EntityManager,
+    repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
+  ): Promise<number> {
     let total = 0;
+    const repositorioRepuestos = manager.getRepository(Repuesto);
 
     for (const repuestoSolicitado of repuestosSolicitados) {
       this.validarNombre(repuestoSolicitado.nombre);
       this.validarCantidadPositiva(repuestoSolicitado.cantidad);
 
-      const repuesto = await this.repositorioRepuestos.findOne({
+      const repuesto = await repositorioRepuestos.findOne({
         where: { nombre: repuestoSolicitado.nombre.trim() },
       });
 
@@ -273,13 +284,70 @@ export class InventarioService implements OnModuleInit {
     ordenTrabajoId: number,
     repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
   ) {
+    await this.registrarSalidasPorOrdenConManager(
+      this.repositorioRepuestos.manager,
+      ordenTrabajoId,
+      repuestosSolicitados,
+    );
+  }
+
+  async registrarSalidasPorOrdenConManager(
+    manager: EntityManager,
+    ordenTrabajoId: number,
+    repuestosSolicitados: { nombre: string; cantidad: number }[] = [],
+  ) {
     for (const repuestoSolicitado of repuestosSolicitados) {
-      await this.registrarSalida({
+      await this.registrarSalidaConManager(manager, {
         nombre: repuestoSolicitado.nombre,
         cantidad: repuestoSolicitado.cantidad,
         nota: `Salida asociada a OT-${String(ordenTrabajoId).padStart(3, '0')}`,
       });
     }
+  }
+
+  private async registrarSalidaConManager(
+    manager: EntityManager,
+    datos: RegistrarSalidaDto,
+  ): Promise<RepuestoRespuestaDto> {
+    this.validarNombre(datos.nombre);
+    this.validarCantidadPositiva(datos.cantidad);
+
+    const repositorioRepuestos = manager.getRepository(Repuesto);
+    const repositorioMovimientos = manager.getRepository(MovimientoInventario);
+    const nombreNormalizado = datos.nombre.trim();
+    const repuesto = await repositorioRepuestos.findOne({
+      where: { nombre: nombreNormalizado },
+    });
+
+    if (!repuesto) {
+      throw new BadRequestException('El repuesto no existe en inventario');
+    }
+
+    const stockAnterior = repuesto.stock;
+    const cantidadSalida = Number(datos.cantidad);
+
+    if (cantidadSalida > stockAnterior) {
+      throw new BadRequestException(
+        'No hay stock suficiente para registrar la salida',
+      );
+    }
+
+    repuesto.stock = stockAnterior - cantidadSalida;
+
+    const repuestoGuardado = await repositorioRepuestos.save(repuesto);
+    await repositorioMovimientos.save(
+      repositorioMovimientos.create({
+        repuestoId: repuestoGuardado.id,
+        tipo: 'Salida',
+        cantidad: cantidadSalida,
+        stockAnterior,
+        stockNuevo: repuestoGuardado.stock,
+        nota: datos.nota?.trim() || 'Salida de inventario',
+      }),
+    );
+    this.notificarCambioStock(repuestoGuardado, stockAnterior, 'Salida');
+
+    return this.convertirARespuesta(repuestoGuardado);
   }
 
   private async sembrarInventarioInicial() {

@@ -12,6 +12,7 @@ import {
   type CrearClientePayload,
 } from './api/clientesApi';
 import {
+  agregarRepuestosOrden,
   actualizarEstadoOrden,
   crearOrdenTrabajo,
   obtenerOrdenesTrabajo,
@@ -27,6 +28,7 @@ import {
 import {
   actualizarEstadoUsuario,
   crearUsuario,
+  obtenerMecanicos,
   obtenerUsuarios,
   type CrearUsuarioPayload,
 } from './api/usuariosApi';
@@ -106,6 +108,7 @@ function App() {
   );
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
   const [usuarios, setUsuarios] = useState<UsuarioSistema[]>([]);
+  const [mecanicos, setMecanicos] = useState<UsuarioSistema[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>(
     [],
@@ -288,6 +291,27 @@ function App() {
     }
 
     void cargarUsuarios();
+  }, [usuarioSesion]);
+
+  useEffect(() => {
+    if (
+      !usuarioSesion ||
+      !['Administrador', 'Recepcionista'].includes(usuarioSesion.rol)
+    ) {
+      setMecanicos([]);
+      return;
+    }
+
+    async function cargarMecanicos() {
+      try {
+        const mecanicosDesdeApi = await obtenerMecanicos();
+        setMecanicos(mecanicosDesdeApi);
+      } catch {
+        setMecanicos([]);
+      }
+    }
+
+    void cargarMecanicos();
   }, [usuarioSesion]);
 
   async function recargarClientes() {
@@ -756,13 +780,29 @@ function App() {
     }
   }
 
-  function handleSolicitarRepuesto(
+  async function handleSolicitarRepuesto(
     nombre: string,
     cantidad: number,
     mecanico: string,
     ordenTrabajo: string,
     observaciones?: string,
-  ) {
+  ): Promise<boolean> {
+    const idNumerico = parseInt(ordenTrabajo.replace('OT-', ''), 10);
+
+    try {
+      await agregarRepuestosOrden(idNumerico, [{ nombre, cantidad }]);
+      await recargarOrdenes();
+      const inventarioDesdeApi = await obtenerInventario();
+      setInventario(inventarioDesdeApi);
+    } catch (error) {
+      setMensajeEstadoOrden(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo agregar el repuesto a la orden',
+      );
+      return false;
+    }
+
     const nuevoRepuesto: RepuestoSolicitado = {
       id: `REQ-${Date.now()}`,
       nombre,
@@ -773,6 +813,8 @@ function App() {
       fecha: new Date().toISOString().split('T')[0],
     };
     setRepuestosSolicitados((actuales) => [...actuales, nuevoRepuesto]);
+    setMensajeEstadoOrden('Repuesto agregado al presupuesto de la orden.');
+    return true;
   }
 
   if (!usuarioSesion) {
@@ -823,6 +865,7 @@ function App() {
         ordenes={ordenes}
         cargandoUsuarios={cargandoUsuarios}
         usuarios={usuarios}
+        mecanicos={mecanicos}
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}
         inventario={inventario}
@@ -840,6 +883,7 @@ function App() {
         onActualizarEstadoOT={handleActualizarEstadoOT}
         onSolicitarRepuesto={handleSolicitarRepuesto}
         onNavigate={setActiveSection}
+        nombreUsuario={usuarioSesion.nombre}
         role={activeRole}
       />
     </AppLayout>

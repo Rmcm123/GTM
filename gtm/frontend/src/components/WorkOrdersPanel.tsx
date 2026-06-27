@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
-import type { InventoryItem, WorkOrder } from '../types';
+import type { InventoryItem, UsuarioSistema, WorkOrder } from '../types';
 import { Panel } from './Panel';
 
 type WorkOrdersPanelProps = {
@@ -9,6 +9,7 @@ type WorkOrdersPanelProps = {
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   inventario: InventoryItem[];
+  mecanicos: UsuarioSistema[];
 };
 
 type FormularioOrden = {
@@ -35,7 +36,6 @@ type RepuestoOrden = {
   precioUnitario: number;
 };
 
-const mecanicos = ['Camila Torres', 'Matias Rojas', 'Diego Silva'];
 const tiposServicio = [
   'Revision general',
   'Mantencion',
@@ -80,6 +80,7 @@ export function WorkOrdersPanel({
   onCrearOrden,
   ordenes,
   inventario,
+  mecanicos,
 }: WorkOrdersPanelProps) {
   const [formulario, setFormulario] =
     useState<FormularioOrden>(formularioInicial);
@@ -319,11 +320,16 @@ export function WorkOrdersPanel({
                 >
                   <option value="">Seleccionar mecanico</option>
                   {mecanicos.map((mecanico) => (
-                    <option key={mecanico} value={mecanico}>
-                      {mecanico}
+                    <option key={mecanico.id} value={mecanico.nombre}>
+                      {mecanico.nombre}
                     </option>
                   ))}
                 </select>
+                {mecanicos.length === 0 && (
+                  <span className="text-[12px] font-bold text-[#9a4b00]">
+                    No hay mecanicos activos cargados.
+                  </span>
+                )}
               </label>
 
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">

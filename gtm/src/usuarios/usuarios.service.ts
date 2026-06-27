@@ -57,6 +57,18 @@ export class UsuariosService implements OnModuleInit {
     return usuarios.map((usuario) => this.convertirARespuesta(usuario));
   }
 
+  async buscarMecanicosActivos(): Promise<UsuarioRespuestaDto[]> {
+    const usuarios = await this.repositorioUsuarios.find({
+      order: { nombre: 'ASC' },
+      where: {
+        activo: true,
+        rol: RolUsuario.Mecanico,
+      },
+    });
+
+    return usuarios.map((usuario) => this.convertirARespuesta(usuario));
+  }
+
   async buscarPorId(id: string): Promise<Usuario | null> {
     return this.repositorioUsuarios.findOne({ where: { id } });
   }

@@ -9,7 +9,12 @@ import type { CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
 import { receptionSummary, roleConfig } from '../data/mockData';
-import type { Cliente, InventoryItem, WorkOrder } from '../types';
+import type {
+  Cliente,
+  InventoryItem,
+  UsuarioSistema,
+  WorkOrder,
+} from '../types';
 
 export function ReceptionDashboard({
   ordenes,
@@ -58,6 +63,7 @@ export function ReceptionView({
   guardandoPago,
   guardandoOrden,
   inventario,
+  mecanicos,
   mensajeFormulario,
   mensajeOrden,
   mensajePago,
@@ -76,6 +82,7 @@ export function ReceptionView({
   guardandoPago: boolean;
   guardandoOrden: boolean;
   inventario: InventoryItem[];
+  mecanicos: UsuarioSistema[];
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   mensajePago: string | null;
@@ -108,6 +115,7 @@ export function ReceptionView({
       <WorkOrdersPanel
         guardandoOrden={guardandoOrden}
         inventario={inventario}
+        mecanicos={mecanicos}
         mensajeOrden={mensajeOrden}
         onCrearOrden={onCrearOrden}
         ordenes={ordenes}

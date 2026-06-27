@@ -6,9 +6,7 @@ import {
 } from './orden-trabajo.entity';
 import { OrdenesTrabajoService } from './ordenes-trabajo.service';
 
-function crearOrdenBase(
-  datos: Partial<OrdenTrabajo> = {},
-): OrdenTrabajo {
+function crearOrdenBase(datos: Partial<OrdenTrabajo> = {}): OrdenTrabajo {
   return {
     adelantoRequerido: 40000,
     cliente: {
@@ -61,6 +59,46 @@ function crearService(orden: OrdenTrabajo) {
   );
 
   return { repositorioOrdenesTrabajo, service };
+}
+
+function crearServiceParaRepuestos(orden: OrdenTrabajo) {
+  const repositorioOrdenesTrabajo = {
+    findOne: jest.fn().mockResolvedValue(orden),
+    save: jest.fn().mockImplementation(async (entidad) => entidad),
+  };
+  const manager = {
+    getRepository: jest.fn().mockReturnValue(repositorioOrdenesTrabajo),
+  };
+  const dataSource = {
+    transaction: jest.fn((callback) => callback(manager)),
+  };
+  const descuentosService = {
+    calcularMejorDescuento: jest.fn().mockReturnValue({
+      motivo: 'Sin descuento',
+      porcentaje: 0,
+    }),
+  };
+  const inventarioService = {
+    calcularCostoRepuestosConManager: jest.fn().mockResolvedValue(25000),
+    registrarSalidasPorOrdenConManager: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const service = new OrdenesTrabajoService(
+    repositorioOrdenesTrabajo as never,
+    {} as never,
+    {} as never,
+    {} as never,
+    descuentosService as never,
+    inventarioService as never,
+    dataSource as never,
+  );
+
+  return {
+    descuentosService,
+    inventarioService,
+    repositorioOrdenesTrabajo,
+    service,
+  };
 }
 
 describe('OrdenesTrabajoService', () => {
@@ -145,5 +183,37 @@ describe('OrdenesTrabajoService', () => {
       }),
     );
     expect(respuesta.estado).toBe(EstadoOrdenTrabajo.Entregada);
+  });
+
+  it('agrega repuestos solicitados y recalcula total y saldo de la orden', async () => {
+    const orden = crearOrdenBase({
+      costoManoObra: 70000,
+      costoRepuestos: 30000,
+      saldoPendiente: 60000,
+      subtotal: 100000,
+      total: 100000,
+      totalPagado: 40000,
+    });
+    const { inventarioService, repositorioOrdenesTrabajo, service } =
+      crearServiceParaRepuestos(orden);
+
+    const respuesta = await service.agregarRepuestos(1, {
+      repuestos: [{ cantidad: 1, nombre: 'Filtro de aire' }],
+    });
+
+    expect(
+      inventarioService.registrarSalidasPorOrdenConManager,
+    ).toHaveBeenCalledWith(expect.anything(), 1, [
+      { cantidad: 1, nombre: 'Filtro de aire' },
+    ]);
+    expect(repositorioOrdenesTrabajo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        costoRepuestos: 55000,
+        saldoPendiente: 85000,
+        subtotal: 125000,
+        total: 125000,
+      }),
+    );
+    expect(respuesta.saldoPendiente).toBe(85000);
   });
 });

@@ -21,6 +21,19 @@ export async function obtenerUsuarios(): Promise<UsuarioSistema[]> {
   return (await respuesta.json()) as UsuarioSistema[];
 }
 
+export async function obtenerMecanicos(): Promise<UsuarioSistema[]> {
+  const respuesta = await fetchAutenticado(`${API_URL}/usuarios/mecanicos`);
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(
+      error?.message ?? 'No se pudo cargar la lista de mecanicos',
+    );
+  }
+
+  return (await respuesta.json()) as UsuarioSistema[];
+}
+
 export async function crearUsuario(
   usuario: CrearUsuarioPayload,
 ): Promise<UsuarioSistema> {

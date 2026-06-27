@@ -2,28 +2,13 @@ import { useState } from 'react';
 import { iniciarSesion } from '../api/autenticacionApi';
 import type { UsuarioSesion } from '../api/sesionApi';
 
-const cuentasDemo = [
-  { rol: 'Administrador', correo: 'admin@gtm.cl', contrasena: 'Admin1234' },
-  {
-    rol: 'Recepcionista',
-    correo: 'recepcion@gtm.cl',
-    contrasena: 'Recepcion1234',
-  },
-  { rol: 'Mecanico', correo: 'mecanico@gtm.cl', contrasena: 'Mecanico1234' },
-  {
-    rol: 'Inventario',
-    correo: 'inventario@gtm.cl',
-    contrasena: 'Inventario1234',
-  },
-];
-
 export function LoginView({
   onLogin,
 }: {
   onLogin: (usuario: UsuarioSesion) => void;
 }) {
-  const [correo, setCorreo] = useState('admin@gtm.cl');
-  const [contrasena, setContrasena] = useState('Admin1234');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,28 +98,6 @@ export function LoginView({
               {cargando ? 'Ingresando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-6 grid gap-2">
-            <span className="text-[12px] font-extrabold uppercase text-[#64748b]">
-              Cuentas de prueba
-            </span>
-            <div className="grid gap-2">
-              {cuentasDemo.map((cuenta) => (
-                <button
-                  className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-left text-[13px] transition-colors hover:border-[#0f6872] hover:bg-[#edfafa]"
-                  key={cuenta.correo}
-                  onClick={() => {
-                    setCorreo(cuenta.correo);
-                    setContrasena(cuenta.contrasena);
-                  }}
-                  type="button"
-                >
-                  <strong className="block text-[#111827]">{cuenta.rol}</strong>
-                  <span className="text-[#64748b]">{cuenta.correo}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
     </main>

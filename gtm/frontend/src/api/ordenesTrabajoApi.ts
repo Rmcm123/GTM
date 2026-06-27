@@ -128,3 +128,28 @@ export async function actualizarEstadoOrden(
 
   return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
 }
+
+export async function agregarRepuestosOrden(
+  id: number,
+  repuestos: RepuestoOrdenPayload[],
+): Promise<WorkOrder> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/repuestos`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ repuestos }),
+    },
+  );
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(
+      error?.message ?? 'No se pudieron agregar los repuestos a la orden',
+    );
+  }
+
+  return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}

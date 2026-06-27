@@ -27,6 +27,12 @@ export class UsuariosController {
     return this.usuariosService.buscarTodos();
   }
 
+  @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)
+  @Get('mecanicos')
+  buscarMecanicos(): Promise<UsuarioRespuestaDto[]> {
+    return this.usuariosService.buscarMecanicosActivos();
+  }
+
   @Post()
   crear(@Body() datosUsuario: CrearUsuarioDto): Promise<UsuarioRespuestaDto> {
     return this.usuariosService.crear(datosUsuario);

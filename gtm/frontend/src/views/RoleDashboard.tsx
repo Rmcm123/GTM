@@ -47,6 +47,7 @@ export function RoleDashboard({
   cargandoInventario,
   cargandoUsuarios,
   usuarios,
+  mecanicos,
   inventario,
   alertasStockBajo,
   movimientosInventario,
@@ -64,6 +65,7 @@ export function RoleDashboard({
   onSolicitarRepuesto,
   onNavigate,
   role,
+  nombreUsuario,
 }: {
   activeSection: string;
   cargandoClientes: boolean;
@@ -96,6 +98,7 @@ export function RoleDashboard({
   cargandoInventario: boolean;
   cargandoUsuarios: boolean;
   usuarios: UsuarioSistema[];
+  mecanicos: UsuarioSistema[];
   inventario: InventoryItem[];
   alertasStockBajo: AlertaStockBajo[];
   movimientosInventario: StockMovement[];
@@ -119,9 +122,10 @@ export function RoleDashboard({
     mecanico: string,
     ordenTrabajo: string,
     observaciones?: string,
-  ) => void;
+  ) => Promise<boolean>;
   onNavigate: (section: string) => void;
   role: UserRole;
+  nombreUsuario: string;
 }) {
   if (role === 'Recepcionista') {
     return (
@@ -134,6 +138,7 @@ export function RoleDashboard({
         guardandoPago={guardandoPago}
         guardandoOrden={guardandoOrden}
         inventario={inventario}
+        mecanicos={mecanicos}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
@@ -151,7 +156,9 @@ export function RoleDashboard({
     return (
       <MechanicView
         activeSection={activeSection}
+        inventario={inventario}
         mensajeEstadoOrden={mensajeEstadoOrden}
+        nombreUsuario={nombreUsuario}
         ordenes={ordenesTrabajo}
         onActualizarEstado={onActualizarEstadoOT}
         onSolicitarRepuesto={onSolicitarRepuesto}

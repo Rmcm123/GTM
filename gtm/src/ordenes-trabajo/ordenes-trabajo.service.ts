@@ -10,6 +10,7 @@ import { DescuentosService } from '../descuentos/descuentos.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
+import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import {
@@ -151,6 +152,60 @@ export class OrdenesTrabajoService {
     return this.convertirARespuesta(ordenActualizada);
   }
 
+  async agregarRepuestos(
+    id: number,
+    datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    if (!datosRepuestos.repuestos || datosRepuestos.repuestos.length === 0) {
+      throw new BadRequestException('Debe indicar al menos un repuesto');
+    }
+
+    return this.dataSource.transaction(async (manager) => {
+      const repositorioOrdenesTrabajo = manager.getRepository(OrdenTrabajo);
+      const orden = await repositorioOrdenesTrabajo.findOne({
+        where: { id },
+        relations: ['cliente', 'vehiculo'],
+      });
+
+      if (!orden) {
+        throw new NotFoundException(
+          'No existe una orden de trabajo con ese id',
+        );
+      }
+
+      if (
+        [
+          EstadoOrdenTrabajo.Finalizada,
+          EstadoOrdenTrabajo.Entregada,
+          EstadoOrdenTrabajo.Cancelada,
+        ].includes(orden.estado)
+      ) {
+        throw new BadRequestException(
+          'No se pueden agregar repuestos a una orden cerrada o cancelada',
+        );
+      }
+
+      const costoAdicional =
+        await this.inventarioService.calcularCostoRepuestosConManager(
+          manager,
+          datosRepuestos.repuestos,
+        );
+
+      await this.inventarioService.registrarSalidasPorOrdenConManager(
+        manager,
+        orden.id,
+        datosRepuestos.repuestos,
+      );
+
+      orden.costoRepuestos += costoAdicional;
+      this.recalcularTotales(orden);
+
+      const ordenActualizada = await repositorioOrdenesTrabajo.save(orden);
+
+      return this.convertirARespuesta(ordenActualizada);
+    });
+  }
+
   private async validarCuposDisponibles(): Promise<void> {
     await this.validarCuposDisponiblesConRepositorio(
       this.repositorioOrdenesTrabajo,
@@ -257,6 +312,37 @@ export class OrdenesTrabajoService {
     orden.totalPagado = 0;
     orden.saldoPendiente = total;
     orden.estadoPago = EstadoPagoOrden.SinPago;
+  }
+
+  private recalcularTotales(orden: OrdenTrabajo) {
+    const subtotal = orden.costoManoObra + orden.costoRepuestos;
+    const descuento = this.descuentosService.calcularMejorDescuento(
+      orden.cliente,
+      orden.vehiculo,
+    );
+    const montoDescuento = Math.round(subtotal * (descuento.porcentaje / 100));
+    const total = Math.max(subtotal - montoDescuento, 0);
+
+    orden.subtotal = subtotal;
+    orden.porcentajeDescuento = descuento.porcentaje;
+    orden.montoDescuento = montoDescuento;
+    orden.motivoDescuento = descuento.motivo;
+    orden.total = total;
+    orden.adelantoRequerido = Math.ceil(total * 0.4);
+    orden.saldoPendiente = Math.max(total - orden.totalPagado, 0);
+    orden.estadoPago = this.obtenerEstadoPago(orden);
+  }
+
+  private obtenerEstadoPago(orden: OrdenTrabajo): EstadoPagoOrden {
+    if (orden.saldoPendiente <= 0) {
+      return EstadoPagoOrden.Pagada;
+    }
+
+    if (orden.totalPagado >= orden.adelantoRequerido) {
+      return EstadoPagoOrden.AdelantoPagado;
+    }
+
+    return EstadoPagoOrden.SinPago;
   }
 
   private normalizarMonto(monto?: number): number {

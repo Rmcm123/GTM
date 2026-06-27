@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from '../autenticacion/guards/roles.guard';
 import { RolUsuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
+import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { OrdenesTrabajoFacade } from './ordenes-trabajo.facade';
@@ -63,5 +64,14 @@ export class OrdenesTrabajoController {
     @Body() datosActualizacion: ActualizarEstadoOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.facade.actualizarEstado(id, datosActualizacion.estado);
+  }
+
+  @Roles(RolUsuario.Administrador, RolUsuario.Mecanico)
+  @Patch(':id/repuestos')
+  agregarRepuestos(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    return this.facade.agregarRepuestos(id, datosRepuestos);
   }
 }

@@ -19,6 +19,7 @@ export enum EstadoOrdenTrabajo {
   Finalizada = 'Finalizada',
   Entregada = 'Entregada',
   Cancelada = 'Cancelada',
+  EnEspera = 'En espera',
 }
 
 export enum EstadoPagoOrden {

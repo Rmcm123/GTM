@@ -34,4 +34,12 @@ export class OrdenesTrabajoFacade {
       estado: nuevoEstado,
     });
   }
+
+  async obtenerListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    return this.ordenesService.buscarListaEspera();
+  }
+
+  async activarOrden(id: number): Promise<OrdenTrabajoRespuestaDto> {
+    return this.ordenesService.activarDesdeEspera(id);
+  }
 }

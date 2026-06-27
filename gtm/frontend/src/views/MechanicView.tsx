@@ -17,7 +17,7 @@ export function MechanicView({
   onActualizarEstado: (id: string, estado: WorkOrder['status']) => void;
   onSolicitarRepuesto?: (nombre: string, cantidad: number, mecanico: string, ordenTrabajo: string, observaciones?: string) => void;
 }) {
-  const mechanicOrders = ordenes.filter((order) => order.mechanic === 'Camila Torres');
+  const mechanicOrders = ordenes.filter((order) => order.mechanic === 'Camila Torres' && order.status !== 'En espera');
   const ordenesActivas = mechanicOrders.filter((order) => order.status !== 'Finalizada');
   const ordenesFinalizadas = mechanicOrders.filter((order) => order.status === 'Finalizada');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);

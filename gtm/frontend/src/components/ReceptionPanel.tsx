@@ -17,6 +17,9 @@ const formularioInicial: CrearClientePayload = {
   nombre: '',
   telefono: '',
   correo: '',
+  esRegular: false,
+  porcentajeDescuentoRegular: 0,
+  membresia: 'Ninguna',
 };
 
 const inputClass =
@@ -39,6 +42,13 @@ export function ReceptionPanel({
     }));
   }
 
+  function actualizarCampoBooleano(campo: keyof CrearClientePayload, valor: boolean) {
+    setFormulario((actual) => ({
+      ...actual,
+      [campo]: valor,
+    }));
+  }
+
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
@@ -47,6 +57,9 @@ export function ReceptionPanel({
       nombre: formulario.nombre,
       telefono: formulario.telefono,
       correo: formulario.correo,
+      esRegular: Boolean(formulario.esRegular),
+      porcentajeDescuentoRegular: Number(formulario.porcentajeDescuentoRegular || 0),
+      membresia: formulario.membresia,
     });
 
     if (clienteGuardado) {
@@ -80,6 +93,35 @@ export function ReceptionPanel({
             Correo
             <input className={inputClass} onChange={(evento) => actualizarCampo('correo', evento.target.value)} placeholder="cliente@correo.cl" type="email" value={formulario.correo} />
           </label>
+          <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+            Membresia
+            <select className={inputClass} onChange={(evento) => actualizarCampo('membresia', evento.target.value)} value={formulario.membresia}>
+              <option value="Ninguna">Sin membresia</option>
+              <option value="Bronce">Bronce - 10%</option>
+              <option value="Plata">Plata - 12.5%</option>
+              <option value="Oro">Oro - 15%</option>
+            </select>
+          </label>
+          <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
+            Descuento cliente regular
+            <input
+              className={inputClass}
+              max="10"
+              min="0"
+              onChange={(evento) => actualizarCampo('porcentajeDescuentoRegular', evento.target.value)}
+              placeholder="0 a 10"
+              type="number"
+              value={formulario.porcentajeDescuentoRegular}
+            />
+          </label>
+          <label className="flex min-h-10 items-center gap-2 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[13px] font-bold text-[#475569] md:col-span-2">
+            <input
+              checked={Boolean(formulario.esRegular)}
+              onChange={(evento) => actualizarCampoBooleano('esRegular', evento.target.checked)}
+              type="checkbox"
+            />
+            Cliente regular
+          </label>
         </div>
 
         {mensajeFormulario && <p className="m-0 rounded-[7px] bg-[#eef4f2] p-3 text-[14px] font-bold text-[#0f6b52]">{mensajeFormulario}</p>}
@@ -108,7 +150,12 @@ export function ReceptionPanel({
                 <strong className="block text-[14px] text-[#111827]">{cliente.nombre}</strong>
                 <span className="text-[13px] text-[#64748b]">{cliente.rut} - {cliente.telefono}</span>
               </div>
-              <span className="text-left text-[13px] font-bold text-[#64748b] md:text-right">{cliente.correo}</span>
+              <div className="text-left text-[13px] font-bold text-[#64748b] md:text-right">
+                <span className="block">{cliente.correo}</span>
+                <span className="block">
+                  {cliente.membresia ?? 'Ninguna'} · Regular: {cliente.esRegular ? `${cliente.porcentajeDescuentoRegular ?? 0}%` : 'No'}
+                </span>
+              </div>
             </div>
           ))}
         </div>

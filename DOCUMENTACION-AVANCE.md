@@ -513,3 +513,128 @@ inventario@gtm.cl / Inventario1234
 ```
 
 Este avance deja lista la base para proteger posteriormente clientes, vehiculos, ordenes, inventario y pagos segun rol.
+
+### Proteccion de endpoints por rol
+
+Se aplicaron `JwtAuthGuard`, `RolesGuard` y el decorador `@Roles()` en los modulos principales del backend.
+
+Permisos actuales:
+
+```text
+Clientes:
+- Administrador
+- Recepcionista
+
+Vehiculos:
+- Administrador
+- Recepcionista
+
+Ordenes de trabajo:
+- Ver ordenes: Administrador, Recepcionista, Mecanico
+- Crear ordenes: Administrador, Recepcionista
+- Actualizar estado: Administrador, Recepcionista, Mecanico
+
+Inventario:
+- Administrador
+- Inventario
+```
+
+Con esto, los endpoints principales ya no quedan abiertos publicamente: requieren un access token valido enviado en el header `Authorization: Bearer`.
+
+Los endpoints de autenticacion siguen siendo publicos para permitir login y renovacion de sesion:
+
+```text
+POST /auth/login
+POST /auth/refresh
+```
+
+### Login en frontend
+
+Se agrego una pantalla de login en React para usar los usuarios reales creados en backend.
+
+Archivos principales:
+
+- `gtm/frontend/src/views/LoginView.tsx`: formulario de inicio de sesion y accesos de prueba por rol.
+- `gtm/frontend/src/api/autenticacionApi.ts`: consumo de `POST /auth/login`, `POST /auth/refresh` y `POST /auth/logout`.
+- `gtm/frontend/src/api/sesionApi.ts`: almacenamiento de access token, refresh token y usuario autenticado.
+
+Cambios de comportamiento:
+
+- Si no existe usuario autenticado, la aplicacion muestra el login.
+- Al iniciar sesion, el rol visual se fija segun el rol real del usuario.
+- Se bloquea el cambio manual de rol en el sidebar.
+- Las llamadas a clientes, vehiculos, ordenes e inventario envian el header `Authorization: Bearer`.
+- El sidebar muestra usuario activo y boton para cerrar sesion.
+
+### Presupuesto de orden y descuentos
+
+Se comenzo el bloque financiero agregando campos de presupuesto a las ordenes de trabajo:
+
+- Costo de mano de obra.
+- Costo de repuestos.
+- Subtotal.
+- Porcentaje y monto de descuento aplicado.
+- Motivo del descuento.
+- Total final.
+- Adelanto requerido del 40%.
+- Total pagado.
+- Saldo pendiente.
+- Estado de pago.
+
+Tambien se agregaron datos comerciales al cliente para poder aplicar reglas de descuento:
+
+- Cliente regular.
+- Porcentaje de descuento por cliente regular.
+- Membresia: Ninguna, Bronce, Plata u Oro.
+
+El calculo de descuentos se implemento en el modulo `descuentos` usando el patron Strategy. Cada regla de descuento esta separada en una estrategia:
+
+- `DescuentoMarcaStrategy`: aplica 5% si el vehiculo es Toyota o Mitsubishi.
+- `DescuentoClienteRegularStrategy`: aplica el porcentaje configurado para clientes regulares.
+- `DescuentoMembresiaStrategy`: aplica Bronce 10%, Plata 12.5% u Oro 15%.
+
+El servicio `DescuentosService` evalua todas las estrategias y selecciona solo el descuento mas alto, cumpliendo la regla de negocio BR-4: los descuentos no se acumulan.
+
+Con esto, al crear una orden de trabajo, el backend calcula automaticamente el presupuesto inicial y el adelanto minimo requerido.
+
+### Gestion de pagos y cierre de ordenes
+
+Se agrego el modulo `pagos` para registrar pagos asociados a una orden de trabajo.
+
+Archivos principales:
+
+- `gtm/src/pagos/pago.entity.ts`: representa la tabla `pagos`.
+- `gtm/src/pagos/pagos.service.ts`: valida y registra pagos, actualizando el saldo de la orden.
+- `gtm/src/pagos/pagos.controller.ts`: expone los endpoints del modulo.
+- `gtm/src/pagos/dto/registrar-pago.dto.ts`: define los datos necesarios para registrar un pago.
+- `gtm/src/pagos/dto/pago-respuesta.dto.ts`: define la respuesta entregada por la API.
+
+Endpoints agregados:
+
+```text
+GET /pagos/orden/:ordenTrabajoId
+POST /pagos
+```
+
+Reglas implementadas:
+
+- El monto del pago debe ser mayor a cero.
+- No se puede pagar una orden ya pagada.
+- El pago no puede superar el saldo pendiente.
+- El pago final debe cubrir todo el saldo pendiente.
+- El primer pago debe cubrir al menos el adelanto requerido del 40%.
+- Una orden no puede pasar a `En proceso` si no tiene pagado el adelanto.
+- Una orden no puede pasar a `Entregada` si tiene saldo pendiente.
+- Una orden debe estar `Finalizada` antes de marcarse como `Entregada`.
+
+Con esto se avanza en las reglas BR-5 y BR-6, relacionadas con adelanto obligatorio y pago total antes de la entrega.
+
+En frontend se agrego la seccion `Pagos` para el rol Recepcionista. Desde esta vista se puede seleccionar una orden con saldo pendiente, registrar adelanto, pago parcial o pago final, y ver total, adelanto requerido, pagado y saldo pendiente. Ademas, el formulario de apertura de orden ahora permite ingresar costo de mano de obra y costo de repuestos para que el presupuesto se calcule desde el backend.
+
+Tambien se actualizo el formulario de clientes para registrar datos comerciales usados por las reglas de descuento: cliente regular, porcentaje de descuento regular y membresia. Esto permite demostrar desde la interfaz que el presupuesto de una orden aplica automaticamente el descuento mas alto disponible.
+
+Se mejoro la visualizacion del presupuesto en frontend: la tabla de ordenes muestra total, descuento aplicado, estado de pago, monto pagado y saldo pendiente. La vista de pagos tambien muestra descuento y estado de pago al seleccionar una orden.
+
+Se completo el flujo visual de cierre: cuando una orden esta `Finalizada` y sin saldo pendiente, la vista de pagos permite marcarla como `Entregada` desde recepcion.
+
+Se ajusto el presupuesto de repuestos para que deje de ser manual. El inventario ahora maneja `precioUnitario` por repuesto y, al abrir una orden de trabajo, recepcion puede seleccionar repuestos y cantidades. El frontend calcula automaticamente el costo total de repuestos y lo envia al backend como parte del presupuesto de la orden. La mano de obra se mantiene manual por ahora, ya que mas adelante puede calcularse mediante tarifas por tipo de servicio o por horas trabajadas.

@@ -9,6 +9,13 @@ import {
 import { OrdenTrabajo } from '../ordenes-trabajo/orden-trabajo.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 
+export enum MembresiaCliente {
+  Ninguna = 'Ninguna',
+  Bronce = 'Bronce',
+  Plata = 'Plata',
+  Oro = 'Oro',
+}
+
 @Entity({ name: 'clientes' })
 export class Cliente {
   @PrimaryGeneratedColumn('uuid')
@@ -25,6 +32,19 @@ export class Cliente {
 
   @Column()
   correo: string;
+
+  @Column({ name: 'es_regular', default: false })
+  esRegular: boolean;
+
+  @Column({ name: 'porcentaje_descuento_regular', default: 0, type: 'float' })
+  porcentajeDescuentoRegular: number;
+
+  @Column({
+    enum: MembresiaCliente,
+    default: MembresiaCliente.Ninguna,
+    type: 'enum',
+  })
+  membresia: MembresiaCliente;
 
   @OneToMany(() => Vehiculo, (vehiculo) => vehiculo.cliente)
   vehiculos: Vehiculo[];

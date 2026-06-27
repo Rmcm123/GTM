@@ -6,11 +6,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
+import { DescuentosService } from '../descuentos/descuentos.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
-import { EstadoOrdenTrabajo, OrdenTrabajo } from './orden-trabajo.entity';
+import {
+  EstadoOrdenTrabajo,
+  EstadoPagoOrden,
+  OrdenTrabajo,
+} from './orden-trabajo.entity';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
 
 const LIMITE_ORDENES_ACTIVAS = 5;
@@ -25,6 +30,7 @@ export class OrdenesTrabajoService {
     @InjectRepository(Vehiculo)
     private readonly repositorioVehiculos: Repository<Vehiculo>,
     private readonly factory: OrdenTrabajoFactory,
+    private readonly descuentosService: DescuentosService,
   ) {}
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
@@ -68,9 +74,9 @@ export class OrdenesTrabajoService {
     }
 
     const cliente = vehiculo.cliente;
-
-    // Usar factory para crear la orden
     const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
+
+    this.aplicarPresupuesto(orden, datosOrden, cliente, vehiculo);
 
     const ordenGuardada = await this.repositorioOrdenesTrabajo.save(orden);
 
@@ -90,9 +96,12 @@ export class OrdenesTrabajoService {
       throw new NotFoundException('No existe una orden de trabajo con ese id');
     }
 
-    if (orden.estado === EstadoOrdenTrabajo.Finalizada) {
+    if (
+      orden.estado === EstadoOrdenTrabajo.Finalizada &&
+      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada
+    ) {
       throw new BadRequestException(
-        'Esta orden ya fue finalizada. Su estado es permanente y no puede ser modificado.',
+        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada.',
       );
     }
 
@@ -104,6 +113,8 @@ export class OrdenesTrabajoService {
     if (!estadosValidos.includes(datosActualizacion.estado)) {
       throw new BadRequestException('El estado indicado no es valido');
     }
+
+    this.validarCambioEstado(orden, datosActualizacion.estado);
 
     orden.estado = datosActualizacion.estado;
     const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
@@ -124,7 +135,7 @@ export class OrdenesTrabajoService {
 
     if (ordenesActivas >= LIMITE_ORDENES_ACTIVAS) {
       throw new BadRequestException(
-        'No hay cupos disponibles. El límite de 5 órdenes activas ha sido alcanzado.',
+        'No hay cupos disponibles. El limite de 5 ordenes activas ha sido alcanzado.',
       );
     }
   }
@@ -146,6 +157,81 @@ export class OrdenesTrabajoService {
     }
   }
 
+  private validarCambioEstado(
+    orden: OrdenTrabajo,
+    nuevoEstado: EstadoOrdenTrabajo,
+  ) {
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.EnProceso &&
+      orden.totalPagado < orden.adelantoRequerido
+    ) {
+      throw new BadRequestException(
+        'La orden no puede pasar a En proceso sin pagar el adelanto requerido del 40%',
+      );
+    }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.Entregada &&
+      orden.saldoPendiente > 0
+    ) {
+      throw new BadRequestException(
+        'La orden no puede marcarse como Entregada si existe saldo pendiente',
+      );
+    }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.Entregada &&
+      orden.estado !== EstadoOrdenTrabajo.Finalizada
+    ) {
+      throw new BadRequestException(
+        'La orden debe estar Finalizada antes de marcarse como Entregada',
+      );
+    }
+  }
+
+  private aplicarPresupuesto(
+    orden: OrdenTrabajo,
+    datosOrden: CrearOrdenTrabajoDto,
+    cliente: Cliente,
+    vehiculo: Vehiculo,
+  ) {
+    const costoManoObra = this.normalizarMonto(datosOrden.costoManoObra);
+    const costoRepuestos = this.normalizarMonto(datosOrden.costoRepuestos);
+    const subtotal = costoManoObra + costoRepuestos;
+    const descuento = this.descuentosService.calcularMejorDescuento(
+      cliente,
+      vehiculo,
+    );
+    const montoDescuento = Math.round(subtotal * (descuento.porcentaje / 100));
+    const total = Math.max(subtotal - montoDescuento, 0);
+
+    orden.costoManoObra = costoManoObra;
+    orden.costoRepuestos = costoRepuestos;
+    orden.subtotal = subtotal;
+    orden.porcentajeDescuento = descuento.porcentaje;
+    orden.montoDescuento = montoDescuento;
+    orden.motivoDescuento = descuento.motivo;
+    orden.total = total;
+    orden.adelantoRequerido = Math.ceil(total * 0.4);
+    orden.totalPagado = 0;
+    orden.saldoPendiente = total;
+    orden.estadoPago = EstadoPagoOrden.SinPago;
+  }
+
+  private normalizarMonto(monto?: number): number {
+    if (typeof monto !== 'number' || !Number.isFinite(monto)) {
+      return 0;
+    }
+
+    if (monto < 0) {
+      throw new BadRequestException(
+        'Los montos del presupuesto no pueden ser negativos',
+      );
+    }
+
+    return Math.round(monto);
+  }
+
   private convertirARespuesta(orden: OrdenTrabajo): OrdenTrabajoRespuestaDto {
     return {
       id: orden.id,
@@ -162,6 +248,17 @@ export class OrdenesTrabajoService {
       fechaIngreso: orden.fechaIngreso,
       año: orden.vehiculo.año,
       kilometraje: orden.vehiculo.kilometraje,
+      costoManoObra: orden.costoManoObra,
+      costoRepuestos: orden.costoRepuestos,
+      subtotal: orden.subtotal,
+      porcentajeDescuento: orden.porcentajeDescuento,
+      montoDescuento: orden.montoDescuento,
+      motivoDescuento: orden.motivoDescuento,
+      total: orden.total,
+      adelantoRequerido: orden.adelantoRequerido,
+      totalPagado: orden.totalPagado,
+      saldoPendiente: orden.saldoPendiente,
+      estadoPago: orden.estadoPago,
     };
   }
 }

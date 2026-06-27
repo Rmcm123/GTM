@@ -44,6 +44,11 @@ export class ClientesService {
       nombre: datosCliente.nombre.trim(),
       telefono: datosCliente.telefono.trim(),
       correo: datosCliente.correo.trim(),
+      esRegular: Boolean(datosCliente.esRegular),
+      porcentajeDescuentoRegular: this.normalizarDescuentoRegular(
+        datosCliente.porcentajeDescuentoRegular,
+      ),
+      membresia: datosCliente.membresia,
     });
 
     const clienteGuardado = await this.repositorioClientes.save(cliente);
@@ -51,7 +56,10 @@ export class ClientesService {
     return this.convertirARespuesta(clienteGuardado);
   }
 
-  async actualizar(rut: string, datosActualizar: ActualizarClienteDto): Promise<ClienteRespuestaDto> {
+  async actualizar(
+    rut: string,
+    datosActualizar: ActualizarClienteDto,
+  ): Promise<ClienteRespuestaDto> {
     const clienteExistente = await this.repositorioClientes.findOne({
       where: { rut },
     });
@@ -60,11 +68,24 @@ export class ClientesService {
       throw new BadRequestException('El cliente no existe');
     }
 
-    if (datosActualizar.nombre) clienteExistente.nombre = datosActualizar.nombre.trim();
-    if (datosActualizar.telefono) clienteExistente.telefono = datosActualizar.telefono.trim();
-    if (datosActualizar.correo) clienteExistente.correo = datosActualizar.correo.trim();
+    if (datosActualizar.nombre)
+      clienteExistente.nombre = datosActualizar.nombre.trim();
+    if (datosActualizar.telefono)
+      clienteExistente.telefono = datosActualizar.telefono.trim();
+    if (datosActualizar.correo)
+      clienteExistente.correo = datosActualizar.correo.trim();
+    if (typeof datosActualizar.esRegular === 'boolean')
+      clienteExistente.esRegular = datosActualizar.esRegular;
+    if (typeof datosActualizar.porcentajeDescuentoRegular === 'number')
+      clienteExistente.porcentajeDescuentoRegular =
+        this.normalizarDescuentoRegular(
+          datosActualizar.porcentajeDescuentoRegular,
+        );
+    if (datosActualizar.membresia)
+      clienteExistente.membresia = datosActualizar.membresia;
 
-    const clienteActualizado = await this.repositorioClientes.save(clienteExistente);
+    const clienteActualizado =
+      await this.repositorioClientes.save(clienteExistente);
     return this.convertirARespuesta(clienteActualizado);
   }
 
@@ -93,6 +114,25 @@ export class ClientesService {
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       correo: cliente.correo,
+      esRegular: cliente.esRegular,
+      porcentajeDescuentoRegular: cliente.porcentajeDescuentoRegular,
+      membresia: cliente.membresia,
     };
+  }
+
+  private normalizarDescuentoRegular(porcentaje?: number): number {
+    if (typeof porcentaje !== 'number' || !Number.isFinite(porcentaje)) {
+      return 0;
+    }
+
+    if (porcentaje < 0) {
+      return 0;
+    }
+
+    if (porcentaje > 10) {
+      return 10;
+    }
+
+    return porcentaje;
   }
 }

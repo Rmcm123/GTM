@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({ name: 'repuestos' })
 export class Repuesto {
@@ -16,6 +22,9 @@ export class Repuesto {
 
   @Column({ type: 'int', default: 0 })
   minimo!: number;
+
+  @Column({ name: 'precio_unitario', type: 'int', default: 0 })
+  precioUnitario!: number;
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn!: Date;

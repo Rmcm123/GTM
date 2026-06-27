@@ -10,6 +10,7 @@ import { In, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
+import { Usuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
@@ -30,13 +31,15 @@ export class OrdenesTrabajoService {
     private readonly repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
     @InjectRepository(RegistroTiempo)
     private readonly repositorioRegistrosTiempo: Repository<RegistroTiempo>,
+    @InjectRepository(Usuario)
+    private readonly repositorioUsuarios: Repository<Usuario>,
     @InjectRepository(Cliente)
     private readonly repositorioClientes: Repository<Cliente>,
     @InjectRepository(Vehiculo)
     private readonly repositorioVehiculos: Repository<Vehiculo>,
     private readonly factory: OrdenTrabajoFactory,
     private readonly descuentosService: DescuentosService,
-  ) {}
+  ) { }
 
   async buscarTodas(): Promise<OrdenTrabajoRespuestaDto[]> {
     const ordenes = await this.repositorioOrdenesTrabajo.find({
@@ -193,13 +196,10 @@ export class OrdenesTrabajoService {
       throw new NotFoundException('No existe una orden de trabajo con ese id');
     }
 
-    if (orden.mecanicoAsignado !== mecanicoId) {
-      throw new ForbiddenException(
-        'No puedes registrar tiempos en una orden que no tienes asignada',
-      );
-    }
+    const usuario = await this.repositorioUsuarios.findOne({
+      where: { id: mecanicoId }
+    });
 
-    // Verificar que el mecánico no tenga otra tarea activa
     const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
       where: {
         mecanicoId: mecanicoId,
@@ -271,7 +271,7 @@ export class OrdenesTrabajoService {
         descripcion: reg.descripcion,
         fechaInicio: reg.fechaInicio,
         fechaFin: reg.fechaFin,
-        minutosTrabajados: reg.fechaFin 
+        minutosTrabajados: reg.fechaFin
           ? Math.floor((reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000)
           : Math.floor((new Date().getTime() - reg.fechaInicio.getTime()) / 60000),
       })),

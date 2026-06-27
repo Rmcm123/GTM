@@ -1,5 +1,5 @@
 import type { WorkOrder } from '../types';
-import { crearHeadersAutenticados } from './sesionApi';
+import { fetchAutenticado } from './fetchAutenticado';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -74,9 +74,7 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
 }
 
 export async function obtenerOrdenesTrabajo(): Promise<WorkOrder[]> {
-  const respuesta = await fetch(`${API_URL}/ordenes-trabajo`, {
-    headers: crearHeadersAutenticados(),
-  });
+  const respuesta = await fetchAutenticado(`${API_URL}/ordenes-trabajo`);
 
   if (!respuesta.ok) {
     throw new Error('No se pudo cargar la lista de ordenes');
@@ -90,11 +88,11 @@ export async function obtenerOrdenesTrabajo(): Promise<WorkOrder[]> {
 export async function crearOrdenTrabajo(
   orden: CrearOrdenTrabajoPayload,
 ): Promise<WorkOrder> {
-  const respuesta = await fetch(`${API_URL}/ordenes-trabajo`, {
+  const respuesta = await fetchAutenticado(`${API_URL}/ordenes-trabajo`, {
     method: 'POST',
-    headers: crearHeadersAutenticados({
+    headers: {
       'Content-Type': 'application/json',
-    }),
+    },
     body: JSON.stringify(orden),
   });
 
@@ -110,13 +108,16 @@ export async function actualizarEstadoOrden(
   id: number,
   estado: string,
 ): Promise<WorkOrder> {
-  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/estado`, {
-    method: 'PATCH',
-    headers: crearHeadersAutenticados({
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify({ estado }),
-  });
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/estado`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ estado }),
+    },
+  );
 
   if (!respuesta.ok) {
     const error = await respuesta.json().catch(() => null);

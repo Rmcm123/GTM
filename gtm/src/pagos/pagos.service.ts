@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
+  EstadoOrdenTrabajo,
   EstadoPagoOrden,
   OrdenTrabajo,
 } from '../ordenes-trabajo/orden-trabajo.entity';
@@ -41,6 +42,15 @@ export class PagosService {
 
     if (!orden) {
       throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    if (
+      orden.estado === EstadoOrdenTrabajo.Entregada ||
+      orden.estado === EstadoOrdenTrabajo.Cancelada
+    ) {
+      throw new BadRequestException(
+        'No se pueden registrar pagos en una orden cerrada o cancelada',
+      );
     }
 
     if (orden.saldoPendiente <= 0) {

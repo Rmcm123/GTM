@@ -3,6 +3,7 @@ import { AppLayout } from './components/AppLayout';
 import { Header } from './components/Header';
 import { RoleDashboard } from './views/RoleDashboard';
 import { cerrarSesion } from './api/autenticacionApi';
+import { EVENTO_SESION_EXPIRADA } from './api/fetchAutenticado';
 import {
   actualizarCliente,
   crearCliente,
@@ -101,6 +102,26 @@ function App() {
   );
   const [formularioInventario, setFormularioInventario] =
     useState<InventarioFormulario>(formularioInventarioInicial);
+
+  useEffect(() => {
+    function volverAlLoginPorSesionExpirada() {
+      setUsuarioSesion(null);
+      setActiveRole('Administrador');
+      setActiveSection(roleConfig.Administrador.navItems[0]);
+    }
+
+    window.addEventListener(
+      EVENTO_SESION_EXPIRADA,
+      volverAlLoginPorSesionExpirada,
+    );
+
+    return () => {
+      window.removeEventListener(
+        EVENTO_SESION_EXPIRADA,
+        volverAlLoginPorSesionExpirada,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (!usuarioSesion) {

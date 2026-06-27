@@ -1,5 +1,5 @@
 import type { AlertaStockBajo, InventoryItem, StockMovement } from '../types';
-import { crearHeadersAutenticados } from './sesionApi';
+import { fetchAutenticado } from './fetchAutenticado';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -64,9 +64,7 @@ async function verificarRespuesta(respuesta: Response, mensajeError: string) {
 }
 
 export async function obtenerInventario(): Promise<InventoryItem[]> {
-  const respuesta = await fetch(`${API_URL}/inventario`, {
-    headers: crearHeadersAutenticados(),
-  });
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario`);
   await verificarRespuesta(respuesta, 'No se pudo cargar el inventario');
   const data: InventarioApiItem[] = await respuesta.json();
 
@@ -81,9 +79,7 @@ export async function obtenerInventario(): Promise<InventoryItem[]> {
 }
 
 export async function obtenerMovimientosInventario(): Promise<StockMovement[]> {
-  const respuesta = await fetch(`${API_URL}/inventario/movimientos`, {
-    headers: crearHeadersAutenticados(),
-  });
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/movimientos`);
   await verificarRespuesta(respuesta, 'No se pudieron cargar los movimientos');
   const data: InventarioApiMovimiento[] = await respuesta.json();
 
@@ -96,9 +92,9 @@ export async function obtenerMovimientosInventario(): Promise<StockMovement[]> {
 }
 
 export async function obtenerAlertasStockBajo(): Promise<AlertaStockBajo[]> {
-  const respuesta = await fetch(`${API_URL}/inventario/alertas-stock-bajo`, {
-    headers: crearHeadersAutenticados(),
-  });
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/inventario/alertas-stock-bajo`,
+  );
   await verificarRespuesta(
     respuesta,
     'No se pudieron cargar las alertas de stock bajo',
@@ -111,13 +107,16 @@ export async function obtenerAlertasStockBajo(): Promise<AlertaStockBajo[]> {
 export async function actualizarStockInventario(
   payload: ActualizarStockPayload,
 ): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/actualizar-stock`, {
-    method: 'POST',
-    headers: crearHeadersAutenticados({
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify(payload),
-  });
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/inventario/actualizar-stock`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  );
 
   await verificarRespuesta(respuesta, 'No se pudo actualizar el stock');
   const item: InventarioApiItem = await respuesta.json();
@@ -135,11 +134,11 @@ export async function actualizarStockInventario(
 export async function registrarEntradaInventario(
   payload: RegistrarEntradaPayload,
 ): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/entrada`, {
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/entrada`, {
     method: 'POST',
-    headers: crearHeadersAutenticados({
+    headers: {
       'Content-Type': 'application/json',
-    }),
+    },
     body: JSON.stringify(payload),
   });
 
@@ -159,11 +158,11 @@ export async function registrarEntradaInventario(
 export async function registrarSalidaInventario(
   payload: RegistrarSalidaPayload,
 ): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/salida`, {
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/salida`, {
     method: 'POST',
-    headers: crearHeadersAutenticados({
+    headers: {
       'Content-Type': 'application/json',
-    }),
+    },
     body: JSON.stringify(payload),
   });
 

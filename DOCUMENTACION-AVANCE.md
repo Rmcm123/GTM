@@ -632,3 +632,5 @@ Con esto se avanza en las reglas BR-5 y BR-6, relacionadas con adelanto obligato
 En frontend se agrego la seccion `Pagos` para el rol Recepcionista. Desde esta vista se puede seleccionar una orden con saldo pendiente, registrar adelanto, pago parcial o pago final, y ver total, adelanto requerido, pagado y saldo pendiente. Ademas, el formulario de apertura de orden ahora permite ingresar costo de mano de obra y costo de repuestos para que el presupuesto se calcule desde el backend.
 
 Tambien se actualizo el formulario de clientes para registrar datos comerciales usados por las reglas de descuento: cliente regular, porcentaje de descuento regular y membresia. Esto permite demostrar desde la interfaz que el presupuesto de una orden aplica automaticamente el descuento mas alto disponible.
+
+Se mejoro la visualizacion del presupuesto en frontend: la tabla de ordenes muestra total, descuento aplicado, estado de pago, monto pagado y saldo pendiente. La vista de pagos tambien muestra descuento y estado de pago al seleccionar una orden.

@@ -180,12 +180,21 @@ export function PaymentsPanel({
           </div>
 
           {ordenSeleccionada && (
-            <div className="grid gap-3 rounded-[7px] border border-[#dbe6ef] bg-[#f8fafc] p-4 md:grid-cols-4">
+            <div className="grid gap-3 rounded-[7px] border border-[#dbe6ef] bg-[#f8fafc] p-4 md:grid-cols-6">
               <div>
                 <p className="m-0 text-[12px] font-bold uppercase text-[#64748b]">Total</p>
                 <strong className="text-[18px] text-[#111827]">
                   {formatoMoneda.format(ordenSeleccionada.total ?? 0)}
                 </strong>
+              </div>
+              <div>
+                <p className="m-0 text-[12px] font-bold uppercase text-[#64748b]">Descuento</p>
+                <strong className="text-[18px] text-[#111827]">
+                  {ordenSeleccionada.porcentajeDescuento ?? 0}%
+                </strong>
+                <span className="block text-[12px] text-[#64748b]">
+                  {ordenSeleccionada.motivoDescuento ?? 'Sin descuento'}
+                </span>
               </div>
               <div>
                 <p className="m-0 text-[12px] font-bold uppercase text-[#64748b]">Adelanto</p>
@@ -205,7 +214,13 @@ export function PaymentsPanel({
                   {formatoMoneda.format(ordenSeleccionada.saldoPendiente ?? 0)}
                 </strong>
               </div>
-              <div className="flex flex-col gap-2 md:col-span-4 md:flex-row">
+              <div>
+                <p className="m-0 text-[12px] font-bold uppercase text-[#64748b]">Estado pago</p>
+                <strong className="text-[18px] text-[#111827]">
+                  {ordenSeleccionada.estadoPago ?? 'Sin pago'}
+                </strong>
+              </div>
+              <div className="flex flex-col gap-2 md:col-span-6 md:flex-row">
                 <button
                   className="min-h-9 rounded-[7px] border border-[#cbd5e1] bg-white px-3 text-[13px] font-bold text-[#1f2937] hover:bg-slate-50"
                   onClick={() =>

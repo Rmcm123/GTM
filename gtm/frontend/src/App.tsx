@@ -19,7 +19,11 @@ import {
 } from './api/ordenesTrabajoApi';
 import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
 import { obtenerPerfil } from './api/perfilApi';
-import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
+import {
+  limpiarSesion,
+  obtenerUsuarioGuardado,
+  type UsuarioSesion,
+} from './api/sesionApi';
 import {
   actualizarEstadoUsuario,
   crearUsuario,
@@ -160,6 +164,7 @@ function App() {
           return;
         }
 
+        limpiarSesion();
         setUsuarioSesion(null);
         setActiveRole('Administrador');
         setActiveSection(roleConfig.Administrador.navItems[0]);

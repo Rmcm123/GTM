@@ -6,13 +6,14 @@ import { DescuentosModule } from '../descuentos/descuentos.module';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import { OrdenTrabajo } from './orden-trabajo.entity';
 import { OrdenesTrabajoController } from './ordenes-trabajo.controller';
+import { RegistroTiempo } from './registro-tiempo.entity';
 import { OrdenesTrabajoFacade } from './ordenes-trabajo.facade';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
 import { OrdenesTrabajoService } from './ordenes-trabajo.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrdenTrabajo, Cliente, Vehiculo]),
+    TypeOrmModule.forFeature([OrdenTrabajo, Cliente, Vehiculo, RegistroTiempo]),
     AutenticacionModule,
     DescuentosModule,
   ],

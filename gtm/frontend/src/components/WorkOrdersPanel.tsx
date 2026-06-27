@@ -55,6 +55,7 @@ const formatoMoneda = new Intl.NumberFormat('es-CL', {
 
 const estadoClass: Record<WorkOrder['status'], string> = {
   Pendiente: 'bg-[#fff7ed] text-[#9a4b00]',
+  'En espera': 'bg-[#fef3c7] text-[#92400e]',
   'En revision': 'bg-[#eaf2ff] text-[#1e55a8]',
   'En proceso': 'bg-[#e8f7ef] text-[#0d6848]',
   Finalizada: 'bg-[#e5f7f8] text-[#0f6872]',

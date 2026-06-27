@@ -54,6 +54,7 @@ export function RoleDashboard({
   onActualizarEstadoOT,
   onSolicitarRepuesto,
   onNavigate,
+  onActivarOrden,
   role,
 }: {
   activeSection: string;
@@ -102,6 +103,7 @@ export function RoleDashboard({
     observaciones?: string,
   ) => void;
   onNavigate: (section: string) => void;
+  onActivarOrden?: (id: string) => Promise<boolean>;
   role: UserRole;
 }) {
   if (role === 'Recepcionista') {
@@ -124,6 +126,7 @@ export function RoleDashboard({
         onRegistrarPago={onRegistrarPago}
         ordenes={ordenes}
         onNavigate={onNavigate}
+        onActivarOrden={onActivarOrden}
       />
     );
   }
@@ -168,6 +171,7 @@ export function RoleDashboard({
       inventario={inventario}
       alertasStockBajo={alertasStockBajo}
       onNavigate={onNavigate}
+      onActivarOrden={onActivarOrden}
       onActualizarCliente={onActualizarCliente}
       guardandoClienteActualizado={guardandoClienteActualizado}
       mensajeFormulario={mensajeFormulario}

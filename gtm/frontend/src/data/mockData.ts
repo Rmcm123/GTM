@@ -31,7 +31,7 @@ export const roleConfig: Record<
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: '',
     secondaryAction: '',
-    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios'],
+    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios', 'Ver lista de espera'],
   },
   Recepcionista: {
     navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes', 'Pagos'],
@@ -44,6 +44,7 @@ export const roleConfig: Record<
       'Registrar vehiculo',
       'Abrir OT',
       'Registrar pago',
+      'Ver lista de espera',
     ],
   },
   Mecanico: {

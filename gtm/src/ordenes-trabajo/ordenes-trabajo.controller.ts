@@ -22,7 +22,14 @@ import { OrdenesTrabajoFacade } from './ordenes-trabajo.facade';
 export class OrdenesTrabajoController {
   constructor(private readonly facade: OrdenesTrabajoFacade) {}
 
+  @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)
+  @Get('espera')
+  buscarListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    return this.facade.obtenerListaEspera();
+  }
+
   @Roles(
+
     RolUsuario.Administrador,
     RolUsuario.Recepcionista,
     RolUsuario.Mecanico,
@@ -42,6 +49,14 @@ export class OrdenesTrabajoController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.facade.obtenerOrden(id);
+  }
+
+  @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)
+  @Post(':id/activar')
+  activarOrden(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    return this.facade.activarOrden(id);
   }
 
   @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)

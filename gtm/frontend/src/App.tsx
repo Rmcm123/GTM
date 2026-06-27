@@ -14,6 +14,7 @@ import {
   actualizarEstadoOrden,
   crearOrdenTrabajo,
   obtenerOrdenesTrabajo,
+  activarOrdenDesdeEspera,
   type CrearOrdenTrabajoPayload,
 } from './api/ordenesTrabajoApi';
 import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
@@ -602,6 +603,23 @@ function App() {
     }
   }
 
+  async function handleActivarOrdenDesdeEspera(id: string) {
+    const idNumerico = parseInt(id.replace('OT-', ''), 10);
+    try {
+      await activarOrdenDesdeEspera(idNumerico);
+      await recargarOrdenes();
+      return true;
+    } catch (error) {
+      console.error('Error al activar orden:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo activar la orden',
+      );
+      return false;
+    }
+  }
+
   function handleSolicitarRepuesto(
     nombre: string,
     cantidad: number,
@@ -679,6 +697,7 @@ function App() {
         onActualizarEstadoOT={handleActualizarEstadoOT}
         onSolicitarRepuesto={handleSolicitarRepuesto}
         onNavigate={setActiveSection}
+        onActivarOrden={handleActivarOrdenDesdeEspera}
         role={activeRole}
       />
     </AppLayout>

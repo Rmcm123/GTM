@@ -26,6 +26,7 @@ type OrdenTrabajoApi = {
   totalPagado?: number;
   saldoPendiente?: number;
   estadoPago?: string;
+  prioridad?: boolean;
 };
 
 export type CrearOrdenTrabajoPayload = {
@@ -61,6 +62,7 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     totalPagado: orden.totalPagado,
     saldoPendiente: orden.saldoPendiente,
     estadoPago: orden.estadoPago,
+    prioridad: orden.prioridad,
   };
 }
 
@@ -114,6 +116,36 @@ export async function actualizarEstadoOrden(
     throw new Error(
       error?.message ?? 'No se pudo actualizar el estado de la orden',
     );
+  }
+
+  return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}
+
+export async function obtenerListaEspera(): Promise<WorkOrder[]> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/espera`, {
+    headers: crearHeadersAutenticados(),
+  });
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar la lista de espera');
+  }
+
+  const ordenes = (await respuesta.json()) as OrdenTrabajoApi[];
+
+  return ordenes.map((orden) => convertirOrdenApi(orden));
+}
+
+export async function activarOrdenDesdeEspera(id: number): Promise<WorkOrder> {
+  const respuesta = await fetch(`${API_URL}/ordenes-trabajo/${id}/activar`, {
+    method: 'POST',
+    headers: crearHeadersAutenticados({
+      'Content-Type': 'application/json',
+    }),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo activar la orden');
   }
 
   return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);

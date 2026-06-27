@@ -58,7 +58,7 @@ export class OrdenesTrabajoService {
   async crear(
     datosOrden: CrearOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
-    await this.validarCuposDisponibles();
+    const hayCupo = await this.validarCuposDisponibles();
     this.validarDatosObligatorios(datosOrden);
 
     const patenteNormalizada = datosOrden.patenteVehiculo.trim().toUpperCase();
@@ -74,7 +74,8 @@ export class OrdenesTrabajoService {
     }
 
     const cliente = vehiculo.cliente;
-    const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
+    const estadoInicial = hayCupo ? EstadoOrdenTrabajo.Pendiente : EstadoOrdenTrabajo.EnEspera;
+    const orden = this.factory.crearConEstadoInicial(datosOrden, cliente, vehiculo, estadoInicial);
 
     this.aplicarPresupuesto(orden, datosOrden, cliente, vehiculo);
 
@@ -122,7 +123,7 @@ export class OrdenesTrabajoService {
     return this.convertirARespuesta(ordenActualizada);
   }
 
-  private async validarCuposDisponibles(): Promise<void> {
+  private async validarCuposDisponibles(): Promise<boolean> {
     const ordenesActivas = await this.repositorioOrdenesTrabajo.count({
       where: {
         estado: In([
@@ -133,11 +134,45 @@ export class OrdenesTrabajoService {
       },
     });
 
-    if (ordenesActivas >= LIMITE_ORDENES_ACTIVAS) {
-      throw new BadRequestException(
-        'No hay cupos disponibles. El limite de 5 ordenes activas ha sido alcanzado.',
-      );
+    return ordenesActivas < LIMITE_ORDENES_ACTIVAS;
+  }
+
+  async buscarListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    const ordenes = await this.repositorioOrdenesTrabajo.find({
+      where: { estado: EstadoOrdenTrabajo.EnEspera },
+      order: { creadoEn: 'ASC' },
+      relations: ['cliente', 'vehiculo'],
+    });
+
+    return ordenes.map((orden, index) => ({
+      ...this.convertirARespuesta(orden),
+      prioridad: index < 3,
+    }));
+  }
+
+  async activarDesdeEspera(id: number): Promise<OrdenTrabajoRespuestaDto> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id },
+      relations: ['cliente', 'vehiculo'],
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
     }
+
+    if (orden.estado !== EstadoOrdenTrabajo.EnEspera) {
+      throw new BadRequestException('La orden no esta en la lista de espera');
+    }
+
+    const hayCupo = await this.validarCuposDisponibles();
+    if (!hayCupo) {
+      throw new BadRequestException('No hay cupos disponibles. Finaliza otra orden primero.');
+    }
+
+    orden.estado = EstadoOrdenTrabajo.Pendiente;
+    const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
+
+    return this.convertirARespuesta(ordenActualizada);
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {

@@ -3,6 +3,7 @@ import { UsuariosController } from './usuarios.controller';
 import { UsuariosService } from './usuarios.service';
 import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from '../autenticacion/guards/roles.guard';
+import { RolUsuario } from './usuario.entity';
 
 describe('UsuariosController', () => {
   let controller: UsuariosController;
@@ -13,7 +14,9 @@ describe('UsuariosController', () => {
       buscarTodos: jest.fn().mockResolvedValue([]),
       buscarMecanicosActivos: jest.fn().mockResolvedValue([]),
       crear: jest.fn().mockResolvedValue({ id: 'uuid-1', rut: '111-1' }),
-      actualizarEstado: jest.fn().mockResolvedValue({ id: 'uuid-1', activo: true }),
+      actualizarEstado: jest
+        .fn()
+        .mockResolvedValue({ id: 'uuid-1', activo: true }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -49,7 +52,7 @@ describe('UsuariosController', () => {
       nombre: 'Juan',
       correo: 'juan@test.com',
       contrasena: '1234',
-      rol: 'MECANICO' as any,
+      rol: RolUsuario.Mecanico,
     };
     await controller.crear(datos);
     expect(service.crear).toHaveBeenCalledWith(datos);

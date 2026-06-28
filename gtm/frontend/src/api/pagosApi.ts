@@ -1,4 +1,4 @@
-import { crearHeadersAutenticados } from './sesionApi';
+import { fetchAutenticado } from './fetchAutenticado';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -10,6 +10,7 @@ export type RegistrarPagoPayload = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
 };
 
@@ -19,6 +20,7 @@ export type PagoRespuesta = {
   monto: number;
   tipoPago: TipoPago;
   medioPago: MedioPago;
+  proveedorPago?: string;
   referenciaTransaccion?: string;
   totalPagadoOrden: number;
   saldoPendienteOrden: number;
@@ -29,11 +31,11 @@ export type PagoRespuesta = {
 export async function registrarPago(
   pago: RegistrarPagoPayload,
 ): Promise<PagoRespuesta> {
-  const respuesta = await fetch(`${API_URL}/pagos`, {
+  const respuesta = await fetchAutenticado(`${API_URL}/pagos`, {
     method: 'POST',
-    headers: crearHeadersAutenticados({
+    headers: {
       'Content-Type': 'application/json',
-    }),
+    },
     body: JSON.stringify(pago),
   });
 
@@ -48,9 +50,9 @@ export async function registrarPago(
 export async function obtenerPagosPorOrden(
   ordenTrabajoId: number,
 ): Promise<PagoRespuesta[]> {
-  const respuesta = await fetch(`${API_URL}/pagos/orden/${ordenTrabajoId}`, {
-    headers: crearHeadersAutenticados(),
-  });
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/pagos/orden/${ordenTrabajoId}`,
+  );
 
   if (!respuesta.ok) {
     const error = await respuesta.json().catch(() => null);

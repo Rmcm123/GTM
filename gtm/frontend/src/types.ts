@@ -14,10 +14,20 @@ export type UserRole =
   | 'Mecanico'
   | 'Inventario';
 
+export type UsuarioSistema = {
+  id: string;
+  nombre: string;
+  correo: string;
+  rol: UserRole;
+  activo: boolean;
+};
+
 export type WorkOrder = {
   id: string;
   client: string;
+  rutCliente?: string;
   vehicle: string;
+  patenteVehiculo?: string;
   mechanic: string;
   status: OrderStatus;
   checkIn: string;

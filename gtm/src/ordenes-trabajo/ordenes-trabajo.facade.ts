@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { EstadoOrdenTrabajo } from './orden-trabajo.entity';
@@ -36,6 +37,13 @@ export class OrdenesTrabajoFacade {
     });
   }
 
+  async agregarRepuestos(
+    id: number,
+    datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    return this.ordenesService.agregarRepuestos(id, datosRepuestos);
+  }
+
   async obtenerListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
     return this.ordenesService.buscarListaEspera();
   }
@@ -49,7 +57,11 @@ export class OrdenesTrabajoFacade {
     mecanicoId: string,
     descripcion?: string,
   ): Promise<RegistroTiempo> {
-    return this.ordenesService.iniciarTiempoTrabajo(ordenId, mecanicoId, descripcion);
+    return this.ordenesService.iniciarTiempoTrabajo(
+      ordenId,
+      mecanicoId,
+      descripcion,
+    );
   }
 
   async detenerTiempoTrabajo(

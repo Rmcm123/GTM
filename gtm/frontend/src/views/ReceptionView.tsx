@@ -10,8 +10,14 @@ import { HistorialGarantiasPanel } from '../components/HistorialGarantiasPanel';
 import type { CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
-import { receptionSummary, roleConfig } from '../data/mockData';
-import type { Cliente, InventoryItem, WorkOrder } from '../types';
+import { roleConfig } from '../data/mockData';
+import type {
+  Cliente,
+  InventoryItem,
+  SummaryCardData,
+  UsuarioSistema,
+  WorkOrder,
+} from '../types';
 
 export function ReceptionDashboard({
   ordenes,
@@ -23,11 +29,44 @@ export function ReceptionDashboard({
   const receptionOrders = ordenes.filter(
     (order) => order.status === 'Pendiente' || order.status === 'En revision',
   );
+  const ordenesActivas = ordenes.filter((orden) =>
+    ['Pendiente', 'En revision', 'En proceso'].includes(orden.status),
+  );
+  const cuposDisponibles = Math.max(5 - ordenesActivas.length, 0);
+  const ordenesSinMecanico = ordenes.filter(
+    (orden) =>
+      orden.status !== 'Entregada' &&
+      orden.status !== 'Cancelada' &&
+      (!orden.mechanic || orden.mechanic === 'Sin asignar'),
+  );
+  const ordenesPendientes = ordenes.filter(
+    (orden) => orden.status === 'Pendiente',
+  );
+  const resumenRecepcion: SummaryCardData[] = [
+    {
+      label: 'Cupos disponibles',
+      value: String(cuposDisponibles),
+      helper: 'Capacidad libre del taller',
+      borderClass: 'border-t-[#2563eb]',
+    },
+    {
+      label: 'Sin mecanico',
+      value: String(ordenesSinMecanico.length),
+      helper: 'Ordenes por asignar',
+      borderClass: 'border-t-[#0f8a5f]',
+    },
+    {
+      label: 'Pendientes',
+      value: String(ordenesPendientes.length),
+      helper: 'Esperan inicio de trabajo',
+      borderClass: 'border-t-[#d48806]',
+    },
+  ];
   const ordenesEspera = ordenes.filter((o) => o.status === 'En espera');
 
   return (
     <>
-      <SummaryCards cards={receptionSummary} />
+      <SummaryCards cards={resumenRecepcion} />
       {ordenesEspera.length > 0 && (
         <div className="mb-[18px] rounded-[8px] border border-[#fef3c7] bg-[#fffbeb] p-4">
           <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -79,6 +118,7 @@ export function ReceptionView({
   guardandoPago,
   guardandoOrden,
   inventario,
+  mecanicos,
   mensajeFormulario,
   mensajeOrden,
   mensajePago,
@@ -99,6 +139,7 @@ export function ReceptionView({
   guardandoPago: boolean;
   guardandoOrden: boolean;
   inventario: InventoryItem[];
+  mecanicos: UsuarioSistema[];
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   mensajePago: string | null;
@@ -216,6 +257,7 @@ export function ReceptionView({
       <WorkOrdersPanel
         guardandoOrden={guardandoOrden}
         inventario={inventario}
+        mecanicos={mecanicos}
         mensajeOrden={mensajeOrden}
         onCrearOrden={onCrearOrden}
         ordenes={ordenes}

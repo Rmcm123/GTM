@@ -637,4 +637,24 @@ Se mejoro la visualizacion del presupuesto en frontend: la tabla de ordenes mues
 
 Se completo el flujo visual de cierre: cuando una orden esta `Finalizada` y sin saldo pendiente, la vista de pagos permite marcarla como `Entregada` desde recepcion.
 
+Se amplio la vista de caja para que el recepcionista pueda buscar ordenes por numero de OT, RUT, patente o nombre del cliente. Al seleccionar una orden se muestra el resumen financiero completo, el estado del adelanto, el saldo pendiente, acciones rapidas para completar el adelanto o pagar el saldo final, y el historial de pagos registrados para esa orden. Esto hace mas claro el flujo de cierre y facilita demostrar las reglas BR-5 y BR-6 en la interfaz.
+
+Se reforzo la seguridad del frontend agregando un helper comun para llamadas autenticadas. Las APIs de clientes, vehiculos, ordenes, inventario y pagos ahora intentan renovar automaticamente el access token usando el refresh token cuando reciben una respuesta `401`. Si la renovacion falla, la sesion local se limpia y el usuario vuelve al login. Esto hace mas estable el flujo con JWT + refresh tokens.
+
+Se agrego gestion basica de usuarios para el rol Administrador. El backend expone endpoints protegidos para listar usuarios, crear nuevas cuentas y activar/desactivar accesos. En el frontend se agrego la seccion `Usuarios` en el panel administrador, permitiendo crear usuarios internos con rol Administrador, Recepcionista, Mecanico o Inventario. Esto fortalece el requisito de autenticacion y acceso por rol.
+
+Tambien se agrego una validacion de cierre en el backend de pagos: no se pueden registrar pagos en ordenes `Entregada` o `Cancelada`. Con esto se evita modificar financieramente ordenes que ya terminaron su ciclo operativo.
+
 Se ajusto el presupuesto de repuestos para que deje de ser manual. El inventario ahora maneja `precioUnitario` por repuesto y, al abrir una orden de trabajo, recepcion puede seleccionar repuestos y cantidades. El frontend calcula automaticamente el costo total de repuestos y lo envia al backend como parte del presupuesto de la orden. La mano de obra se mantiene manual por ahora, ya que mas adelante puede calcularse mediante tarifas por tipo de servicio o por horas trabajadas.
+
+Se completo la integracion entre ordenes e inventario: al crear una orden con repuestos seleccionados, el backend calcula el costo de repuestos usando los precios del inventario y registra salidas automaticas para descontar el stock. Esto evita que el costo dependa de un valor escrito manualmente y deja trazabilidad en los movimientos de inventario.
+
+Se reforzo la consistencia de datos usando transacciones en operaciones criticas. El registro de pagos ahora actualiza el saldo de la orden y guarda el pago dentro de una misma transaccion. La creacion de ordenes tambien guarda la OT y descuenta repuestos del inventario dentro de una misma transaccion, evitando que queden ordenes creadas sin el movimiento de stock correspondiente si ocurre un error.
+
+Se reforzaron las validaciones de caja: los pagos electronicos ahora requieren referencia de transaccion tanto en frontend como en backend, y la interfaz avisa cuando un pago final no cubre exactamente el saldo pendiente antes de enviar la solicitud.
+
+Se separo el concepto de proveedor de pago y referencia de transaccion. Para pagos electronicos, el sistema permite indicar el proveedor usado, por ejemplo Mercado Pago, transferencia bancaria o Transbank, y ademas guardar el comprobante o codigo de transaccion. Esto mejora la trazabilidad de pagos y facilita justificar el uso de una API o integracion de pagos en una etapa futura.
+
+Se agregaron pruebas unitarias del bloque financiero. `descuentos.service.spec.ts` valida que el sistema aplique la estrategia correcta y mantenga solo el descuento mas alto. `pagos.service.spec.ts` valida reglas criticas como exigir referencia en pagos electronicos, rechazar adelantos inferiores al 40% y actualizar saldo/estado de pago correctamente.
+
+Se agregaron pruebas unitarias de autenticacion en `autenticacion.service.spec.ts`. Estas pruebas validan credenciales incompletas, contrasena incorrecta, generacion de access token y refresh token, refresh token vacio y refresh token no coincidente. Esto deja evidencia automatizada del flujo JWT + refresh tokens.

@@ -3,6 +3,7 @@ import { AppLayout } from './components/AppLayout';
 import { Header } from './components/Header';
 import { RoleDashboard } from './views/RoleDashboard';
 import { cerrarSesion } from './api/autenticacionApi';
+import { EVENTO_SESION_EXPIRADA } from './api/fetchAutenticado';
 import {
   actualizarCliente,
   crearCliente,
@@ -11,6 +12,7 @@ import {
   type CrearClientePayload,
 } from './api/clientesApi';
 import {
+  agregarRepuestosOrden,
   actualizarEstadoOrden,
   crearOrdenTrabajo,
   obtenerOrdenesTrabajo,
@@ -18,7 +20,19 @@ import {
   type CrearOrdenTrabajoPayload,
 } from './api/ordenesTrabajoApi';
 import { registrarPago, type RegistrarPagoPayload } from './api/pagosApi';
-import { obtenerUsuarioGuardado, type UsuarioSesion } from './api/sesionApi';
+import { obtenerPerfil } from './api/perfilApi';
+import {
+  limpiarSesion,
+  obtenerUsuarioGuardado,
+  type UsuarioSesion,
+} from './api/sesionApi';
+import {
+  actualizarEstadoUsuario,
+  crearUsuario,
+  obtenerMecanicos,
+  obtenerUsuarios,
+  type CrearUsuarioPayload,
+} from './api/usuariosApi';
 import {
   actualizarStockInventario,
   obtenerAlertasStockBajo,
@@ -45,6 +59,7 @@ import type {
   RepuestoSolicitado,
   StockMovement,
   UserRole,
+  UsuarioSistema,
   WorkOrder,
 } from './types';
 import { LoginView } from './views/LoginView';
@@ -80,13 +95,21 @@ function App() {
     useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [guardandoPago, setGuardandoPago] = useState(false);
+  const [guardandoUsuario, setGuardandoUsuario] = useState(false);
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
   const [mensajeFormulario, setMensajeFormulario] = useState<string | null>(
     null,
   );
   const [ordenesTrabajo, setOrdenesTrabajo] = useState<WorkOrder[]>([]);
   const [mensajeOrden, setMensajeOrden] = useState<string | null>(null);
   const [mensajePago, setMensajePago] = useState<string | null>(null);
+  const [mensajeUsuarios, setMensajeUsuarios] = useState<string | null>(null);
+  const [mensajeEstadoOrden, setMensajeEstadoOrden] = useState<string | null>(
+    null,
+  );
   const [ordenes, setOrdenes] = useState<WorkOrder[]>([]);
+  const [usuarios, setUsuarios] = useState<UsuarioSistema[]>([]);
+  const [mecanicos, setMecanicos] = useState<UsuarioSistema[]>([]);
   const [inventario, setInventario] = useState<InventoryItem[]>(inventoryItems);
   const [alertasStockBajo, setAlertasStockBajo] = useState<AlertaStockBajo[]>(
     [],
@@ -102,6 +125,62 @@ function App() {
   );
   const [formularioInventario, setFormularioInventario] =
     useState<InventarioFormulario>(formularioInventarioInicial);
+
+  useEffect(() => {
+    function volverAlLoginPorSesionExpirada() {
+      setUsuarioSesion(null);
+      setActiveRole('Administrador');
+      setActiveSection(roleConfig.Administrador.navItems[0]);
+    }
+
+    window.addEventListener(
+      EVENTO_SESION_EXPIRADA,
+      volverAlLoginPorSesionExpirada,
+    );
+
+    return () => {
+      window.removeEventListener(
+        EVENTO_SESION_EXPIRADA,
+        volverAlLoginPorSesionExpirada,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!usuarioSesion) {
+      return;
+    }
+
+    let componenteActivo = true;
+
+    async function validarSesionActual() {
+      try {
+        const perfil = await obtenerPerfil();
+
+        if (!componenteActivo) {
+          return;
+        }
+
+        setUsuarioSesion(perfil);
+        setActiveRole(perfil.rol);
+      } catch {
+        if (!componenteActivo) {
+          return;
+        }
+
+        limpiarSesion();
+        setUsuarioSesion(null);
+        setActiveRole('Administrador');
+        setActiveSection(roleConfig.Administrador.navItems[0]);
+      }
+    }
+
+    void validarSesionActual();
+
+    return () => {
+      componenteActivo = false;
+    };
+  }, [usuarioSesion?.id]);
 
   useEffect(() => {
     if (!usuarioSesion) {
@@ -188,6 +267,54 @@ function App() {
     void cargarInventario();
   }, [usuarioSesion]);
 
+  useEffect(() => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'Administrador') {
+      setUsuarios([]);
+      return;
+    }
+
+    async function cargarUsuarios() {
+      setCargandoUsuarios(true);
+      setMensajeUsuarios(null);
+
+      try {
+        const usuariosDesdeApi = await obtenerUsuarios();
+        setUsuarios(usuariosDesdeApi);
+      } catch (error) {
+        setMensajeUsuarios(
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los usuarios',
+        );
+      } finally {
+        setCargandoUsuarios(false);
+      }
+    }
+
+    void cargarUsuarios();
+  }, [usuarioSesion]);
+
+  useEffect(() => {
+    if (
+      !usuarioSesion ||
+      !['Administrador', 'Recepcionista'].includes(usuarioSesion.rol)
+    ) {
+      setMecanicos([]);
+      return;
+    }
+
+    async function cargarMecanicos() {
+      try {
+        const mecanicosDesdeApi = await obtenerMecanicos();
+        setMecanicos(mecanicosDesdeApi);
+      } catch {
+        setMecanicos([]);
+      }
+    }
+
+    void cargarMecanicos();
+  }, [usuarioSesion]);
+
   async function recargarClientes() {
     const clientesDesdeApi = await obtenerClientes();
     setClientes(clientesDesdeApi);
@@ -244,6 +371,55 @@ function App() {
     const ordenesDesdeApi = await obtenerOrdenesTrabajo();
     setOrdenes(ordenesDesdeApi);
     setOrdenesTrabajo(ordenesDesdeApi);
+  }
+
+  async function recargarUsuarios() {
+    const usuariosDesdeApi = await obtenerUsuarios();
+    setUsuarios(usuariosDesdeApi);
+  }
+
+  async function handleCrearUsuario(usuario: CrearUsuarioPayload) {
+    setGuardandoUsuario(true);
+    setMensajeUsuarios(null);
+
+    try {
+      await crearUsuario(usuario);
+      await recargarUsuarios();
+      setMensajeUsuarios('Usuario creado correctamente');
+      return true;
+    } catch (error) {
+      setMensajeUsuarios(
+        error instanceof Error ? error.message : 'No se pudo crear el usuario',
+      );
+      return false;
+    } finally {
+      setGuardandoUsuario(false);
+    }
+  }
+
+  async function handleActualizarEstadoUsuario(
+    usuarioId: string,
+    activo: boolean,
+  ) {
+    setMensajeUsuarios(null);
+
+    try {
+      await actualizarEstadoUsuario(usuarioId, activo);
+      await recargarUsuarios();
+      setMensajeUsuarios(
+        activo
+          ? 'Usuario activado correctamente'
+          : 'Usuario desactivado correctamente',
+      );
+      return true;
+    } catch (error) {
+      setMensajeUsuarios(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo actualizar el usuario',
+      );
+      return false;
+    }
   }
 
   async function handleCrearOrden(orden: CrearOrdenTrabajoPayload) {
@@ -565,7 +741,7 @@ function App() {
 
   function handlePrimaryAction() {
     if (activeRole === 'Administrador') {
-      setActiveSection('Ordenes');
+      setActiveSection('Usuarios');
     }
     if (activeRole === 'Recepcionista') {
       setActiveSection('Ordenes');
@@ -590,12 +766,14 @@ function App() {
     nuevoEstado: WorkOrder['status'],
   ) {
     const idNumerico = parseInt(id.replace('OT-', ''), 10);
+    setMensajeEstadoOrden(null);
+
     try {
       await actualizarEstadoOrden(idNumerico, nuevoEstado);
       await recargarOrdenes();
+      setMensajeEstadoOrden('Estado actualizado correctamente.');
     } catch (error) {
-      console.error('Error al actualizar estado:', error);
-      alert(
+      setMensajeEstadoOrden(
         error instanceof Error
           ? error.message
           : 'No se pudo actualizar el estado de la orden',
@@ -620,13 +798,29 @@ function App() {
     }
   }
 
-  function handleSolicitarRepuesto(
+  async function handleSolicitarRepuesto(
     nombre: string,
     cantidad: number,
     mecanico: string,
     ordenTrabajo: string,
     observaciones?: string,
-  ) {
+  ): Promise<boolean> {
+    const idNumerico = parseInt(ordenTrabajo.replace('OT-', ''), 10);
+
+    try {
+      await agregarRepuestosOrden(idNumerico, [{ nombre, cantidad }]);
+      await recargarOrdenes();
+      const inventarioDesdeApi = await obtenerInventario();
+      setInventario(inventarioDesdeApi);
+    } catch (error) {
+      setMensajeEstadoOrden(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo agregar el repuesto a la orden',
+      );
+      return false;
+    }
+
     const nuevoRepuesto: RepuestoSolicitado = {
       id: `REQ-${Date.now()}`,
       nombre,
@@ -637,6 +831,8 @@ function App() {
       fecha: new Date().toISOString().split('T')[0],
     };
     setRepuestosSolicitados((actuales) => [...actuales, nuevoRepuesto]);
+    setMensajeEstadoOrden('Repuesto agregado al presupuesto de la orden.');
+    return true;
   }
 
   if (!usuarioSesion) {
@@ -671,15 +867,23 @@ function App() {
         guardandoClienteActualizado={guardandoClienteActualizado}
         guardandoOrden={guardandoOrden}
         guardandoPago={guardandoPago}
+        guardandoUsuario={guardandoUsuario}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
+        mensajeEstadoOrden={mensajeEstadoOrden}
+        mensajeUsuarios={mensajeUsuarios}
         onCrearCliente={handleCrearCliente}
         onActualizarCliente={handleActualizarCliente}
         onCrearOrden={handleCrearOrden}
         onEntregarOrden={handleEntregarOrden}
         onRegistrarPago={handleRegistrarPago}
+        onCrearUsuario={handleCrearUsuario}
+        onActualizarEstadoUsuario={handleActualizarEstadoUsuario}
         ordenes={ordenes}
+        cargandoUsuarios={cargandoUsuarios}
+        usuarios={usuarios}
+        mecanicos={mecanicos}
         cargandoInventario={cargandoInventario}
         formularioInventario={formularioInventario}
         inventario={inventario}
@@ -697,6 +901,7 @@ function App() {
         onActualizarEstadoOT={handleActualizarEstadoOT}
         onSolicitarRepuesto={handleSolicitarRepuesto}
         onNavigate={setActiveSection}
+        nombreUsuario={usuarioSesion.nombre}
         onActivarOrden={handleActivarOrdenDesdeEspera}
         role={activeRole}
       />

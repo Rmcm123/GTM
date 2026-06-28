@@ -42,6 +42,9 @@ export class Pago {
   @Column({ enum: MedioPago, name: 'medio_pago', type: 'enum' })
   medioPago: MedioPago;
 
+  @Column({ name: 'proveedor_pago', nullable: true })
+  proveedorPago?: string;
+
   @Column({ name: 'referencia_transaccion', nullable: true })
   referenciaTransaccion?: string;
 

@@ -2,7 +2,6 @@ import type {
   Cliente,
   InventoryItem,
   StockMovement,
-  SummaryCardData,
   UserRole,
   WorkOrder,
 } from '../types';
@@ -26,7 +25,15 @@ export const roleConfig: Record<
   }
 > = {
   Administrador: {
-    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario', 'Historial Garantias'],
+    navItems: [
+      'Dashboard',
+      'Ordenes',
+      'Clientes',
+      'Inventario',
+      'Usuarios',
+      'Lista de Espera',
+      'Historial Garantias',
+    ],
     title: 'Dashboard administrador',
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: '',
@@ -81,90 +88,6 @@ export const roleConfig: Record<
     ],
   },
 };
-
-export const adminSummary: SummaryCardData[] = [
-  {
-    label: 'Ordenes activas',
-    value: '4',
-    helper: 'Trabajos abiertos en el taller',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-  {
-    label: 'En revision',
-    value: '1',
-    helper: 'Vehiculo esperando diagnostico',
-    borderClass: 'border-t-[#d48806]',
-  },
-  {
-    label: 'Stock bajo',
-    value: '2',
-    helper: 'Repuestos bajo el minimo definido',
-    borderClass: 'border-t-[#dc2626]',
-  },
-];
-
-export const receptionSummary: SummaryCardData[] = [
-  {
-    label: 'Cupos disponibles',
-    value: '2',
-    helper: 'Puede ingresar nuevas ordenes',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'Vehiculos en espera',
-    value: '1',
-    helper: 'Pendiente de asignar mecanico',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-  {
-    label: 'Pendientes',
-    value: '1',
-    helper: 'Orden esperando confirmacion',
-    borderClass: 'border-t-[#d48806]',
-  },
-];
-
-export const mechanicSummary: SummaryCardData[] = [
-  {
-    label: 'Mis ordenes',
-    value: '2',
-    helper: 'Asignadas para la jornada',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'En revision',
-    value: '1',
-    helper: 'Diagnostico pendiente',
-    borderClass: 'border-t-[#d48806]',
-  },
-  {
-    label: 'Finalizadas',
-    value: '1',
-    helper: 'Listas para recepcion',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-];
-
-export const inventorySummary: SummaryCardData[] = [
-  {
-    label: 'Articulos',
-    value: '3',
-    helper: 'Repuestos registrados',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'Stock bajo',
-    value: '2',
-    helper: 'Requieren reposicion',
-    borderClass: 'border-t-[#dc2626]',
-  },
-  {
-    label: 'Movimientos',
-    value: '3',
-    helper: 'Entradas y salidas recientes',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-];
 
 export const workOrders: WorkOrder[] = [
   {

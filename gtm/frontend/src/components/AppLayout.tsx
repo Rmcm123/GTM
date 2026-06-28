@@ -53,7 +53,7 @@ export function AppLayout({
                 {activeRole}
               </strong>
               <span className="text-[12px] text-[#3d3520]">
-                Rol asignado por login
+                Vista de trabajo
               </span>
             </div>
           ) : (
@@ -113,7 +113,7 @@ export function AppLayout({
           )}
           <strong className="my-1 block text-[15px]">{activeRole}</strong>
           <small className="block text-[13px] text-[#b8c6c0]">
-            Acceso autenticado
+            Sesion activa
           </small>
           {onLogout && (
             <button

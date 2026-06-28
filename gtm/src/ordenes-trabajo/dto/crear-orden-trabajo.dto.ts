@@ -6,4 +6,10 @@ export type CrearOrdenTrabajoDto = {
   fechaIngreso: string;
   costoManoObra?: number;
   costoRepuestos?: number;
+  repuestos?: RepuestoOrdenDto[];
+};
+
+export type RepuestoOrdenDto = {
+  nombre: string;
+  cantidad: number;
 };

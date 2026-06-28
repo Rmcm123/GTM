@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
-import type { InventoryItem, WorkOrder } from '../types';
+import type { InventoryItem, UsuarioSistema, WorkOrder } from '../types';
 import { Panel } from './Panel';
 
 type WorkOrdersPanelProps = {
@@ -9,6 +9,7 @@ type WorkOrdersPanelProps = {
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   ordenes: WorkOrder[];
   inventario: InventoryItem[];
+  mecanicos: UsuarioSistema[];
 };
 
 type FormularioOrden = {
@@ -35,7 +36,6 @@ type RepuestoOrden = {
   precioUnitario: number;
 };
 
-const mecanicos = ['Camila Torres', 'Matias Rojas', 'Diego Silva'];
 const tiposServicio = [
   'Revision general',
   'Mantencion',
@@ -82,6 +82,7 @@ export function WorkOrdersPanel({
   onCrearOrden,
   ordenes,
   inventario,
+  mecanicos,
 }: WorkOrdersPanelProps) {
   const [formulario, setFormulario] =
     useState<FormularioOrden>(formularioInicial);
@@ -149,6 +150,13 @@ export function WorkOrdersPanel({
     );
   }
 
+  function limpiarFormulario() {
+    setFormulario(formularioInicial);
+    setRepuestoSeleccionado('');
+    setCantidadRepuesto('1');
+    setRepuestosOrden([]);
+  }
+
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
@@ -160,11 +168,14 @@ export function WorkOrdersPanel({
       fechaIngreso: formulario.fechaIngreso,
       costoManoObra: Number(formulario.costoManoObra || 0),
       costoRepuestos: costoRepuestosCalculado,
+      repuestos: repuestosOrden.map((repuesto) => ({
+        nombre: repuesto.nombre,
+        cantidad: repuesto.cantidad,
+      })),
     });
 
     if (ordenCreada) {
-      setFormulario(formularioInicial);
-      setRepuestosOrden([]);
+      limpiarFormulario();
     }
   }
 
@@ -311,11 +322,16 @@ export function WorkOrdersPanel({
                 >
                   <option value="">Seleccionar mecanico</option>
                   {mecanicos.map((mecanico) => (
-                    <option key={mecanico} value={mecanico}>
-                      {mecanico}
+                    <option key={mecanico.id} value={mecanico.nombre}>
+                      {mecanico.nombre}
                     </option>
                   ))}
                 </select>
+                {mecanicos.length === 0 && (
+                  <span className="text-[12px] font-bold text-[#9a4b00]">
+                    No hay mecanicos activos cargados.
+                  </span>
+                )}
               </label>
 
               <label className="grid gap-1.5 text-[13px] font-bold text-[#475569]">
@@ -462,7 +478,7 @@ export function WorkOrdersPanel({
             <div className="flex flex-col gap-2 md:flex-row md:justify-end">
               <button
                 className="min-h-10 rounded-[7px] border border-[#cbd5e1] bg-white px-3.5 text-[14px] font-bold text-[#1f2937] hover:bg-slate-50"
-                onClick={() => setFormulario(formularioInicial)}
+                onClick={limpiarFormulario}
                 type="button"
               >
                 Limpiar

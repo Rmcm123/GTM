@@ -15,6 +15,7 @@ import type { RequestConUsuario } from '../autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from '../autenticacion/guards/roles.guard';
 import { RolUsuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
+import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { IniciarTiempoDto } from './dto/iniciar-tiempo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
@@ -32,7 +33,6 @@ export class OrdenesTrabajoController {
   }
 
   @Roles(
-
     RolUsuario.Administrador,
     RolUsuario.Recepcionista,
     RolUsuario.Mecanico,
@@ -83,6 +83,15 @@ export class OrdenesTrabajoController {
     return this.facade.actualizarEstado(id, datosActualizacion.estado);
   }
 
+  @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista, RolUsuario.Mecanico)
+  @Patch(':id/repuestos')
+  agregarRepuestos(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    return this.facade.agregarRepuestos(id, datosRepuestos);
+  }
+
   @Roles(RolUsuario.Mecanico)
   @Post(':id/tiempos/iniciar')
   iniciarTiempoTrabajo(
@@ -90,7 +99,11 @@ export class OrdenesTrabajoController {
     @Body() body: IniciarTiempoDto,
     @Req() request: RequestConUsuario,
   ) {
-    return this.facade.iniciarTiempoTrabajo(id, request.usuario!.id, body.descripcion);
+    return this.facade.iniciarTiempoTrabajo(
+      id,
+      request.usuario!.id,
+      body.descripcion,
+    );
   }
 
   @Roles(RolUsuario.Mecanico)

@@ -4,6 +4,7 @@ import type {
 } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
+import type { CrearUsuarioPayload } from '../api/usuariosApi';
 import type {
   AlertaStockBajo,
   Cliente,
@@ -12,6 +13,7 @@ import type {
   RepuestoSolicitado,
   StockMovement,
   UserRole,
+  UsuarioSistema,
   WorkOrder,
 } from '../types';
 import { AdminView } from './AdminView';
@@ -28,16 +30,24 @@ export function RoleDashboard({
   guardandoClienteActualizado,
   guardandoOrden,
   guardandoPago,
+  guardandoUsuario,
   mensajeFormulario,
   mensajeOrden,
   mensajePago,
+  mensajeEstadoOrden,
+  mensajeUsuarios,
   onCrearCliente,
   onActualizarCliente,
   onCrearOrden,
   onEntregarOrden,
   onRegistrarPago,
+  onCrearUsuario,
+  onActualizarEstadoUsuario,
   ordenes,
   cargandoInventario,
+  cargandoUsuarios,
+  usuarios,
+  mecanicos,
   inventario,
   alertasStockBajo,
   movimientosInventario,
@@ -56,6 +66,7 @@ export function RoleDashboard({
   onNavigate,
   onActivarOrden,
   role,
+  nombreUsuario,
 }: {
   activeSection: string;
   cargandoClientes: boolean;
@@ -65,9 +76,12 @@ export function RoleDashboard({
   guardandoClienteActualizado?: boolean;
   guardandoOrden: boolean;
   guardandoPago: boolean;
+  guardandoUsuario: boolean;
   mensajeFormulario: string | null;
   mensajeOrden: string | null;
   mensajePago: string | null;
+  mensajeEstadoOrden: string | null;
+  mensajeUsuarios: string | null;
   onCrearCliente: (cliente: CrearClientePayload) => Promise<boolean>;
   onActualizarCliente?: (
     rut: string,
@@ -76,8 +90,16 @@ export function RoleDashboard({
   onCrearOrden: (orden: CrearOrdenTrabajoPayload) => Promise<boolean>;
   onEntregarOrden: (ordenId: string) => Promise<void>;
   onRegistrarPago: (pago: RegistrarPagoPayload) => Promise<boolean>;
+  onCrearUsuario: (usuario: CrearUsuarioPayload) => Promise<boolean>;
+  onActualizarEstadoUsuario: (
+    usuarioId: string,
+    activo: boolean,
+  ) => Promise<boolean>;
   ordenes: WorkOrder[];
   cargandoInventario: boolean;
+  cargandoUsuarios: boolean;
+  usuarios: UsuarioSistema[];
+  mecanicos: UsuarioSistema[];
   inventario: InventoryItem[];
   alertasStockBajo: AlertaStockBajo[];
   movimientosInventario: StockMovement[];
@@ -101,10 +123,11 @@ export function RoleDashboard({
     mecanico: string,
     ordenTrabajo: string,
     observaciones?: string,
-  ) => void;
+  ) => Promise<boolean>;
   onNavigate: (section: string) => void;
   onActivarOrden?: (id: string) => Promise<boolean>;
   role: UserRole;
+  nombreUsuario: string;
 }) {
   if (role === 'Recepcionista') {
     return (
@@ -117,6 +140,7 @@ export function RoleDashboard({
         guardandoPago={guardandoPago}
         guardandoOrden={guardandoOrden}
         inventario={inventario}
+        mecanicos={mecanicos}
         mensajeFormulario={mensajeFormulario}
         mensajeOrden={mensajeOrden}
         mensajePago={mensajePago}
@@ -136,6 +160,9 @@ export function RoleDashboard({
     return (
       <MechanicView
         activeSection={activeSection}
+        inventario={inventario}
+        mensajeEstadoOrden={mensajeEstadoOrden}
+        nombreUsuario={nombreUsuario}
         ordenes={ordenesTrabajo}
         onActualizarEstado={onActualizarEstadoOT}
         onSolicitarRepuesto={onSolicitarRepuesto}
@@ -172,11 +199,17 @@ export function RoleDashboard({
       inventario={inventario}
       alertasStockBajo={alertasStockBajo}
       onNavigate={onNavigate}
-      onActivarOrden={onActivarOrden}
       onActualizarCliente={onActualizarCliente}
       guardandoClienteActualizado={guardandoClienteActualizado}
       mensajeFormulario={mensajeFormulario}
+      cargandoUsuarios={cargandoUsuarios}
+      guardandoUsuario={guardandoUsuario}
+      mensajeUsuarios={mensajeUsuarios}
+      onActualizarEstadoUsuario={onActualizarEstadoUsuario}
+      onCrearUsuario={onCrearUsuario}
+      usuarios={usuarios}
       onActualizarEstadoOT={onActualizarEstadoOT}
+      onActivarOrden={onActivarOrden}
     />
   );
 }

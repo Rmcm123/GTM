@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AutenticacionModule } from '../autenticacion/autenticacion.module';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosModule } from '../descuentos/descuentos.module';
+import { InventarioModule } from '../inventario/inventario.module';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
 import { Usuario } from '../usuarios/usuario.entity';
 import { OrdenTrabajo } from './orden-trabajo.entity';
@@ -17,6 +18,7 @@ import { OrdenesTrabajoService } from './ordenes-trabajo.service';
     TypeOrmModule.forFeature([OrdenTrabajo, Cliente, Vehiculo, RegistroTiempo, Usuario]),
     AutenticacionModule,
     DescuentosModule,
+    InventarioModule,
   ],
   controllers: [OrdenesTrabajoController],
   providers: [OrdenesTrabajoService, OrdenTrabajoFactory, OrdenesTrabajoFacade],

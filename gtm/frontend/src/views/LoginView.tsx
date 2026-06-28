@@ -2,28 +2,13 @@ import { useState } from 'react';
 import { iniciarSesion } from '../api/autenticacionApi';
 import type { UsuarioSesion } from '../api/sesionApi';
 
-const cuentasDemo = [
-  { rol: 'Administrador', correo: 'admin@gtm.cl', contrasena: 'Admin1234' },
-  {
-    rol: 'Recepcionista',
-    correo: 'recepcion@gtm.cl',
-    contrasena: 'Recepcion1234',
-  },
-  { rol: 'Mecanico', correo: 'mecanico@gtm.cl', contrasena: 'Mecanico1234' },
-  {
-    rol: 'Inventario',
-    correo: 'inventario@gtm.cl',
-    contrasena: 'Inventario1234',
-  },
-];
-
 export function LoginView({
   onLogin,
 }: {
   onLogin: (usuario: UsuarioSesion) => void;
 }) {
-  const [correo, setCorreo] = useState('admin@gtm.cl');
-  const [contrasena, setContrasena] = useState('Admin1234');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,15 +41,15 @@ export function LoginView({
               Sistema de gestion de taller mecanico
             </h1>
             <p className="mt-4 max-w-[520px] text-[15px] leading-6 text-[#c8d5cf]">
-              Acceso por roles para administrar clientes, vehiculos, ordenes de
-              trabajo e inventario desde una sola plataforma.
+              Control diario de clientes, vehiculos, ordenes de trabajo, pagos
+              e inventario.
             </p>
           </div>
           <div className="grid gap-2 text-[13px] text-[#c8d5cf]">
             <span className="font-bold uppercase text-[#f4c95d]">
-              Seguridad activa
+              Operacion del taller
             </span>
-            <span>JWT para acceso y refresh tokens para renovar sesion.</span>
+            <span>Gestiona recepcion, ordenes, pagos e inventario.</span>
           </div>
         </div>
 
@@ -113,28 +98,6 @@ export function LoginView({
               {cargando ? 'Ingresando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-6 grid gap-2">
-            <span className="text-[12px] font-extrabold uppercase text-[#64748b]">
-              Cuentas de prueba
-            </span>
-            <div className="grid gap-2">
-              {cuentasDemo.map((cuenta) => (
-                <button
-                  className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-left text-[13px] transition-colors hover:border-[#0f6872] hover:bg-[#edfafa]"
-                  key={cuenta.correo}
-                  onClick={() => {
-                    setCorreo(cuenta.correo);
-                    setContrasena(cuenta.contrasena);
-                  }}
-                  type="button"
-                >
-                  <strong className="block text-[#111827]">{cuenta.rol}</strong>
-                  <span className="text-[#64748b]">{cuenta.correo}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
     </main>

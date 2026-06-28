@@ -47,9 +47,9 @@ export function LoginView({
           </div>
           <div className="grid gap-2 text-[13px] text-[#c8d5cf]">
             <span className="font-bold uppercase text-[#f4c95d]">
-              Seguridad activa
+              Operacion del taller
             </span>
-            <span>JWT para acceso y refresh tokens para renovar sesion.</span>
+            <span>Gestiona recepcion, ordenes, pagos e inventario.</span>
           </div>
         </div>
 

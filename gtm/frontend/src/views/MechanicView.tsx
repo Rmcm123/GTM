@@ -3,8 +3,8 @@ import { ActionPanel } from '../components/ActionPanel';
 import { OrdersTable } from '../components/OrdersTable';
 import { Panel } from '../components/Panel';
 import { SummaryCards } from '../components/SummaryCards';
-import { mechanicSummary, roleConfig } from '../data/mockData';
-import type { InventoryItem, WorkOrder } from '../types';
+import { roleConfig } from '../data/mockData';
+import type { InventoryItem, SummaryCardData, WorkOrder } from '../types';
 
 export function MechanicView({
   activeSection,
@@ -38,6 +38,29 @@ export function MechanicView({
   const ordenesFinalizadas = mechanicOrders.filter(
     (order) => order.status === 'Finalizada',
   );
+  const ordenesEnRevision = mechanicOrders.filter(
+    (order) => order.status === 'En revision',
+  );
+  const resumenMecanico: SummaryCardData[] = [
+    {
+      label: 'Mis ordenes',
+      value: String(ordenesActivas.length),
+      helper: 'Asignadas y abiertas',
+      borderClass: 'border-t-[#2563eb]',
+    },
+    {
+      label: 'En revision',
+      value: String(ordenesEnRevision.length),
+      helper: 'Diagnostico pendiente',
+      borderClass: 'border-t-[#d48806]',
+    },
+    {
+      label: 'Finalizadas',
+      value: String(ordenesFinalizadas.length),
+      helper: 'Listas para recepcion',
+      borderClass: 'border-t-[#0f8a5f]',
+    },
+  ];
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const selectedOrder =
     mechanicOrders.find((o) => o.id === selectedOrderId) || null;
@@ -191,7 +214,7 @@ export function MechanicView({
 
   return (
     <>
-      <SummaryCards cards={mechanicSummary} />
+      <SummaryCards cards={resumenMecanico} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-[18px]">
           <OrdersTable

@@ -8,10 +8,11 @@ import { WorkOrdersPanel } from '../components/WorkOrdersPanel';
 import type { CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
-import { receptionSummary, roleConfig } from '../data/mockData';
+import { roleConfig } from '../data/mockData';
 import type {
   Cliente,
   InventoryItem,
+  SummaryCardData,
   UsuarioSistema,
   WorkOrder,
 } from '../types';
@@ -26,10 +27,43 @@ export function ReceptionDashboard({
   const receptionOrders = ordenes.filter(
     (order) => order.status === 'Pendiente' || order.status === 'En revision',
   );
+  const ordenesActivas = ordenes.filter((orden) =>
+    ['Pendiente', 'En revision', 'En proceso'].includes(orden.status),
+  );
+  const cuposDisponibles = Math.max(5 - ordenesActivas.length, 0);
+  const ordenesSinMecanico = ordenes.filter(
+    (orden) =>
+      orden.status !== 'Entregada' &&
+      orden.status !== 'Cancelada' &&
+      (!orden.mechanic || orden.mechanic === 'Sin asignar'),
+  );
+  const ordenesPendientes = ordenes.filter(
+    (orden) => orden.status === 'Pendiente',
+  );
+  const resumenRecepcion: SummaryCardData[] = [
+    {
+      label: 'Cupos disponibles',
+      value: String(cuposDisponibles),
+      helper: 'Capacidad libre del taller',
+      borderClass: 'border-t-[#2563eb]',
+    },
+    {
+      label: 'Sin mecanico',
+      value: String(ordenesSinMecanico.length),
+      helper: 'Ordenes por asignar',
+      borderClass: 'border-t-[#0f8a5f]',
+    },
+    {
+      label: 'Pendientes',
+      value: String(ordenesPendientes.length),
+      helper: 'Esperan inicio de trabajo',
+      borderClass: 'border-t-[#d48806]',
+    },
+  ];
 
   return (
     <>
-      <SummaryCards cards={receptionSummary} />
+      <SummaryCards cards={resumenRecepcion} />
       <section className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <OrdersTable
           title="Ordenes por ingresar o revisar"

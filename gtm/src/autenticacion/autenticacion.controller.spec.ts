@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AutenticacionController } from './autenticacion.controller';
 import { AutenticacionService } from './autenticacion.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { RequestConUsuario } from './guards/jwt-auth.guard';
 
 describe('AutenticacionController', () => {
   let controller: AutenticacionController;
@@ -43,13 +44,17 @@ describe('AutenticacionController', () => {
   });
 
   it('obtenerPerfil debe delegar al service con id de usuario', async () => {
-    const req = { usuario: { id: 'uuid-1', rut: '111', rol: 'ADMIN' } } as any;
+    const req = {
+      usuario: { id: 'uuid-1', rut: '111', rol: 'ADMIN' },
+    } as unknown as RequestConUsuario;
     await controller.obtenerPerfil(req);
     expect(service.obtenerPerfil).toHaveBeenCalledWith('uuid-1');
   });
 
   it('logout debe delegar al service con id de usuario', async () => {
-    const req = { usuario: { id: 'uuid-1', rut: '111', rol: 'ADMIN' } } as any;
+    const req = {
+      usuario: { id: 'uuid-1', rut: '111', rol: 'ADMIN' },
+    } as unknown as RequestConUsuario;
     await controller.logout(req);
     expect(service.logout).toHaveBeenCalledWith('uuid-1');
   });

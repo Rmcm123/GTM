@@ -3,6 +3,7 @@ import { PagosController } from './pagos.controller';
 import { PagosService } from './pagos.service';
 import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from '../autenticacion/guards/roles.guard';
+import { MedioPago, TipoPago } from './pago.entity';
 
 describe('PagosController', () => {
   let controller: PagosController;
@@ -40,8 +41,8 @@ describe('PagosController', () => {
     const datos = {
       ordenTrabajoId: 1,
       monto: 1000,
-      medioPago: 'EFECTIVO' as any,
-      tipoPago: 'ADELANTO' as any,
+      medioPago: MedioPago.Efectivo,
+      tipoPago: TipoPago.Adelanto,
     };
     await controller.registrar(datos);
     expect(service.registrar).toHaveBeenCalledWith(datos);

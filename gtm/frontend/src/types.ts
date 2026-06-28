@@ -4,7 +4,9 @@ export type OrderStatus =
   | 'En proceso'
   | 'Finalizada'
   | 'Entregada'
-  | 'Cancelada';
+  | 'Cancelada'
+  | 'En espera'
+  | 'Garantia valida';
 
 export type UserRole =
   | 'Administrador'
@@ -44,6 +46,8 @@ export type WorkOrder = {
   totalPagado?: number;
   saldoPendiente?: number;
   estadoPago?: string;
+  prioridad?: boolean;
+  fechaTermino?: string;
 };
 
 export type Cliente = {
@@ -118,4 +122,18 @@ export type SummaryCardData = {
   value: string;
   helper: string;
   borderClass: string;
+};
+
+export type RegistroTiempo = {
+  id: string;
+  mecanico: string;
+  descripcion?: string;
+  fechaInicio: string;
+  fechaFin: string | null;
+  minutosTrabajados: number;
+};
+
+export type HistorialTiemposResponse = {
+  historial: RegistroTiempo[];
+  tiempoTotalMinutos: number;
 };

@@ -1,14 +1,16 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { DescuentosService } from '../descuentos/descuentos.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
+import { Usuario } from '../usuarios/usuario.entity';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
@@ -19,6 +21,7 @@ import {
   OrdenTrabajo,
 } from './orden-trabajo.entity';
 import { OrdenTrabajoFactory } from './ordenes-trabajo.factory';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 const LIMITE_ORDENES_ACTIVAS = 5;
 
@@ -27,6 +30,10 @@ export class OrdenesTrabajoService {
   constructor(
     @InjectRepository(OrdenTrabajo)
     private readonly repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
+    @InjectRepository(RegistroTiempo)
+    private readonly repositorioRegistrosTiempo: Repository<RegistroTiempo>,
+    @InjectRepository(Usuario)
+    private readonly repositorioUsuarios: Repository<Usuario>,
     @InjectRepository(Cliente)
     private readonly repositorioClientes: Repository<Cliente>,
     @InjectRepository(Vehiculo)
@@ -65,13 +72,10 @@ export class OrdenesTrabajoService {
     this.validarDatosObligatorios(datosOrden);
 
     return this.dataSource.transaction(async (manager) => {
-      const repositorioOrdenesTrabajo = manager.getRepository(OrdenTrabajo);
+      const repositorioOrdenes = manager.getRepository(OrdenTrabajo);
       const repositorioVehiculos = manager.getRepository(Vehiculo);
-
-      await this.validarCuposDisponiblesConRepositorio(
-        repositorioOrdenesTrabajo,
-      );
-
+      const hayCupo =
+        await this.validarCuposDisponiblesConRepositorio(repositorioOrdenes);
       const patenteNormalizada = datosOrden.patenteVehiculo
         .trim()
         .toUpperCase();
@@ -87,27 +91,35 @@ export class OrdenesTrabajoService {
       }
 
       const cliente = vehiculo.cliente;
-      const orden = this.factory.crearDesdeDto(datosOrden, cliente, vehiculo);
+      const estadoInicial = hayCupo
+        ? EstadoOrdenTrabajo.Pendiente
+        : EstadoOrdenTrabajo.EnEspera;
+      const orden = this.factory.crearConEstadoInicial(
+        datosOrden,
+        cliente,
+        vehiculo,
+        estadoInicial,
+      );
+
       const costoRepuestosCalculado =
         await this.inventarioService.calcularCostoRepuestosConManager(
           manager,
           datosOrden.repuestos,
         );
 
-      this.aplicarPresupuesto(
-        orden,
-        datosOrden,
-        cliente,
-        vehiculo,
+      this.aplicarPresupuesto(orden, datosOrden, cliente, vehiculo, {
         costoRepuestosCalculado,
-      );
+      });
 
-      const ordenGuardada = await repositorioOrdenesTrabajo.save(orden);
-      await this.inventarioService.registrarSalidasPorOrdenConManager(
-        manager,
-        ordenGuardada.id,
-        datosOrden.repuestos,
-      );
+      const ordenGuardada = await repositorioOrdenes.save(orden);
+
+      if (datosOrden.repuestos?.length) {
+        await this.inventarioService.registrarSalidasPorOrdenConManager(
+          manager,
+          ordenGuardada.id,
+          datosOrden.repuestos,
+        );
+      }
 
       return this.convertirARespuesta(ordenGuardada);
     });
@@ -128,10 +140,11 @@ export class OrdenesTrabajoService {
 
     if (
       orden.estado === EstadoOrdenTrabajo.Finalizada &&
-      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada
+      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada &&
+      datosActualizacion.estado !== EstadoOrdenTrabajo.GarantiaValida
     ) {
       throw new BadRequestException(
-        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada.',
+        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada o Garantia valida.',
       );
     }
 
@@ -152,36 +165,57 @@ export class OrdenesTrabajoService {
     return this.convertirARespuesta(ordenActualizada);
   }
 
+  private async validarCuposDisponibles(): Promise<boolean> {
+    return this.validarCuposDisponiblesConRepositorio(
+      this.repositorioOrdenesTrabajo,
+    );
+  }
+
+  private async validarCuposDisponiblesConRepositorio(
+    repositorioOrdenes: Repository<OrdenTrabajo>,
+  ): Promise<boolean> {
+    const ordenesActivas = await repositorioOrdenes.count({
+      where: {
+        estado: In([
+          EstadoOrdenTrabajo.Pendiente,
+          EstadoOrdenTrabajo.EnRevision,
+          EstadoOrdenTrabajo.EnProceso,
+        ]),
+      },
+    });
+
+    return ordenesActivas < LIMITE_ORDENES_ACTIVAS;
+  }
+
   async agregarRepuestos(
     id: number,
     datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
-    if (!datosRepuestos.repuestos || datosRepuestos.repuestos.length === 0) {
-      throw new BadRequestException('Debe indicar al menos un repuesto');
+    if (!datosRepuestos.repuestos?.length) {
+      throw new BadRequestException('Debe seleccionar al menos un repuesto');
     }
 
     return this.dataSource.transaction(async (manager) => {
-      const repositorioOrdenesTrabajo = manager.getRepository(OrdenTrabajo);
-      const orden = await repositorioOrdenesTrabajo.findOne({
+      const repositorioOrdenes = manager.getRepository(OrdenTrabajo);
+      const orden = await repositorioOrdenes.findOne({
         where: { id },
         relations: ['cliente', 'vehiculo'],
       });
 
       if (!orden) {
-        throw new NotFoundException(
-          'No existe una orden de trabajo con ese id',
-        );
+        throw new NotFoundException('No existe una orden de trabajo con ese id');
       }
 
       if (
         [
+          EstadoOrdenTrabajo.EnEspera,
           EstadoOrdenTrabajo.Finalizada,
           EstadoOrdenTrabajo.Entregada,
           EstadoOrdenTrabajo.Cancelada,
         ].includes(orden.estado)
       ) {
         throw new BadRequestException(
-          'No se pueden agregar repuestos a una orden cerrada o cancelada',
+          'No se pueden agregar repuestos a una orden cerrada o en espera',
         );
       }
 
@@ -200,36 +234,139 @@ export class OrdenesTrabajoService {
       orden.costoRepuestos += costoAdicional;
       this.recalcularTotales(orden);
 
-      const ordenActualizada = await repositorioOrdenesTrabajo.save(orden);
-
+      const ordenActualizada = await repositorioOrdenes.save(orden);
       return this.convertirARespuesta(ordenActualizada);
     });
   }
 
-  private async validarCuposDisponibles(): Promise<void> {
-    await this.validarCuposDisponiblesConRepositorio(
-      this.repositorioOrdenesTrabajo,
-    );
+  async buscarListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    const ordenes = await this.repositorioOrdenesTrabajo.find({
+      where: { estado: EstadoOrdenTrabajo.EnEspera },
+      order: { creadoEn: 'ASC' },
+      relations: ['cliente', 'vehiculo'],
+    });
+
+    return ordenes.map((orden, index) => ({
+      ...this.convertirARespuesta(orden),
+      prioridad: index < 3,
+    }));
   }
 
-  private async validarCuposDisponiblesConRepositorio(
-    repositorioOrdenesTrabajo: Repository<OrdenTrabajo>,
-  ): Promise<void> {
-    const ordenesActivas = await repositorioOrdenesTrabajo.count({
+  async activarDesdeEspera(id: number): Promise<OrdenTrabajoRespuestaDto> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id },
+      relations: ['cliente', 'vehiculo'],
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    if (orden.estado !== EstadoOrdenTrabajo.EnEspera) {
+      throw new BadRequestException('La orden no esta en la lista de espera');
+    }
+
+    const hayCupo = await this.validarCuposDisponibles();
+    if (!hayCupo) {
+      throw new BadRequestException('No hay cupos disponibles. Finaliza otra orden primero.');
+    }
+
+    orden.estado = EstadoOrdenTrabajo.Pendiente;
+    const ordenActualizada = await this.repositorioOrdenesTrabajo.save(orden);
+
+    return this.convertirARespuesta(ordenActualizada);
+  }
+
+  async iniciarTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+    descripcion?: string,
+  ): Promise<RegistroTiempo> {
+    const orden = await this.repositorioOrdenesTrabajo.findOne({
+      where: { id: ordenId },
+    });
+
+    if (!orden) {
+      throw new NotFoundException('No existe una orden de trabajo con ese id');
+    }
+
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
       where: {
-        estado: In([
-          EstadoOrdenTrabajo.Pendiente,
-          EstadoOrdenTrabajo.EnRevision,
-          EstadoOrdenTrabajo.EnProceso,
-        ]),
+        mecanicoId: mecanicoId,
+        fechaFin: IsNull(),
       },
     });
 
-    if (ordenesActivas >= LIMITE_ORDENES_ACTIVAS) {
-      throw new BadRequestException(
-        'No hay cupos disponibles. El limite de 5 ordenes activas ha sido alcanzado.',
+    if (tareaActiva) {
+      throw new ConflictException(
+        `Ya tienes una tarea en curso (Orden ID: ${tareaActiva.ordenTrabajoId}). Detenla antes de iniciar una nueva.`,
       );
     }
+
+    const nuevoRegistro = this.repositorioRegistrosTiempo.create({
+      ordenTrabajoId: ordenId,
+      mecanicoId: mecanicoId,
+      descripcion,
+      fechaInicio: new Date(),
+    });
+
+    return this.repositorioRegistrosTiempo.save(nuevoRegistro);
+  }
+
+  async detenerTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+  ): Promise<RegistroTiempo> {
+    const tareaActiva = await this.repositorioRegistrosTiempo.findOne({
+      where: {
+        ordenTrabajoId: ordenId,
+        mecanicoId: mecanicoId,
+        fechaFin: IsNull(),
+      },
+    });
+
+    if (!tareaActiva) {
+      throw new NotFoundException(
+        'No tienes ninguna tarea activa en esta orden de trabajo',
+      );
+    }
+
+    tareaActiva.fechaFin = new Date();
+    return this.repositorioRegistrosTiempo.save(tareaActiva);
+  }
+
+  async obtenerHistorialTiempos(ordenId: number) {
+    const historial = await this.repositorioRegistrosTiempo.find({
+      where: { ordenTrabajoId: ordenId },
+      order: { fechaInicio: 'ASC' },
+      relations: ['mecanico'],
+    });
+
+    let tiempoTotalMinutos = 0;
+    historial.forEach((registro) => {
+      if (registro.fechaFin) {
+        const diffMs = registro.fechaFin.getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      } else {
+        // Si está en curso, sumamos hasta ahora
+        const diffMs = new Date().getTime() - registro.fechaInicio.getTime();
+        tiempoTotalMinutos += Math.floor(diffMs / 60000);
+      }
+    });
+
+    return {
+      historial: historial.map((reg) => ({
+        id: reg.id,
+        mecanico: reg.mecanico.nombre,
+        descripcion: reg.descripcion,
+        fechaInicio: reg.fechaInicio,
+        fechaFin: reg.fechaFin,
+        minutosTrabajados: reg.fechaFin
+          ? Math.floor((reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000)
+          : Math.floor((new Date().getTime() - reg.fechaInicio.getTime()) / 60000),
+      })),
+      tiempoTotalMinutos,
+    };
   }
 
   private validarDatosObligatorios(datosOrden: CrearOrdenTrabajoDto) {
@@ -279,6 +416,16 @@ export class OrdenesTrabajoService {
         'La orden debe estar Finalizada antes de marcarse como Entregada',
       );
     }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.GarantiaValida &&
+      orden.estado !== EstadoOrdenTrabajo.Finalizada &&
+      orden.estado !== EstadoOrdenTrabajo.Entregada
+    ) {
+      throw new BadRequestException(
+        'La orden debe estar Finalizada o Entregada para validar la garantia',
+      );
+    }
   }
 
   private aplicarPresupuesto(
@@ -286,13 +433,12 @@ export class OrdenesTrabajoService {
     datosOrden: CrearOrdenTrabajoDto,
     cliente: Cliente,
     vehiculo: Vehiculo,
-    costoRepuestosCalculado: number,
+    opciones: { costoRepuestosCalculado?: number } = {},
   ) {
     const costoManoObra = this.normalizarMonto(datosOrden.costoManoObra);
-    const costoRepuestos =
-      datosOrden.repuestos && datosOrden.repuestos.length > 0
-        ? costoRepuestosCalculado
-        : this.normalizarMonto(datosOrden.costoRepuestos);
+    const costoRepuestos = this.normalizarMonto(
+      opciones.costoRepuestosCalculado ?? datosOrden.costoRepuestos,
+    );
     const subtotal = costoManoObra + costoRepuestos;
     const descuento = this.descuentosService.calcularMejorDescuento(
       cliente,
@@ -315,25 +461,21 @@ export class OrdenesTrabajoService {
   }
 
   private recalcularTotales(orden: OrdenTrabajo) {
-    const subtotal = orden.costoManoObra + orden.costoRepuestos;
-    const descuento = this.descuentosService.calcularMejorDescuento(
-      orden.cliente,
-      orden.vehiculo,
+    orden.subtotal = orden.costoManoObra + orden.costoRepuestos;
+    orden.montoDescuento = Math.round(
+      orden.subtotal * (orden.porcentajeDescuento / 100),
     );
-    const montoDescuento = Math.round(subtotal * (descuento.porcentaje / 100));
-    const total = Math.max(subtotal - montoDescuento, 0);
-
-    orden.subtotal = subtotal;
-    orden.porcentajeDescuento = descuento.porcentaje;
-    orden.montoDescuento = montoDescuento;
-    orden.motivoDescuento = descuento.motivo;
-    orden.total = total;
-    orden.adelantoRequerido = Math.ceil(total * 0.4);
-    orden.saldoPendiente = Math.max(total - orden.totalPagado, 0);
+    orden.total = Math.max(orden.subtotal - orden.montoDescuento, 0);
+    orden.adelantoRequerido = Math.ceil(orden.total * 0.4);
+    orden.saldoPendiente = Math.max(orden.total - orden.totalPagado, 0);
     orden.estadoPago = this.obtenerEstadoPago(orden);
   }
 
   private obtenerEstadoPago(orden: OrdenTrabajo): EstadoPagoOrden {
+    if (orden.totalPagado <= 0) {
+      return EstadoPagoOrden.SinPago;
+    }
+
     if (orden.saldoPendiente <= 0) {
       return EstadoPagoOrden.Pagada;
     }
@@ -342,7 +484,7 @@ export class OrdenesTrabajoService {
       return EstadoPagoOrden.AdelantoPagado;
     }
 
-    return EstadoPagoOrden.SinPago;
+    return EstadoPagoOrden.AdelantoPagado;
   }
 
   private normalizarMonto(monto?: number): number {
@@ -386,6 +528,7 @@ export class OrdenesTrabajoService {
       totalPagado: orden.totalPagado,
       saldoPendiente: orden.saldoPendiente,
       estadoPago: orden.estadoPago,
+      fechaTermino: orden.actualizadoEn?.toISOString(),
     };
   }
 }

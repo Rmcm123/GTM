@@ -56,6 +56,8 @@ function crearService(orden: OrdenTrabajo) {
     {} as never,
     {} as never,
     {} as never,
+    {} as never,
+    {} as never,
   );
 
   return { repositorioOrdenesTrabajo, service };
@@ -85,6 +87,8 @@ function crearServiceParaRepuestos(orden: OrdenTrabajo) {
 
   const service = new OrdenesTrabajoService(
     repositorioOrdenesTrabajo as never,
+    {} as never,
+    {} as never,
     {} as never,
     {} as never,
     {} as never,

@@ -3,6 +3,7 @@ import { ActionPanel } from '../components/ActionPanel';
 import { OrdersTable } from '../components/OrdersTable';
 import { Panel } from '../components/Panel';
 import { SummaryCards } from '../components/SummaryCards';
+import { TimeTracker } from '../components/TimeTracker';
 import { roleConfig } from '../data/mockData';
 import type { InventoryItem, SummaryCardData, WorkOrder } from '../types';
 
@@ -30,7 +31,7 @@ export function MechanicView({
   ) => Promise<boolean>;
 }) {
   const mechanicOrders = ordenes.filter(
-    (order) => order.mechanic === nombreUsuario,
+    (order) => order.mechanic === nombreUsuario && order.status !== 'En espera',
   );
   const ordenesActivas = mechanicOrders.filter(
     (order) => order.status !== 'Finalizada',
@@ -371,6 +372,7 @@ export function MechanicView({
                   </div>
                 </div>
               </div>
+              <TimeTracker ordenId={selectedOrder.id} />
             </Panel>
           )}
 

@@ -11,6 +11,7 @@ import {
 import { Cliente } from '../clientes/cliente.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Vehiculo } from '../vehiculos/vehiculo.entity';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 export enum EstadoOrdenTrabajo {
   Pendiente = 'Pendiente',
@@ -19,6 +20,8 @@ export enum EstadoOrdenTrabajo {
   Finalizada = 'Finalizada',
   Entregada = 'Entregada',
   Cancelada = 'Cancelada',
+  EnEspera = 'En espera',
+  GarantiaValida = 'Garantia valida',
 }
 
 export enum EstadoPagoOrden {
@@ -109,6 +112,9 @@ export class OrdenTrabajo {
 
   @OneToMany(() => Pago, (pago) => pago.ordenTrabajo)
   pagos: Pago[];
+
+  @OneToMany(() => RegistroTiempo, (registro) => registro.ordenTrabajo)
+  registrosTiempo: RegistroTiempo[];
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;

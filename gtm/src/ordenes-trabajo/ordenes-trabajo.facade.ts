@@ -4,6 +4,7 @@ import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
 import { EstadoOrdenTrabajo } from './orden-trabajo.entity';
 import { OrdenesTrabajoService } from './ordenes-trabajo.service';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 /**
  * Facade para orquestar operaciones relacionadas con ordenes de trabajo.
@@ -41,5 +42,36 @@ export class OrdenesTrabajoFacade {
     datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.ordenesService.agregarRepuestos(id, datosRepuestos);
+  }
+
+  async obtenerListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    return this.ordenesService.buscarListaEspera();
+  }
+
+  async activarOrden(id: number): Promise<OrdenTrabajoRespuestaDto> {
+    return this.ordenesService.activarDesdeEspera(id);
+  }
+
+  async iniciarTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+    descripcion?: string,
+  ): Promise<RegistroTiempo> {
+    return this.ordenesService.iniciarTiempoTrabajo(
+      ordenId,
+      mecanicoId,
+      descripcion,
+    );
+  }
+
+  async detenerTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+  ): Promise<RegistroTiempo> {
+    return this.ordenesService.detenerTiempoTrabajo(ordenId, mecanicoId);
+  }
+
+  async obtenerHistorialTiempos(ordenId: number) {
+    return this.ordenesService.obtenerHistorialTiempos(ordenId);
   }
 }

@@ -1,4 +1,8 @@
-import type { WorkOrder } from '../types';
+import type {
+  HistorialTiemposResponse,
+  RegistroTiempo,
+  WorkOrder,
+} from '../types';
 import { fetchAutenticado } from './fetchAutenticado';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -27,6 +31,8 @@ type OrdenTrabajoApi = {
   totalPagado?: number;
   saldoPendiente?: number;
   estadoPago?: string;
+  prioridad?: boolean;
+  fechaTermino?: string;
 };
 
 export type CrearOrdenTrabajoPayload = {
@@ -70,6 +76,8 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     totalPagado: orden.totalPagado,
     saldoPendiente: orden.saldoPendiente,
     estadoPago: orden.estadoPago,
+    prioridad: orden.prioridad,
+    fechaTermino: orden.fechaTermino,
   };
 }
 
@@ -152,4 +160,90 @@ export async function agregarRepuestosOrden(
   }
 
   return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}
+
+export async function obtenerListaEspera(): Promise<WorkOrder[]> {
+  const respuesta = await fetchAutenticado(`${API_URL}/ordenes-trabajo/espera`);
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar la lista de espera');
+  }
+
+  const ordenes = (await respuesta.json()) as OrdenTrabajoApi[];
+
+  return ordenes.map((orden) => convertirOrdenApi(orden));
+}
+
+export async function activarOrdenDesdeEspera(id: number): Promise<WorkOrder> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/activar`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo activar la orden');
+  }
+
+  return convertirOrdenApi((await respuesta.json()) as OrdenTrabajoApi);
+}
+
+export async function iniciarTiempoTrabajo(
+  id: number,
+  descripcion?: string,
+): Promise<RegistroTiempo> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/tiempos/iniciar`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ descripcion }),
+    },
+  );
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo iniciar el tiempo de trabajo');
+  }
+
+  return respuesta.json();
+}
+
+export async function detenerTiempoTrabajo(
+  id: number,
+): Promise<RegistroTiempo> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/tiempos/detener`,
+    {
+      method: 'PATCH',
+    },
+  );
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => null);
+    throw new Error(error?.message ?? 'No se pudo detener el tiempo de trabajo');
+  }
+
+  return respuesta.json();
+}
+
+export async function obtenerHistorialTiempos(
+  id: number,
+): Promise<HistorialTiemposResponse> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/ordenes-trabajo/${id}/tiempos`,
+  );
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo cargar el historial de tiempos');
+  }
+
+  return respuesta.json();
 }

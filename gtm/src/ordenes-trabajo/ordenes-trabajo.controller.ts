@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import type { ActualizarEstadoOrdenTrabajoDto } from './dto/actualizar-estado-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
@@ -14,7 +22,9 @@ export class OrdenesTrabajoController {
   }
 
   @Get(':id')
-  buscarPorId(@Param('id', ParseIntPipe) id: number): Promise<OrdenTrabajoRespuestaDto> {
+  buscarPorId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OrdenTrabajoRespuestaDto> {
     return this.facade.obtenerOrden(id);
   }
 

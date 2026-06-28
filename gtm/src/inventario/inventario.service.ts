@@ -57,7 +57,9 @@ export class InventarioService implements OnModuleInit {
     });
 
     const repuestos = await this.repositorioRepuestos.find();
-    const nombresPorId = new Map(repuestos.map((repuesto) => [repuesto.id, repuesto.nombre]));
+    const nombresPorId = new Map(
+      repuestos.map((repuesto) => [repuesto.id, repuesto.nombre]),
+    );
 
     return movimientos.map((movimiento) => ({
       id: movimiento.id,
@@ -72,15 +74,23 @@ export class InventarioService implements OnModuleInit {
     }));
   }
 
-  async actualizarStock(datos: ActualizarStockDto): Promise<RepuestoRespuestaDto> {
+  async actualizarStock(
+    datos: ActualizarStockDto,
+  ): Promise<RepuestoRespuestaDto> {
     this.validarNombre(datos.nombre);
-    this.validarStockNoNegativo(datos.stock, 'El stock nuevo debe ser mayor o igual a 0');
+    this.validarStockNoNegativo(
+      datos.stock,
+      'El stock nuevo debe ser mayor o igual a 0',
+    );
 
     const repuesto = await this.obtenerOCrearRepuesto(datos);
     const stockAnterior = repuesto.stock;
 
     repuesto.stock = Number(datos.stock);
-    if (typeof datos.categoria === 'string' && datos.categoria.trim().length > 0) {
+    if (
+      typeof datos.categoria === 'string' &&
+      datos.categoria.trim().length > 0
+    ) {
       repuesto.categoria = datos.categoria.trim();
     }
     if (typeof datos.minimo === 'number' && Number.isFinite(datos.minimo)) {
@@ -112,7 +122,9 @@ export class InventarioService implements OnModuleInit {
     return this.stockBajoObservador.obtenerAlertas();
   }
 
-  async registrarEntrada(datos: RegistrarEntradaDto): Promise<RepuestoRespuestaDto> {
+  async registrarEntrada(
+    datos: RegistrarEntradaDto,
+  ): Promise<RepuestoRespuestaDto> {
     this.validarNombre(datos.nombre);
     this.validarCantidadPositiva(datos.cantidad);
 
@@ -120,7 +132,10 @@ export class InventarioService implements OnModuleInit {
     const stockAnterior = repuesto.stock;
 
     repuesto.stock = Number(repuesto.stock) + Number(datos.cantidad);
-    if (typeof datos.categoria === 'string' && datos.categoria.trim().length > 0) {
+    if (
+      typeof datos.categoria === 'string' &&
+      datos.categoria.trim().length > 0
+    ) {
       repuesto.categoria = datos.categoria.trim();
     }
     if (typeof datos.minimo === 'number' && Number.isFinite(datos.minimo)) {
@@ -143,7 +158,9 @@ export class InventarioService implements OnModuleInit {
     return this.convertirARespuesta(repuestoGuardado);
   }
 
-  async registrarSalida(datos: RegistrarSalidaDto): Promise<RepuestoRespuestaDto> {
+  async registrarSalida(
+    datos: RegistrarSalidaDto,
+  ): Promise<RepuestoRespuestaDto> {
     this.validarNombre(datos.nombre);
     this.validarCantidadPositiva(datos.cantidad);
 
@@ -160,7 +177,9 @@ export class InventarioService implements OnModuleInit {
     const cantidadSalida = Number(datos.cantidad);
 
     if (cantidadSalida > stockAnterior) {
-      throw new BadRequestException('No hay stock suficiente para registrar la salida');
+      throw new BadRequestException(
+        'No hay stock suficiente para registrar la salida',
+      );
     }
 
     repuesto.stock = stockAnterior - cantidadSalida;

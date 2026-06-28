@@ -41,8 +41,8 @@ export function LoginView({
               Sistema de gestion de taller mecanico
             </h1>
             <p className="mt-4 max-w-[520px] text-[15px] leading-6 text-[#c8d5cf]">
-              Acceso por roles para administrar clientes, vehiculos, ordenes de
-              trabajo e inventario desde una sola plataforma.
+              Control diario de clientes, vehiculos, ordenes de trabajo, pagos
+              e inventario.
             </p>
           </div>
           <div className="grid gap-2 text-[13px] text-[#c8d5cf]">

@@ -1,58 +1,77 @@
 import { Injectable } from '@nestjs/common';
+import type { AgregarRepuestosOrdenTrabajoDto } from './dto/agregar-repuestos-orden-trabajo.dto';
 import type { CrearOrdenTrabajoDto } from './dto/crear-orden-trabajo.dto';
 import type { OrdenTrabajoRespuestaDto } from './dto/orden-trabajo-respuesta.dto';
-import type { EstadoOrdenTrabajo } from './orden-trabajo.entity';
+import { EstadoOrdenTrabajo } from './orden-trabajo.entity';
 import { OrdenesTrabajoService } from './ordenes-trabajo.service';
+import { RegistroTiempo } from './registro-tiempo.entity';
 
 /**
- * Facade para orquestar operaciones complejas relacionadas con órdenes de trabajo
- * Coordina múltiples servicios para proporcionar una interfaz simplificada
+ * Facade para orquestar operaciones relacionadas con ordenes de trabajo.
+ * Expone una interfaz simple para el controller y oculta la coordinacion interna.
  */
 @Injectable()
 export class OrdenesTrabajoFacade {
   constructor(private readonly ordenesService: OrdenesTrabajoService) {}
 
-  /**
-   * Crea una orden de trabajo de forma simplificada
-   * Usa el servicio interno para toda la validación y creación
-   * @param datosOrden - Datos para crear la orden
-   * @returns Orden creada con toda su información
-   */
   async crearOrden(
     datosOrden: CrearOrdenTrabajoDto,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.ordenesService.crear(datosOrden);
   }
 
-  /**
-   * Obtiene todas las órdenes de trabajo
-   * @returns Lista de todas las órdenes
-   */
   async obtenerOrdenes(): Promise<OrdenTrabajoRespuestaDto[]> {
     return this.ordenesService.buscarTodas();
   }
 
-  /**
-   * Obtiene una orden específica por ID
-   * @param id - ID de la orden
-   * @returns Orden encontrada
-   */
   async obtenerOrden(id: number): Promise<OrdenTrabajoRespuestaDto> {
     return this.ordenesService.buscarPorId(id);
   }
 
-  /**
-   * Actualiza el estado de una orden
-   * @param id - ID de la orden
-   * @param nuevoEstado - Nuevo estado
-   * @returns Orden actualizada
-   */
   async actualizarEstado(
     id: number,
-    nuevoEstado: string,
+    nuevoEstado: EstadoOrdenTrabajo,
   ): Promise<OrdenTrabajoRespuestaDto> {
     return this.ordenesService.actualizarEstado(id, {
-      estado: nuevoEstado as EstadoOrdenTrabajo,
+      estado: nuevoEstado,
     });
+  }
+
+  async agregarRepuestos(
+    id: number,
+    datosRepuestos: AgregarRepuestosOrdenTrabajoDto,
+  ): Promise<OrdenTrabajoRespuestaDto> {
+    return this.ordenesService.agregarRepuestos(id, datosRepuestos);
+  }
+
+  async obtenerListaEspera(): Promise<OrdenTrabajoRespuestaDto[]> {
+    return this.ordenesService.buscarListaEspera();
+  }
+
+  async activarOrden(id: number): Promise<OrdenTrabajoRespuestaDto> {
+    return this.ordenesService.activarDesdeEspera(id);
+  }
+
+  async iniciarTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+    descripcion?: string,
+  ): Promise<RegistroTiempo> {
+    return this.ordenesService.iniciarTiempoTrabajo(
+      ordenId,
+      mecanicoId,
+      descripcion,
+    );
+  }
+
+  async detenerTiempoTrabajo(
+    ordenId: number,
+    mecanicoId: string,
+  ): Promise<RegistroTiempo> {
+    return this.ordenesService.detenerTiempoTrabajo(ordenId, mecanicoId);
+  }
+
+  async obtenerHistorialTiempos(ordenId: number) {
+    return this.ordenesService.obtenerHistorialTiempos(ordenId);
   }
 }

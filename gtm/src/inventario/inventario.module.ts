@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AutenticacionModule } from '../autenticacion/autenticacion.module';
 import { InventarioController } from './inventario.controller';
 import { MovimientoInventario } from './movimiento-inventario.entity';
 import { Repuesto } from './repuesto.entity';
@@ -11,7 +12,10 @@ import {
 import { StockBajoObservador } from './observadores/stock-bajo.observador';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Repuesto, MovimientoInventario])],
+  imports: [
+    TypeOrmModule.forFeature([Repuesto, MovimientoInventario]),
+    AutenticacionModule,
+  ],
   controllers: [InventarioController],
   providers: [
     InventarioService,

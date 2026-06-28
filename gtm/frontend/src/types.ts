@@ -1,11 +1,33 @@
-export type OrderStatus = 'Pendiente' | 'En revision' | 'En proceso' | 'Finalizada' | 'Entregada' | 'Cancelada';
+export type OrderStatus =
+  | 'Pendiente'
+  | 'En revision'
+  | 'En proceso'
+  | 'Finalizada'
+  | 'Entregada'
+  | 'Cancelada'
+  | 'En espera'
+  | 'Garantia valida';
 
-export type UserRole = 'Administrador' | 'Recepcionista' | 'Mecanico' | 'Inventario';
+export type UserRole =
+  | 'Administrador'
+  | 'Recepcionista'
+  | 'Mecanico'
+  | 'Inventario';
+
+export type UsuarioSistema = {
+  id: string;
+  nombre: string;
+  correo: string;
+  rol: UserRole;
+  activo: boolean;
+};
 
 export type WorkOrder = {
   id: string;
   client: string;
+  rutCliente?: string;
   vehicle: string;
+  patenteVehiculo?: string;
   mechanic: string;
   status: OrderStatus;
   checkIn: string;
@@ -13,6 +35,19 @@ export type WorkOrder = {
   año?: number;
   kilometraje?: number;
   diagnosticoInicial?: string;
+  costoManoObra?: number;
+  costoRepuestos?: number;
+  subtotal?: number;
+  porcentajeDescuento?: number;
+  montoDescuento?: number;
+  motivoDescuento?: string;
+  total?: number;
+  adelantoRequerido?: number;
+  totalPagado?: number;
+  saldoPendiente?: number;
+  estadoPago?: string;
+  prioridad?: boolean;
+  fechaTermino?: string;
 };
 
 export type Cliente = {
@@ -21,6 +56,9 @@ export type Cliente = {
   nombre: string;
   telefono: string;
   correo: string;
+  esRegular?: boolean;
+  porcentajeDescuentoRegular?: number;
+  membresia?: 'Ninguna' | 'Bronce' | 'Plata' | 'Oro';
 };
 
 export type Vehiculo = {
@@ -38,6 +76,7 @@ export type InventarioFormulario = {
   nombre: string;
   categoria: string;
   minimo: string;
+  precioUnitario: string;
   stock: string;
   cantidad: string;
   nota: string;
@@ -48,6 +87,7 @@ export type InventoryItem = {
   name: string;
   stock: number;
   minimum: number;
+  unitPrice: number;
   category: string;
 };
 
@@ -82,4 +122,18 @@ export type SummaryCardData = {
   value: string;
   helper: string;
   borderClass: string;
+};
+
+export type RegistroTiempo = {
+  id: string;
+  mecanico: string;
+  descripcion?: string;
+  fechaInicio: string;
+  fechaFin: string | null;
+  minutosTrabajados: number;
+};
+
+export type HistorialTiemposResponse = {
+  historial: RegistroTiempo[];
+  tiempoTotalMinutos: number;
 };

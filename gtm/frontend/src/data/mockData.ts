@@ -1,4 +1,10 @@
-import type { Cliente, InventoryItem, StockMovement, SummaryCardData, UserRole, WorkOrder } from '../types';
+import type {
+  Cliente,
+  InventoryItem,
+  StockMovement,
+  UserRole,
+  WorkOrder,
+} from '../types';
 
 export const roleOptions: { role: UserRole; description: string }[] = [
   { role: 'Administrador', description: 'Vista general del taller' },
@@ -19,122 +25,69 @@ export const roleConfig: Record<
   }
 > = {
   Administrador: {
-    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario'],
+    navItems: [
+      'Dashboard',
+      'Ordenes',
+      'Clientes',
+      'Inventario',
+      'Usuarios',
+      'Lista de Espera',
+      'Historial Garantias',
+    ],
     title: 'Dashboard administrador',
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: '',
     secondaryAction: '',
-    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios'],
+    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios', 'Ver lista de espera', 'Ver historial garantias'],
   },
   Recepcionista: {
-    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes'],
+    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes', 'Pagos', 'Historial Garantias'],
     title: 'Panel de recepcion',
     description: 'Ingreso de clientes, vehiculos y nuevas ordenes de trabajo.',
     primaryAction: 'Abrir OT',
     secondaryAction: 'Registrar cliente',
-    actions: ['Registrar cliente', 'Registrar vehiculo', 'Abrir OT', 'Consultar cupos'],
+    actions: [
+      'Registrar cliente',
+      'Registrar vehiculo',
+      'Abrir OT',
+      'Registrar pago',
+      'Ver lista de espera',
+      'Ver historial garantias',
+    ],
   },
   Mecanico: {
     navItems: ['Mis ordenes', 'Estados', 'Vehiculos'],
     title: 'Panel mecanico',
-    description: 'Ordenes asignadas para revisar, avanzar y finalizar trabajos.',
+    description:
+      'Ordenes asignadas para revisar, avanzar y finalizar trabajos.',
     primaryAction: 'Cambiar estado',
     secondaryAction: 'Ver detalle OT',
-    actions: ['Iniciar revision', 'Pasar a proceso', 'Finalizar OT', 'Solicitar repuesto'],
+    actions: [
+      'Iniciar revision',
+      'Pasar a proceso',
+      'Finalizar OT',
+      'Solicitar repuesto',
+    ],
   },
   Inventario: {
-    navItems: ['Inventario', 'Stock bajo', 'Movimientos', 'Repuestos solicitados'],
+    navItems: [
+      'Inventario',
+      'Stock bajo',
+      'Movimientos',
+      'Repuestos solicitados',
+    ],
     title: 'Panel de inventario',
     description: 'Control de repuestos, entradas, salidas y stock bajo.',
     primaryAction: 'Actualizar stock',
     secondaryAction: 'Reponer repuesto',
-    actions: ['Reponer repuesto', 'Registrar salida', 'Revisar stock bajo', 'Crear repuesto'],
+    actions: [
+      'Reponer repuesto',
+      'Registrar salida',
+      'Revisar stock bajo',
+      'Crear repuesto',
+    ],
   },
 };
-
-export const adminSummary: SummaryCardData[] = [
-  {
-    label: 'Ordenes activas',
-    value: '4',
-    helper: 'Trabajos abiertos en el taller',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-  {
-    label: 'En revision',
-    value: '1',
-    helper: 'Vehiculo esperando diagnostico',
-    borderClass: 'border-t-[#d48806]',
-  },
-  {
-    label: 'Stock bajo',
-    value: '2',
-    helper: 'Repuestos bajo el minimo definido',
-    borderClass: 'border-t-[#dc2626]',
-  },
-];
-
-export const receptionSummary: SummaryCardData[] = [
-  {
-    label: 'Cupos disponibles',
-    value: '2',
-    helper: 'Puede ingresar nuevas ordenes',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'Vehiculos en espera',
-    value: '1',
-    helper: 'Pendiente de asignar mecanico',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-  {
-    label: 'Pendientes',
-    value: '1',
-    helper: 'Orden esperando confirmacion',
-    borderClass: 'border-t-[#d48806]',
-  },
-];
-
-export const mechanicSummary: SummaryCardData[] = [
-  {
-    label: 'Mis ordenes',
-    value: '2',
-    helper: 'Asignadas para la jornada',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'En revision',
-    value: '1',
-    helper: 'Diagnostico pendiente',
-    borderClass: 'border-t-[#d48806]',
-  },
-  {
-    label: 'Finalizadas',
-    value: '1',
-    helper: 'Listas para recepcion',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-];
-
-export const inventorySummary: SummaryCardData[] = [
-  {
-    label: 'Articulos',
-    value: '3',
-    helper: 'Repuestos registrados',
-    borderClass: 'border-t-[#2563eb]',
-  },
-  {
-    label: 'Stock bajo',
-    value: '2',
-    helper: 'Requieren reposicion',
-    borderClass: 'border-t-[#dc2626]',
-  },
-  {
-    label: 'Movimientos',
-    value: '3',
-    helper: 'Entradas y salidas recientes',
-    borderClass: 'border-t-[#0f8a5f]',
-  },
-];
 
 export const workOrders: WorkOrder[] = [
   {
@@ -172,6 +125,7 @@ export const workOrders: WorkOrder[] = [
     status: 'Finalizada',
     checkIn: '05/05/2026',
     tipoServicio: 'Cambio de aceite',
+    fechaTermino: new Date().toISOString(),
   },
 ];
 
@@ -197,9 +151,27 @@ export const clientes: Cliente[] = [
 ];
 
 export const inventoryItems: InventoryItem[] = [
-  { name: 'Aceite 10W-40', category: 'Lubricantes', stock: 6, minimum: 8 },
-  { name: 'Filtro de aire', category: 'Filtros', stock: 3, minimum: 6 },
-  { name: 'Bujias', category: 'Encendido', stock: 14, minimum: 10 },
+  {
+    name: 'Aceite 10W-40',
+    category: 'Lubricantes',
+    stock: 6,
+    minimum: 8,
+    unitPrice: 18000,
+  },
+  {
+    name: 'Filtro de aire',
+    category: 'Filtros',
+    stock: 3,
+    minimum: 6,
+    unitPrice: 12000,
+  },
+  {
+    name: 'Bujias',
+    category: 'Encendido',
+    stock: 14,
+    minimum: 10,
+    unitPrice: 4500,
+  },
 ];
 
 export const stockMovements: StockMovement[] = [

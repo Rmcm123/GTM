@@ -1,4 +1,5 @@
 import type { AlertaStockBajo, InventoryItem, StockMovement } from '../types';
+import { fetchAutenticado } from './fetchAutenticado';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -6,6 +7,7 @@ export type ActualizarStockPayload = {
   nombre: string;
   categoria?: string;
   minimo?: number;
+  precioUnitario?: number;
   stock: number;
   nota?: string;
 };
@@ -14,6 +16,7 @@ export type RegistrarEntradaPayload = {
   nombre: string;
   categoria?: string;
   minimo?: number;
+  precioUnitario?: number;
   cantidad: number;
   nota?: string;
 };
@@ -30,6 +33,7 @@ type InventarioApiItem = {
   categoria?: string;
   stock: number;
   minimo: number;
+  precioUnitario: number;
 };
 
 type InventarioApiMovimiento = {
@@ -60,7 +64,7 @@ async function verificarRespuesta(respuesta: Response, mensajeError: string) {
 }
 
 export async function obtenerInventario(): Promise<InventoryItem[]> {
-  const respuesta = await fetch(`${API_URL}/inventario`);
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario`);
   await verificarRespuesta(respuesta, 'No se pudo cargar el inventario');
   const data: InventarioApiItem[] = await respuesta.json();
 
@@ -70,11 +74,12 @@ export async function obtenerInventario(): Promise<InventoryItem[]> {
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   }));
 }
 
 export async function obtenerMovimientosInventario(): Promise<StockMovement[]> {
-  const respuesta = await fetch(`${API_URL}/inventario/movimientos`);
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/movimientos`);
   await verificarRespuesta(respuesta, 'No se pudieron cargar los movimientos');
   const data: InventarioApiMovimiento[] = await respuesta.json();
 
@@ -87,21 +92,31 @@ export async function obtenerMovimientosInventario(): Promise<StockMovement[]> {
 }
 
 export async function obtenerAlertasStockBajo(): Promise<AlertaStockBajo[]> {
-  const respuesta = await fetch(`${API_URL}/inventario/alertas-stock-bajo`);
-  await verificarRespuesta(respuesta, 'No se pudieron cargar las alertas de stock bajo');
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/inventario/alertas-stock-bajo`,
+  );
+  await verificarRespuesta(
+    respuesta,
+    'No se pudieron cargar las alertas de stock bajo',
+  );
   const data: InventarioApiAlertaStockBajo[] = await respuesta.json();
 
   return data;
 }
 
-export async function actualizarStockInventario(payload: ActualizarStockPayload): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/actualizar-stock`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+export async function actualizarStockInventario(
+  payload: ActualizarStockPayload,
+): Promise<InventoryItem> {
+  const respuesta = await fetchAutenticado(
+    `${API_URL}/inventario/actualizar-stock`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 
   await verificarRespuesta(respuesta, 'No se pudo actualizar el stock');
   const item: InventarioApiItem = await respuesta.json();
@@ -112,11 +127,14 @@ export async function actualizarStockInventario(payload: ActualizarStockPayload)
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }
 
-export async function registrarEntradaInventario(payload: RegistrarEntradaPayload): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/entrada`, {
+export async function registrarEntradaInventario(
+  payload: RegistrarEntradaPayload,
+): Promise<InventoryItem> {
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/entrada`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -133,11 +151,14 @@ export async function registrarEntradaInventario(payload: RegistrarEntradaPayloa
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }
 
-export async function registrarSalidaInventario(payload: RegistrarSalidaPayload): Promise<InventoryItem> {
-  const respuesta = await fetch(`${API_URL}/inventario/salida`, {
+export async function registrarSalidaInventario(
+  payload: RegistrarSalidaPayload,
+): Promise<InventoryItem> {
+  const respuesta = await fetchAutenticado(`${API_URL}/inventario/salida`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -154,5 +175,6 @@ export async function registrarSalidaInventario(payload: RegistrarSalidaPayload)
     category: item.categoria ?? 'General',
     stock: item.stock,
     minimum: item.minimo,
+    unitPrice: item.precioUnitario,
   };
 }

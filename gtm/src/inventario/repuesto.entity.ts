@@ -23,6 +23,9 @@ export class Repuesto {
   @Column({ type: 'int', default: 0 })
   minimo!: number;
 
+  @Column({ name: 'precio_unitario', type: 'int', default: 0 })
+  precioUnitario!: number;
+
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn!: Date;
 

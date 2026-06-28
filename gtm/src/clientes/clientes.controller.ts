@@ -1,9 +1,23 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { Roles } from '../autenticacion/decorators/roles.decorator';
+import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
+import { RolesGuard } from '../autenticacion/guards/roles.guard';
+import { RolUsuario } from '../usuarios/usuario.entity';
 import { ClientesService } from './clientes.service';
 import type { ClienteRespuestaDto } from './dto/cliente-respuesta.dto';
 import type { CrearClienteDto } from './dto/crear-cliente.dto';
 import type { ActualizarClienteDto } from './dto/actualizar-cliente.dto';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RolUsuario.Administrador, RolUsuario.Recepcionista)
 @Controller('clientes')
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}

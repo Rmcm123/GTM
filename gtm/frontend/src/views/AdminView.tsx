@@ -3,6 +3,7 @@ import { ActionPanel } from '../components/ActionPanel';
 import { OrdersTable } from '../components/OrdersTable';
 import { Panel } from '../components/Panel';
 import { SummaryCards } from '../components/SummaryCards';
+import { HistorialGarantiasPanel } from '../components/HistorialGarantiasPanel';
 import { roleConfig } from '../data/mockData';
 import type { AlertaStockBajo, Cliente, InventoryItem, RepuestoSolicitado, WorkOrder } from '../types';
 
@@ -20,6 +21,7 @@ export function AdminView({
   guardandoClienteActualizado,
   mensajeFormulario,
   onActivarOrden,
+  onActualizarEstadoOT,
 }: {
   activeSection: string;
   ordenes: WorkOrder[];
@@ -32,6 +34,7 @@ export function AdminView({
   onActualizarCliente?: (rut: string, cliente: ActualizarClientePayload) => Promise<boolean>;
   guardandoClienteActualizado?: boolean;
   mensajeFormulario?: string | null;
+  onActualizarEstadoOT?: (id: string, nuevoEstado: any) => void;
 }) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [editClientRut, setEditClientRut] = useState<string | null>(null);
@@ -40,6 +43,19 @@ export function AdminView({
   const selectedOrder = ordenes.find((o) => o.id === selectedOrderId) || null;
   const repuestosOrden = selectedOrder ? repuestosSolicitados.filter((r) => r.ordenTrabajo === selectedOrder.id) : [];
   const ordenesEspera = ordenes.filter((o) => o.status === 'En espera');
+
+  if (activeSection === 'Historial Garantias') {
+    return (
+      <HistorialGarantiasPanel
+        ordenes={ordenes}
+        onValidarGarantia={(id) => {
+          if (onActualizarEstadoOT) {
+            onActualizarEstadoOT(id, 'Garantia valida');
+          }
+        }}
+      />
+    );
+  }
 
   if (activeSection === 'Lista de Espera') {
     const esperaOrdenadas = [...ordenesEspera].sort((a, b) => parseInt(a.id.replace('OT-', '')) - parseInt(b.id.replace('OT-', '')));

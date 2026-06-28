@@ -6,6 +6,7 @@ import { ReceptionPanel } from '../components/ReceptionPanel';
 import { SummaryCards } from '../components/SummaryCards';
 import { VehiclesPanel } from '../components/VehiclesPanel';
 import { WorkOrdersPanel } from '../components/WorkOrdersPanel';
+import { HistorialGarantiasPanel } from '../components/HistorialGarantiasPanel';
 import type { CrearClientePayload } from '../api/clientesApi';
 import type { CrearOrdenTrabajoPayload } from '../api/ordenesTrabajoApi';
 import type { RegistrarPagoPayload } from '../api/pagosApi';
@@ -88,6 +89,7 @@ export function ReceptionView({
   ordenes,
   onNavigate,
   onActivarOrden,
+  onActualizarEstadoOT,
 }: {
   activeSection: string;
   cargandoClientes: boolean;
@@ -107,7 +109,21 @@ export function ReceptionView({
   ordenes: WorkOrder[];
   onNavigate: (section: string) => void;
   onActivarOrden?: (id: string) => Promise<boolean>;
+  onActualizarEstadoOT?: (id: string, nuevoEstado: any) => void;
 }) {
+  if (activeSection === 'Historial Garantias') {
+    return (
+      <HistorialGarantiasPanel
+        ordenes={ordenes}
+        onValidarGarantia={(id) => {
+          if (onActualizarEstadoOT) {
+            onActualizarEstadoOT(id, 'Garantia valida');
+          }
+        }}
+      />
+    );
+  }
+
   if (activeSection === 'Lista de Espera') {
     const ordenesEspera = ordenes.filter((o) => o.status === 'En espera');
     const esperaOrdenadas = [...ordenesEspera].sort((a, b) => parseInt(a.id.replace('OT-', '')) - parseInt(b.id.replace('OT-', '')));

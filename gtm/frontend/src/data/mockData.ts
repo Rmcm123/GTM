@@ -26,15 +26,15 @@ export const roleConfig: Record<
   }
 > = {
   Administrador: {
-    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario'],
+    navItems: ['Dashboard', 'Ordenes', 'Clientes', 'Inventario', 'Historial Garantias'],
     title: 'Dashboard administrador',
     description: 'Vista general para supervisar el funcionamiento del taller.',
     primaryAction: '',
     secondaryAction: '',
-    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios', 'Ver lista de espera'],
+    actions: ['Ver ordenes', 'Ver inventario', 'Gestionar usuarios', 'Ver lista de espera', 'Ver historial garantias'],
   },
   Recepcionista: {
-    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes', 'Pagos'],
+    navItems: ['Recepcion', 'Clientes', 'Vehiculos', 'Ordenes', 'Pagos', 'Historial Garantias'],
     title: 'Panel de recepcion',
     description: 'Ingreso de clientes, vehiculos y nuevas ordenes de trabajo.',
     primaryAction: 'Abrir OT',
@@ -45,6 +45,7 @@ export const roleConfig: Record<
       'Abrir OT',
       'Registrar pago',
       'Ver lista de espera',
+      'Ver historial garantias',
     ],
   },
   Mecanico: {
@@ -201,6 +202,7 @@ export const workOrders: WorkOrder[] = [
     status: 'Finalizada',
     checkIn: '05/05/2026',
     tipoServicio: 'Cambio de aceite',
+    fechaTermino: new Date().toISOString(),
   },
 ];
 

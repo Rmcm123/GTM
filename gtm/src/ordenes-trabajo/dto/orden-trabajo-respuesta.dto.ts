@@ -27,4 +27,5 @@ export type OrdenTrabajoRespuestaDto = {
   saldoPendiente: number;
   estadoPago: EstadoPagoOrden;
   prioridad?: boolean;
+  fechaTermino?: string;
 };

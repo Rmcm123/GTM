@@ -61,6 +61,7 @@ const estadoClass: Record<WorkOrder['status'], string> = {
   Finalizada: 'bg-[#e5f7f8] text-[#0f6872]',
   Entregada: 'bg-[#ecfdf5] text-[#047857]',
   Cancelada: 'bg-[#fef2f2] text-[#b91c1c]',
+  'Garantia valida': 'bg-[#ecfdf5] text-[#047857]',
 };
 
 const estadoPagoClass: Record<string, string> = {

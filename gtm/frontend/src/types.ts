@@ -5,7 +5,8 @@ export type OrderStatus =
   | 'Finalizada'
   | 'Entregada'
   | 'Cancelada'
-  | 'En espera';
+  | 'En espera'
+  | 'Garantia valida';
 
 export type UserRole =
   | 'Administrador'
@@ -36,6 +37,7 @@ export type WorkOrder = {
   saldoPendiente?: number;
   estadoPago?: string;
   prioridad?: boolean;
+  fechaTermino?: string;
 };
 
 export type Cliente = {

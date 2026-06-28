@@ -27,6 +27,7 @@ type OrdenTrabajoApi = {
   saldoPendiente?: number;
   estadoPago?: string;
   prioridad?: boolean;
+  fechaTermino?: string;
 };
 
 export type CrearOrdenTrabajoPayload = {
@@ -63,6 +64,7 @@ function convertirOrdenApi(orden: OrdenTrabajoApi): WorkOrder {
     saldoPendiente: orden.saldoPendiente,
     estadoPago: orden.estadoPago,
     prioridad: orden.prioridad,
+    fechaTermino: orden.fechaTermino,
   };
 }
 

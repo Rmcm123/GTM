@@ -127,6 +127,7 @@ export function RoleDashboard({
         ordenes={ordenes}
         onNavigate={onNavigate}
         onActivarOrden={onActivarOrden}
+        onActualizarEstadoOT={onActualizarEstadoOT}
       />
     );
   }
@@ -175,6 +176,7 @@ export function RoleDashboard({
       onActualizarCliente={onActualizarCliente}
       guardandoClienteActualizado={guardandoClienteActualizado}
       mensajeFormulario={mensajeFormulario}
+      onActualizarEstadoOT={onActualizarEstadoOT}
     />
   );
 }

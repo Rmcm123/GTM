@@ -107,10 +107,11 @@ export class OrdenesTrabajoService {
 
     if (
       orden.estado === EstadoOrdenTrabajo.Finalizada &&
-      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada
+      datosActualizacion.estado !== EstadoOrdenTrabajo.Entregada &&
+      datosActualizacion.estado !== EstadoOrdenTrabajo.GarantiaValida
     ) {
       throw new BadRequestException(
-        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada.',
+        'Esta orden ya fue finalizada. Solo puede cambiar a Entregada o Garantia valida.',
       );
     }
 
@@ -326,6 +327,16 @@ export class OrdenesTrabajoService {
         'La orden debe estar Finalizada antes de marcarse como Entregada',
       );
     }
+
+    if (
+      nuevoEstado === EstadoOrdenTrabajo.GarantiaValida &&
+      orden.estado !== EstadoOrdenTrabajo.Finalizada &&
+      orden.estado !== EstadoOrdenTrabajo.Entregada
+    ) {
+      throw new BadRequestException(
+        'La orden debe estar Finalizada o Entregada para validar la garantia',
+      );
+    }
   }
 
   private aplicarPresupuesto(
@@ -398,6 +409,7 @@ export class OrdenesTrabajoService {
       totalPagado: orden.totalPagado,
       saldoPendiente: orden.saldoPendiente,
       estadoPago: orden.estadoPago,
+      fechaTermino: orden.actualizadoEn?.toISOString(),
     };
   }
 }

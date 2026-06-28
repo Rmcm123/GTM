@@ -21,6 +21,7 @@ export enum EstadoOrdenTrabajo {
   Entregada = 'Entregada',
   Cancelada = 'Cancelada',
   EnEspera = 'En espera',
+  GarantiaValida = 'Garantia valida',
 }
 
 export enum EstadoPagoOrden {

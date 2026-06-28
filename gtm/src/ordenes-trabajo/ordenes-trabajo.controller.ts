@@ -83,7 +83,11 @@ export class OrdenesTrabajoController {
     return this.facade.actualizarEstado(id, datosActualizacion.estado);
   }
 
-  @Roles(RolUsuario.Administrador, RolUsuario.Recepcionista, RolUsuario.Mecanico)
+  @Roles(
+    RolUsuario.Administrador,
+    RolUsuario.Recepcionista,
+    RolUsuario.Mecanico,
+  )
   @Patch(':id/repuestos')
   agregarRepuestos(
     @Param('id', ParseIntPipe) id: number,

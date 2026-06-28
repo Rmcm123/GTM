@@ -15,7 +15,13 @@ import { OrdenesTrabajoService } from './ordenes-trabajo.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrdenTrabajo, Cliente, Vehiculo, RegistroTiempo, Usuario]),
+    TypeOrmModule.forFeature([
+      OrdenTrabajo,
+      Cliente,
+      Vehiculo,
+      RegistroTiempo,
+      Usuario,
+    ]),
     AutenticacionModule,
     DescuentosModule,
     InventarioModule,

@@ -44,7 +44,7 @@ describe('JwtAuthGuard', () => {
       buscarPorId: jest.fn().mockResolvedValue(usuario),
     };
     const guard = new JwtAuthGuard(
-      jwtService as never,
+      jwtService,
       configService as never,
       usuariosService as never,
     );

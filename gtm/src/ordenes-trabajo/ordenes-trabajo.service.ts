@@ -203,7 +203,9 @@ export class OrdenesTrabajoService {
       });
 
       if (!orden) {
-        throw new NotFoundException('No existe una orden de trabajo con ese id');
+        throw new NotFoundException(
+          'No existe una orden de trabajo con ese id',
+        );
       }
 
       if (
@@ -268,7 +270,9 @@ export class OrdenesTrabajoService {
 
     const hayCupo = await this.validarCuposDisponibles();
     if (!hayCupo) {
-      throw new BadRequestException('No hay cupos disponibles. Finaliza otra orden primero.');
+      throw new BadRequestException(
+        'No hay cupos disponibles. Finaliza otra orden primero.',
+      );
     }
 
     orden.estado = EstadoOrdenTrabajo.Pendiente;
@@ -345,7 +349,8 @@ export class OrdenesTrabajoService {
     let tiempoTotalMinutos = 0;
     historial.forEach((registro) => {
       if (registro.fechaFin) {
-        const diffMs = registro.fechaFin.getTime() - registro.fechaInicio.getTime();
+        const diffMs =
+          registro.fechaFin.getTime() - registro.fechaInicio.getTime();
         tiempoTotalMinutos += Math.floor(diffMs / 60000);
       } else {
         // Si está en curso, sumamos hasta ahora
@@ -362,8 +367,12 @@ export class OrdenesTrabajoService {
         fechaInicio: reg.fechaInicio,
         fechaFin: reg.fechaFin,
         minutosTrabajados: reg.fechaFin
-          ? Math.floor((reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000)
-          : Math.floor((new Date().getTime() - reg.fechaInicio.getTime()) / 60000),
+          ? Math.floor(
+              (reg.fechaFin.getTime() - reg.fechaInicio.getTime()) / 60000,
+            )
+          : Math.floor(
+              (new Date().getTime() - reg.fechaInicio.getTime()) / 60000,
+            ),
       })),
       tiempoTotalMinutos,
     };

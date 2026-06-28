@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VehiculosController } from './vehiculos.controller';
 import { VehiculosService } from './vehiculos.service';
+import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
+import { RolesGuard } from '../autenticacion/guards/roles.guard';
 
 describe('VehiculosController', () => {
   let controller: VehiculosController;
@@ -18,7 +20,12 @@ describe('VehiculosController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VehiculosController],
       providers: [{ provide: VehiculosService, useValue: service }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<VehiculosController>(VehiculosController);
   });

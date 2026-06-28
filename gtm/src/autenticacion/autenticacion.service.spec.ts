@@ -47,7 +47,7 @@ function crearDependencias(usuario: Usuario | null = crearUsuario()) {
   };
   const service = new AutenticacionService(
     usuariosService as never,
-    jwtService as never,
+    jwtService,
     configService as never,
   );
 

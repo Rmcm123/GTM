@@ -9,18 +9,20 @@ import { PagosService } from './pagos.service';
 function crearServiceConTransaccion(orden: Record<string, unknown>) {
   const repositorioOrdenesTrabajo = {
     findOne: jest.fn().mockResolvedValue(orden),
-    save: jest.fn().mockImplementation(async (entidad) => entidad),
+    save: jest.fn().mockImplementation((entidad) => Promise.resolve(entidad)),
   };
   const repositorioPagos = {
-    create: jest.fn().mockImplementation((entidad) => entidad),
-    save: jest.fn().mockImplementation(async (entidad) => ({
-      id: 'pago-1',
-      creadoEn: new Date('2026-06-27T12:00:00.000Z'),
-      ...entidad,
-    })),
+    create: jest.fn().mockImplementation((entidad: unknown) => entidad),
+    save: jest.fn().mockImplementation((entidad) =>
+      Promise.resolve({
+        id: 'pago-1',
+        creadoEn: new Date('2026-06-27T12:00:00.000Z'),
+        ...entidad,
+      }),
+    ),
   };
   const dataSource = {
-    transaction: jest.fn((callback) =>
+    transaction: jest.fn((callback: (manager: unknown) => Promise<unknown>) =>
       callback({
         getRepository: (entidad: { name: string }) =>
           entidad.name === 'Pago'

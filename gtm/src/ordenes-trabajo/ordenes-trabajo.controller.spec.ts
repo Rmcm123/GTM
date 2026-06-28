@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OrdenesTrabajoController } from './ordenes-trabajo.controller';
 import { OrdenesTrabajoFacade } from './ordenes-trabajo.facade';
 import { EstadoOrdenTrabajo } from './orden-trabajo.entity';
+import { JwtAuthGuard } from '../autenticacion/guards/jwt-auth.guard';
+import { RolesGuard } from '../autenticacion/guards/roles.guard';
 
 describe('OrdenesTrabajoController', () => {
   let controller: OrdenesTrabajoController;
@@ -18,7 +20,12 @@ describe('OrdenesTrabajoController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrdenesTrabajoController],
       providers: [{ provide: OrdenesTrabajoFacade, useValue: facade }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<OrdenesTrabajoController>(OrdenesTrabajoController);
   });
